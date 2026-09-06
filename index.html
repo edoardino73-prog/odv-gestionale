@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuore d'Argento - Cloud Management</title>
+    
+    <!-- Librerie Font e Icone -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Librerie Funzionali PDF e QR Code -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Script pre-caricamento per Google Maps -->
+    <script>
+        window.initMapAutocomplete = function() {
+            const campiIndirizzo = ['partenza', 'destinazione', 'd-partenza', 'd-arrivo'];
+            campiIndirizzo.forEach(function(id) {
+                const input = document.getElementById(id);
+                if (input && window.google && google.maps && google.maps.places) {
+                    new google.maps.places.Autocomplete(input, {
+                        componentRestrictions: { country: "it" },
+                        fields: ["formatted_address", "name"]
+                    });
+                }
+            });
+        };
+    </script>
+    
+    <!-- Google Maps Places API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBeHOqzhD1Z5fCV6oleFEVPj9Cs5XMNn60&libraries=places&callback=initMapAutocomplete" async defer></script>
+
+    <!-- FIREBASE SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #c62828; --primary-dark: #8e0000; --secondary: #1e293b;
+            --bg-body: #e2e8f0; --bg-panel: #ffffff; --text-main: #334155; --text-light: #94a3b8;
+            --border: #cbd5e1; --alert-green: #84cc16; --alert-red: #ef4444;
+            --success: #10b981; --warning: #f59e0b; --info: #3b82f6;
+            --radius: 8px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent;}
+        body { display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-body); overflow: hidden; }
+
+        /* --- OVERLAY DI LOGIN --- */
+        #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--secondary), #0f172a); z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.4s; }
+        .login-box { background: white; padding: 40px 30px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; }
+        .login-box h2 { color: var(--primary); font-weight: 800; margin-bottom: 5px; font-size: 1.5rem;}
+        .login-box p { color: var(--text-light); font-size: 0.85rem; margin-bottom: 25px; }
+
+        /* --- OVERLAY VERIFICA QR CODE --- */
+        #verify-screen { position: fixed; inset: 0; background: var(--bg-body); z-index: 99999; display: none; align-items: center; justify-content: center; flex-direction: column; padding: 20px; }
+        .verify-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 400px; text-align: center; border: 1px solid var(--border); }
+        .verify-header { background: var(--primary); padding: 30px 20px; color: white; }
+        .verify-body { padding: 0 20px 30px 20px; }
+        .verify-foto { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 5px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.15); margin-top: -65px; background: white; }
+
+        /* --- TOP BAR --- */
+        .topbar { height: 60px; background: linear-gradient(to bottom, #ffffff, #f1f5f9); border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 10; }
+        .topbar-left { display: flex; align-items: center; gap: 15px; }
+        .topbar-btn { background: transparent; border: 1px solid var(--border); padding: 6px 12px; border-radius: 4px; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .topbar-btn:hover { background: #e2e8f0; }
+        .topbar-btn.home-btn { background: var(--secondary); color: white; border: none; }
+        .topbar-btn.home-btn:hover { background: #0f172a; }
+        .topbar-center { font-size: 0.85rem; color: var(--text-main); font-weight: 600; background: #e2e8f0; padding: 6px 15px; border-radius: 20px;}
+        .topbar-right { display: flex; align-items: center; gap: 15px; }
+        .alert-scadenze { background-color: var(--alert-green); color: white; border: 1px solid #65a30d; padding: 8px 15px; border-radius: 4px; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: uppercase; }
+        .alert-scadenze.urgenti { background-color: var(--alert-red); border-color: #b91c1c; animation: pulse-red 2s infinite; }
+        
+        .brand-logo { display: flex; align-items: center; gap: 8px; background: var(--primary); padding: 5px 12px; border-radius: 6px; color: white; box-shadow: 0 2px 5px rgba(198, 40, 40, 0.3); }
+        .brand-logo i { font-size: 1.3rem; }
+        .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+        .brand-text span:first-child { font-weight: 800; font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;}
+        .brand-text span:last-child { font-size: 0.65rem; font-weight: 500; opacity: 0.9; }
+
+        /* --- SIDEBAR --- */
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 280px; background: #ffffff; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; z-index: 5; }
+        .sidebar-title { background: linear-gradient(to right, var(--secondary), #334155); color: white; padding: 12px 15px; font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between;}
+        .tree-menu { list-style: none; padding: 10px; }
+        .tree-folder { margin-bottom: 5px; }
+        .tree-header { display: flex; align-items: center; gap: 8px; padding: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-main); cursor: pointer; border-radius: 4px; transition: 0.2s; }
+        .tree-header:hover { background: #f1f5f9; }
+        .tree-header i.folder-icon { color: #eab308; }
+        .tree-items { list-style: none; margin-left: 20px; border-left: 1px dashed var(--border); padding-left: 10px; display: none; }
+        .tree-folder.open .tree-items { display: block; }
+        .tree-folder.open .fa-chevron-right { transform: rotate(90deg); }
+        .tree-item { padding: 6px 8px; font-size: 0.85rem; color: var(--text-main); cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 8px; font-weight: 500;}
+        .tree-item:hover { background: #f1f5f9; color: var(--primary); }
+        .tree-item.active { background: #fee2e2; color: var(--primary); font-weight: 700; border-right: 3px solid var(--primary); }
+        .sidebar-bottom-tabs { margin-top: auto; border-top: 1px solid var(--border); }
+        .side-tab { padding: 10px 15px; font-size: 0.85rem; font-weight: 600; color: var(--text-light); border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .side-tab.active { background: linear-gradient(to right, #fef2f2, #ffffff); color: var(--primary); border-left: 4px solid var(--primary); }
+
+        /* --- DASHBOARD AREA --- */
+        .dashboard-area { flex: 1; position: relative; display: flex; flex-direction: column; overflow: hidden; cursor: default; }
+        .dash-header { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: #f8fafc; }
+        .tab-content { display: none; flex: 1; flex-direction: column; padding: 20px; overflow-y: auto; gap: 1.2rem; }
+        .tab-content.active { display: flex; }
+
+        /* --- STILI COMPONENTI --- */
+        .desktop-shortcuts { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; align-content: start; justify-items: center; }
+        .shortcut-btn { background: linear-gradient(to bottom, #ffffff, #f8fafc); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 280px; height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.2s; position: relative; }
+        .shortcut-btn:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: var(--primary); }
+        .shortcut-icon { font-size: 3rem; color: var(--secondary); transition: 0.2s; }
+        .shortcut-btn:hover .shortcut-icon { color: var(--primary); }
+        .shortcut-label { font-size: 0.9rem; font-weight: 700; color: var(--text-main); text-align: center; padding: 0 10px; line-height: 1.2;}
+        .badge-numero { position: absolute; top: -10px; right: -10px; background: var(--alert-red); color: white; font-weight: 700; font-size: 0.8rem; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        .glass-panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .panel-header { font-size: 1.1rem; font-weight: 700; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+        .stat-card { padding: 1.2rem; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); }
+        .stat-info h4 { color: var(--text-light); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px;}
+        .stat-info .num { font-size: 2rem; font-weight: 800; line-height: 1.1; color: var(--text-main); }
+        .stat-icon { font-size: 2.5rem; color: #e2e8f0; opacity: 0.8;}
+
+        .view-controls { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+        .filter-group { display: flex; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 6px; border: 1px solid var(--border); }
+        .filter-btn { padding: 5px 12px; border-radius: 4px; border: none; background: transparent; color: var(--text-main); font-weight: 600; font-size: 0.8rem; cursor: pointer; }
+        .filter-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        .search-box { position: relative; flex: 1; min-width: 180px; max-width: 300px; }
+        .search-box i { position: absolute; left: 12px; top: 10px; color: var(--text-light); font-size: 0.85rem; }
+        .search-box input { width: 100%; padding: 8px 12px 8px 32px; border-radius: 20px; border: 1px solid var(--border); outline: none; font-size: 0.85rem; }
+
+        .table-container { border-radius: var(--radius); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1000px; background: white;}
+        th { padding: 12px; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-main); background: #f8fafc; border-bottom: 2px solid var(--border); }
+        td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.85rem; color: var(--text-main); }
+        tr:hover td { background: #f1f5f9; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
+
+        .btn { padding: 8px 15px; border-radius: 6px; font-weight: 600; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem; transition: 0.2s;}
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-ghost { background: transparent; color: var(--text-main); border-color: var(--border); }
+        .btn-ghost:hover { background: #f1f5f9; }
+        
+        .turni-board { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; align-items: stretch; min-height: 300px;}
+        .turni-board::-webkit-scrollbar { height: 8px; }
+        .turni-board::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .turno-day-col { flex: 0 0 280px; background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; }
+        .turno-day-header { padding: 12px 10px; background: var(--secondary); color: white; font-weight: 700; text-align: center; border-radius: var(--radius) var(--radius) 0 0; font-size: 0.9rem;}
+        .turno-day-header.today { background: var(--primary); }
+        .turno-cards { padding: 10px; display: flex; flex-direction: column; gap: 12px; flex: 1;}
+        .turno-card { background: white; border: 1px solid var(--border); border-left: 4px solid var(--text-light); border-radius: 6px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); position: relative;}
+        .turno-card.coperto { border-left-color: var(--success); }
+        .turno-card.parziale { border-left-color: var(--warning); }
+        .turno-card.scoperto { border-left-color: var(--alert-red); }
+        .turno-card-time { font-size: 0.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;}
+        .turno-card-role { font-size: 0.8rem; display: flex; justify-content: space-between; margin-top: 6px; align-items: center;}
+        .turno-card-actions { display: flex; gap: 6px; margin-top: 12px; justify-content: flex-end; border-top: 1px dashed var(--border); padding-top: 8px; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 1rem; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal { background: var(--bg-panel); width: 100%; max-width: 850px; max-height: 95vh; overflow-y: auto; border-radius: 12px; padding: 2rem; transform: scale(0.95); transition: 0.2s; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .modal-overlay.active .modal { transform: scale(1); }
+        
+        .form-section-title { font-size: 0.9rem; font-weight: 700; color: var(--primary); margin: 1.5rem 0 0.8rem 0; border-bottom: 2px solid var(--border); padding-bottom: 4px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+        .full-width { grid-column: 1 / -1; }
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        .input-group label { font-size: 0.75rem; font-weight: 600; color: var(--text-main); text-transform: uppercase; }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; font-weight: 500; outline: none; background: #f8fafc; font-family: 'Inter', sans-serif;}
+        .input-group textarea { resize: vertical; min-height: 80px; }
+        .input-group input[type="checkbox"] { width: auto; margin-right: 8px; transform: scale(1.2); }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--primary); background: white; }
+
+        #toast-container { position: fixed; bottom: 25px; right: 25px; z-index: 200; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast { background: white; color: var(--text-main); border-left: 4px solid var(--success); padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); animation: slideIn 0.3s forwards; display: flex; align-items: center; gap: 8px; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* TESSERA ID CARD STYLE */
+        .tessera-card { width: 250px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; position: relative; margin: 0 auto; border: 1px solid var(--border); }
+        .tessera-header { background: var(--primary); padding: 20px 10px; color: white; }
+        .tessera-body { padding: 25px 20px; }
+        #qrcode-container { display: flex; justify-content: center; margin-bottom: 15px; }
+
+        @media (max-width: 900px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; flex-direction: row; height: 65px; border-bottom: 1px solid var(--border); z-index: 50; overflow-x: auto;}
+            .sidebar-header { display: none; }
+            .nav-menu { flex-direction: row; justify-content: flex-start; padding: 0; width: max-content; }
+            .nav-section-title { display: none; }
+            .nav-item { flex-direction: column; padding: 8px 12px; font-size: 0.7rem; gap: 2px; border-left: none; border-bottom: 3px solid transparent; }
+            .nav-item.active { border-left: none; border-bottom-color: var(--primary); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAY VERIFICA TESSERA ELETTRONICA (Attivato da QR Code) -->
+    <div id="verify-screen">
+        <div style="color:var(--text-main); font-weight:600; text-align:center;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color:var(--primary); margin-bottom:15px;"></i><br>
+            Connessione al database in corso per verifica identità...
+        </div>
+    </div>
+
+    <!-- OVERLAY LOGIN TRACCIABILITA' E SICUREZZA -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h2><i class="fa-solid fa-truck-medical"></i> Cloud Gestione</h2>
+            <p>Accesso Piattaforma Operativa</p>
+            <form id="login-form">
+                <div class="input-group" style="text-align: left; margin-bottom: 15px;">
+                    <label>Seleziona Utente / Volontario</label>
+                    <select id="login-user" class="form-control" required>
+                        <option value="Admin Direzione">Admin Direzione (Emergenza)</option>
+                    </select>
+                </div>
+                <div class="input-group" style="text-align: left; margin-bottom: 25px;">
+                    <label>PIN di Sicurezza Personale</label>
+                    <input type="password" id="login-pin" class="form-control" placeholder="Inserisci il PIN (Es. 0000)" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem;">
+                    <i class="fa-solid fa-lock-open"></i> Accedi al Gestionale
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <datalist id="destinazioni-asl">
+        <option value="Ospedale S. Maria di Terni">
+        <option value="Ospedale di Narni">
+        <option value="Ospedale di Amelia">
+        <option value="Ospedale S. Giovanni Battista - Foligno">
+        <option value="Ospedale S. Matteo degli Infermi - Spoleto">
+        <option value="Sede ASL Umbria 2">
+    </datalist>
+    <datalist id="lista-pazienti"></datalist>
+
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="topbar-btn home-btn" onclick="switchMainTab('desktop')"><i class="fa-solid fa-desktop"></i> Pannello Controllo</button>
+            <button class="topbar-btn" onclick="salvaTutto()"><i class="fa-solid fa-cloud" style="color:var(--success)"></i> Sincronizza Cloud</button>
+            <!-- COLLEGAMENTO AL PORTALE ISO 9001 -->
+            <button class="topbar-btn" onclick="window.open('https://iso9001-odv-cuoredargento.netlify.app', '_blank')" style="border-color: #8b5cf6; color: #8b5cf6; font-weight: 700;" title="Apri il portale dedicato alla qualità e ISO 9001">
+                <i class="fa-solid fa-medal"></i> Portale ISO 9001
+            </button>
+        </div>
+        <div class="topbar-center">
+            <i class="fa-solid fa-user-check" style="color: #16a34a;"></i> 
+            <span style="letter-spacing: 0.5px;">Utente: <strong id="topbar-user-name">Nessuno</strong></span>
+        </div>
+        <div class="topbar-right">
+            <div id="topbar-alert" class="alert-scadenze" onclick="switchMainTab('volontari')">
+                <i class="fa-solid fa-shield-check"></i> Tutto Regolare
+            </div>
+            <div class="brand-logo">
+                <i class="fa-solid fa-file-medical"></i>
+                <div class="brand-text">
+                    <span id="logo-ente-nome">CUORE D'ARGENTO</span>
+                    <span>OdV Terni</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-title">Menu Moduli <i class="fa-solid fa-bars"></i></div>
+            <ul class="tree-menu">
+                <li class="tree-folder open">
+                    <div class="tree-header" onclick="toggleFolder(this)"><i class="fa-solid fa-chevron-right" style="font-size:0.7rem; transition:0.2s;"></i> <i class="fa-solid fa-chart-pie folder-icon" style="color:#f59e0b;"></i> Direzione & Statistiche</div>
+                    <ul class="tree-items">
+                        <li class="tree-item" id="nav-statistiche" onclick="switchMainTab('statistiche')"><i class="fa-solid fa-chart-line"></i> Cruscotto KPI Operativi</li>
+                    </ul>
+                </li>
+                <li class="tree-folder open">
+                    <div class="tree-header" onclick="toggleFolder(this)"><i class="fa-solid fa-chevron-right" style="font-size:0.7rem; transition:0.2s;"></i> <i class="fa-solid fa-folder folder-icon"></i> Anagrafiche & Compliance</div>
+                    <ul class="tree-items">
+                        <li class="tree-item" id="nav-volontari" onclick="switchMainTab('volontari')"><i class="fa-solid fa-address-book"></i> Volontari & Formazione</li>
+                        <li class="tree-item" id="nav-mezzi" onclick="switchMainTab('mezzi')"><i class="fa-solid fa-truck"></i> Parco Mezzi & Assicurazioni</li>
+                        <li class="tree-item" id="nav-checklist" onclick="switchMainTab('checklist')"><i class="fa-solid fa-clipboard-check" style="color:var(--primary)"></i> Storico Checklist Mezzi</li>
+                    </ul>
+                </li>
+                <li class="tree-folder open">
+                    <div class="tree-header" onclick="toggleFolder(this)"><i class="fa-solid fa-chevron-right" style="font-size:0.7rem; transition:0.2s;"></i> <i class="fa-solid fa-folder folder-icon"></i> Trasporti & Servizi</div>
+                    <ul class="tree-items">
+                        <li class="tree-item" id="nav-turni" onclick="switchMainTab('turni')"><i class="fa-solid fa-user-clock"></i> Gestione Turni Equipaggi</li>
+                        <li class="tree-item" id="nav-operativo" onclick="switchMainTab('operativo')"><i class="fa-solid fa-list-check"></i> Monitor Operativo Viaggi</li>
+                        <li class="tree-item" id="nav-calendario" onclick="switchMainTab('calendario')"><i class="fa-solid fa-calendar-days"></i> Google Calendar Condiviso</li>
+                        <li class="tree-item" onclick="apriModaleServizio()"><i class="fa-solid fa-plus-circle" style="color:var(--success)"></i> Inserisci Nuovo Servizio</li>
+                        <li class="tree-item" onclick="apriModaleDialisi()"><i class="fa-solid fa-calendar-days" style="color:var(--info)"></i> Pianifica Dialisi</li>
+                    </ul>
+                </li>
+                <li class="tree-folder open">
+                    <div class="tree-header" onclick="toggleFolder(this)"><i class="fa-solid fa-chevron-right" style="font-size:0.7rem; transition:0.2s;"></i> <i class="fa-solid fa-clipboard-check folder-icon" style="color:#10b981;"></i> Sanificazione</div>
+                    <ul class="tree-items">
+                        <li class="tree-item" id="nav-sanificazioni" onclick="switchMainTab('sanificazioni')"><i class="fa-solid fa-spray-can-sparkles"></i> Registro Sanificazioni</li>
+                    </ul>
+                </li>
+                <li class="tree-folder open">
+                    <div class="tree-header" onclick="toggleFolder(this)"><i class="fa-solid fa-chevron-right" style="font-size:0.7rem; transition:0.2s;"></i> <i class="fa-solid fa-folder folder-icon"></i> Amministrazione</div>
+                    <ul class="tree-items">
+                        <li class="tree-item" id="nav-asl" onclick="switchMainTab('asl')"><i class="fa-solid fa-file-invoice-dollar"></i> Fatturazione ASL SDI</li>
+                        <li class="tree-item" id="nav-runts" onclick="switchMainTab('runts')"><i class="fa-solid fa-scale-balanced" style="color:#8b5cf6"></i> Contabilità & RUNTS</li>
+                        <li class="tree-item" id="nav-impostazioni" onclick="switchMainTab('impostazioni')"><i class="fa-solid fa-building" style="color:var(--primary)"></i> Impostazioni Ente</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="sidebar-bottom-tabs">
+                <div class="side-tab active" onclick="switchMainTab('desktop')"><i class="fa-solid fa-desktop" style="color:var(--primary)"></i> Area Desktop</div>
+            </div>
+        </aside>
+
+        <!-- DASHBOARD AREA -->
+        <main class="dashboard-area">
+            <div class="dash-header">
+                <h3 id="tab-title" style="color:var(--text-main); font-size:1.1rem; font-weight:700;">Pannello di Controllo Principale</h3>
+                <span id="date-display" style="font-size:0.85rem; font-weight:600; color:var(--text-light);"></span>
+            </div>
+
+            <!-- TAB 0: DESKTOP SHORTCUTS -->
+            <div id="tab-desktop" class="tab-content active">
+                <div id="desktop-grid" class="desktop-shortcuts">
+                    <div class="shortcut-btn" onclick="switchMainTab('statistiche')">
+                        <i class="fa-solid fa-chart-line shortcut-icon" style="color: #f59e0b;"></i>
+                        <div class="shortcut-label">Cruscotto KPI Operativi</div>
+                    </div>
+                    <div class="shortcut-btn" onclick="switchMainTab('volontari')">
+                        <i class="fa-solid fa-address-book shortcut-icon"></i>
+                        <div class="shortcut-label">Anagrafica, Formazione e GDPR</div>
+                        <div id="badge-scadenze" class="badge-numero" style="display:none;">0</div>
+                    </div>
+                    <div class="shortcut-btn" onclick="switchMainTab('turni')">
+                        <i class="fa-solid fa-user-clock shortcut-icon" style="color: #10b981;"></i>
+                        <div class="shortcut-label">Gestione Turni Equipaggi</div>
+                    </div>
+                    <div class="shortcut-btn" onclick="switchMainTab('operativo')">
+                        <i class="fa-solid fa-calendar-check shortcut-icon" style="color: #3b82f6;"></i>
+                        <div class="shortcut-label">Monitor Prenotazioni e Servizi</div>
+                    </div>
+                    <div class="shortcut-btn" style="border: 2px solid var(--alert-red);" onclick="apriModaleServizio()">
+                        <i class="fa-solid fa-truck-medical shortcut-icon icon-118"></i>
+                        <div class="shortcut-label" style="color: var(--alert-red);">Inserisci Nuovo Servizio</div>
+                    </div>
+                    <div class="shortcut-btn" onclick="switchMainTab('sanificazioni')">
+                        <i class="fa-solid fa-spray-can-sparkles shortcut-icon" style="color: #06b6d4;"></i>
+                        <div class="shortcut-label">Registro Sanificazione Mezzi</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB DIREZIONE E STATISTICHE -->
+            <div id="tab-statistiche" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: var(--primary);"><i class="fa-solid fa-chart-pie"></i> Cruscotto KPI Operativi</h3>
+                </div>
+                <div class="stats-row" style="margin-bottom: 20px;">
+                    <div class="stat-card glass-panel" style="border-left-color: #3b82f6;">
+                        <div class="stat-info"><h4>Totale Servizi</h4><div class="num" id="kpi-servizi">0</div></div><i class="fa-solid fa-truck-medical stat-icon"></i>
+                    </div>
+                    <div class="stat-card glass-panel" style="border-left-color: #10b981;">
+                        <div class="stat-info"><h4>Km Percorsi</h4><div class="num" id="kpi-km">0</div></div><i class="fa-solid fa-road stat-icon"></i>
+                    </div>
+                </div>
+                <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 20px;">
+                    <div class="panel-header"><i class="fa-solid fa-users"></i> Composizione Associazione</div>
+                    <div style="display:flex; justify-content:space-around; text-align:center; padding-top:10px;">
+                        <div><h2 id="kpi-vol-tot" style="font-size:2rem; color:var(--primary);">0</h2><p style="font-size:0.8rem; text-transform:uppercase; font-weight:600; color:var(--text-light);">Totale Iscritti</p></div>
+                        <div><h2 id="kpi-vol-aut" style="font-size:2rem; color:var(--text-main);">0</h2><p style="font-size:0.8rem; text-transform:uppercase; font-weight:600; color:var(--text-light);">Autisti Attivi</p></div>
+                        <div><h2 id="kpi-vol-soc" style="font-size:2rem; color:var(--text-main);">0</h2><p style="font-size:0.8rem; text-transform:uppercase; font-weight:600; color:var(--text-light);">Soccorritori</p></div>
+                        <div><h2 id="kpi-mezzi" style="font-size:2rem; color:var(--text-main);">0</h2><p style="font-size:0.8rem; text-transform:uppercase; font-weight:600; color:var(--text-light);">Mezzi in Flotta</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB OPERATIVITÀ -->
+            <div id="tab-operativo" class="tab-content">
+                <div class="view-controls">
+                    <div class="filter-group">
+                        <button class="filter-btn active" id="flt-oggi" onclick="impostaFiltroData('oggi')">Oggi</button>
+                        <button class="filter-btn" id="flt-domani" onclick="impostaFiltroData('domani')">Domani</button>
+                        <button class="filter-btn" id="flt-tutti" onclick="impostaFiltroData('tutti')">Tutti</button>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-primary" onclick="apriModaleDialisi()" style="background:var(--info);"><i class="fa-solid fa-calendar-days"></i> Pianifica Dialisi Ricorrente</button>
+                    </div>
+                    <div class="search-box">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="ricerca" placeholder="Cerca paziente, via..." oninput="renderOperativita()">
+                    </div>
+                </div>
+                <div class="glass-panel table-container">
+                    <table id="dataTable">
+                        <thead><tr><th>Data/Ora</th><th>Paziente & ASL</th><th>Itinerario & Km</th><th>Equipaggio & Spese</th><th>Stato</th><th style="text-align: right;">Azioni / Stampa</th></tr></thead>
+                        <tbody id="tabellaCorpo"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB CHECKLIST -->
+            <div id="tab-checklist" class="tab-content">
+                <h3 style="color: var(--primary); margin-bottom: 15px;"><i class="fa-solid fa-clipboard-check"></i> Storico Checklist Inizio Turno</h3>
+                <div class="glass-panel table-container">
+                    <table style="width: 100%;">
+                        <thead><tr><th>Data e Ora</th><th>Mezzo</th><th>Autista / KM</th><th>Carburante</th><th>Stato Dotazioni (Zaino, DAE...)</th><th>Note / Anomalie</th></tr></thead>
+                        <tbody id="checklist-corpo"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB TURNI -->
+            <div id="tab-turni" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: var(--primary);"><i class="fa-solid fa-user-clock"></i> Calendario Turni Operativi</h3>
+                    <button class="btn btn-primary" onclick="apriModaleTurno()"><i class="fa-solid fa-plus"></i> Pianifica Nuovo Turno</button>
+                </div>
+                <div class="view-controls" style="margin-bottom: 15px; justify-content: space-between;">
+                    <div class="filter-group">
+                        <button class="filter-btn active" id="flt-turni-tutti" onclick="filtraTurni('tutti')">Tutti</button>
+                        <button class="filter-btn" id="flt-turni-settimana" onclick="filtraTurni('settimana')">Questa Settimana</button>
+                    </div>
+                    <div class="filter-group">
+                        <button class="filter-btn active" id="view-turni-board" onclick="cambiaVistaTurni('board')"><i class="fa-solid fa-table-columns"></i> Board Kanban</button>
+                        <button class="filter-btn" id="view-turni-table" onclick="cambiaVistaTurni('table')"><i class="fa-solid fa-list"></i> Vista Tabella</button>
+                    </div>
+                </div>
+                <div id="turni-board-container" class="turni-board"></div>
+                <div id="turni-table-container" class="glass-panel table-container" style="display:none;">
+                    <table style="width: 100%;">
+                        <thead><tr><th>Data</th><th>Fascia Oraria</th><th>Mezzo Assegnato</th><th>Autista</th><th>Soccorritore</th><th>Stato</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <tbody id="turni-corpo"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB ASL -->
+            <div id="tab-asl" class="tab-content">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <div class="panel-header"><i class="fa-solid fa-calculator"></i> Prospetto Rendiconto Regionale</div>
+                    <div style="display:flex; gap:15px; flex-wrap:wrap; align-items: flex-end;">
+                        <div class="input-group" style="min-width: 180px;"><label>Mese di Riferimento</label><input type="month" id="asl-mese" onchange="calcolaASL(true)"></div>
+                        <div class="input-group" style="min-width: 200px;"><label>Filtro Paziente</label><select id="asl-paziente" onchange="calcolaASL(false)"><option value="">-- Tutti i Pazienti --</option></select></div>
+                        <div class="input-group" style="width: 120px;"><label>Uscita Fissa (€)</label><input type="number" step="0.01" id="tariffa-uscita" value="2.50" onchange="calcolaASL(false)"></div>
+                        <div class="input-group" style="width: 120px;"><label>Quota al Km (€)</label><input type="number" step="0.01" id="tariffa-km" value="0.97" onchange="calcolaASL(false)"></div>
+                        <button class="btn btn-primary" onclick="stampaProspettoASL()" style="background:var(--success)"><i class="fa-solid fa-print"></i> Stampa Prospetto Mensile</button>
+                    </div>
+                    <div style="margin-top: 15px; padding: 10px; background: #f0fdf4; border: 1px solid var(--success); border-radius: 6px; font-size:1.1rem;">
+                        Totale Economico Calcolato: <strong id="asl-totale-euro" style="color:var(--success)">€ 0.00</strong> <span style="font-size:0.9rem; color:var(--text-light); margin-left:10px;">(Totale Km: <span id="asl-tot-km">0</span>)</span>
+                    </div>
+                </div>
+                <div class="glass-panel table-container">
+                    <table style="width: 100%;">
+                        <thead><tr><th>Data</th><th>NRE</th><th>Paziente</th><th>Percorso</th><th>Km Effettivi</th><th>Stato</th></tr></thead>
+                        <tbody id="asl-tabella-corpo"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB VOLONTARI -->
+            <div id="tab-volontari" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="color: var(--primary);"><i class="fa-solid fa-address-book"></i> Libro Soci & Volontari</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-ghost" onclick="mostraIscrizioniOnline()" style="border-color: var(--primary); color: var(--primary);"><i class="fa-solid fa-qrcode"></i> Portale Iscrizioni</button>
+                        <button class="btn btn-primary" onclick="apriModaleVolontario()"><i class="fa-solid fa-user-plus"></i> Inserisci Socio/Volontario</button>
+                    </div>
+                </div>
+                <div class="glass-panel table-container">
+                    <table style="width: 100%;">
+                        <thead><tr><th>Foto & Nome</th><th>Categoria & Ruolo</th><th>Contatti & PIN</th><th>Sanità (BLSD/Med)</th><th>Sicurezza (L.81/Patente)</th><th style="text-align:right;">Azioni / Tessera</th></tr></thead>
+                        <tbody id="volontari-corpo"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB MEZZI -->
+            <div id="tab-mezzi" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="color: var(--primary);"><i class="fa-solid fa-truck"></i> Parco Veicoli e Assicurazioni</h3>
+                    <button class="btn btn-primary" onclick="apriModaleMezzo()"><i class="fa-solid fa-plus"></i> Inserisci Mezzo</button>
+                </div>
+                <div class="glass-panel table-container">
+                    <table style="width: 100%;">
+                        <thead><tr><th>Descrizione Mezzo</th><th>Targa</th><th>Aut. Regionale</th><th>Scad. Assicurazione</th><th>Scad. Revisione</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <tbody id="mezzi-corpo"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB RUNTS -->
+            <div id="tab-runts" class="tab-content">
+                <div class="stats-row">
+                    <div class="stat-card glass-panel" style="border-left-color: var(--success);"><div class="stat-info"><h4>Totale Entrate</h4><div class="num" id="runts-entrate" style="color: var(--success)">€ 0.00</div></div></div>
+                    <div class="stat-card glass-panel" style="border-left-color: var(--alert-red);"><div class="stat-info"><h4>Totale Uscite</h4><div class="num" id="runts-uscite" style="color: var(--alert-red)">€ 0.00</div></div></div>
+                    <div class="stat-card glass-panel" style="border-left-color: var(--info);"><div class="stat-info"><h4>Saldo Cassa/Banca</h4><div class="num" id="runts-saldo" style="color: var(--info)">€ 0.00</div></div></div>
+                </div>
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <div class="panel-header"><i class="fa-solid fa-book-open"></i> Gestione Prima Nota e Bilancio RUNTS</div>
+                    <div style="display:flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div style="display:flex; gap:10px;">
+                            <div class="input-group"><input type="number" id="runts-anno" value="2026" min="2020" max="2099" style="width: 100px;" onchange="renderFinanze()"></div>
+                            <button class="btn btn-primary" onclick="apriModaleFinanze()"><i class="fa-solid fa-plus"></i> Registra Movimento</button>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn btn-ghost" onclick="esportaExcelFinanze()"><i class="fa-solid fa-file-excel" style="color: #10b981;"></i> Esporta (Excel)</button>
+                            <button class="btn btn-primary" onclick="stampaRendicontoRUNTS()" style="background: #8b5cf6;"><i class="fa-solid fa-file-pdf"></i> Modello D PDF</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel table-container">
+                    <table style="width: 100%;">
+                        <thead><tr><th>Data</th><th>Tipo</th><th>Categoria RUNTS</th><th>Controparte / Dati SDI</th><th>Descrizione</th><th>Importo</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <tbody id="finanze-corpo"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB SANIFICAZIONI -->
+            <div id="tab-sanificazioni" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="color: var(--primary);"><i class="fa-solid fa-spray-can-sparkles"></i> Registro Sanificazione Mezzi</h3>
+                    <button class="btn btn-primary" onclick="apriModaleSanificazione()"><i class="fa-solid fa-plus"></i> Registra Sanificazione</button>
+                </div>
+                <div class="glass-panel table-container">
+                    <table style="width: 100%;">
+                        <thead><tr><th>Data e Ora</th><th>Mezzo</th><th>Tipo Intervento</th><th>Operatore</th><th>Note</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <tbody id="sanificazioni-corpo"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB IMPOSTAZIONI ENTE -->
+            <div id="tab-impostazioni" class="tab-content">
+                <div class="glass-panel" style="padding: 1.5rem; max-width: 800px; margin: 0 auto;">
+                    <div class="panel-header"><i class="fa-solid fa-building"></i> Anagrafica Associazione / Aziendale</div>
+                    <form id="formImpostazioni">
+                        <div class="form-grid">
+                            <div class="input-group full-width"><label>Ragione Sociale / Nome Ente</label><input type="text" id="imp-nome" required></div>
+                            <div class="input-group"><label>Partita IVA / Codice Fiscale</label><input type="text" id="imp-piva"></div>
+                            <div class="input-group"><label>Codice SDI</label><input type="text" id="imp-sdi"></div>
+                            <div class="input-group full-width"><label>Indirizzo Sede Legale</label><input type="text" id="imp-indirizzo"></div>
+                            <div class="input-group"><label>Telefono Principale</label><input type="text" id="imp-telefono"></div>
+                            <div class="input-group"><label>Email / PEC</label><input type="text" id="imp-email"></div>
+                            <div class="input-group full-width"><label>Note a piè di pagina (Fatture/Stampe PDF)</label><input type="text" id="imp-note" placeholder="Es. Ente del Terzo Settore iscritto al RUNTS..."></div>
+                        </div>
+                        <div style="margin-top:20px; text-align:right;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Salva Impostazioni Aziendali</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TAB GOOGLE CALENDAR -->
+            <div id="tab-calendario" class="tab-content" style="flex:1; padding: 20px;">
+                <div class="glass-panel" style="display:flex; flex-direction:column; height:100%; padding:1rem;">
+                    <div class="panel-header" style="justify-content: space-between; align-items: center;">
+                        <span><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> Google Calendar Condiviso</span>
+                    </div>
+                    <div style="flex:1; width:100%; border-radius:8px; overflow:hidden; border:1px solid var(--border); background:white;">
+                        <iframe src="https://calendar.google.com/calendar/embed?src=odv.cuoredargento%40gmail.com&ctz=Europe%2FRome" style="border: 0" width="100%" height="100%" frameborder="0" scrolling="no"></iframe>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- INIZIO MODALI -->
+
+    <!-- MODALE INSERIMENTO / MODIFICA SERVIZIO -->
+    <div class="modal-overlay" id="modalServizio">
+        <div class="modal" style="max-width: 750px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
+                <h2 style="font-size: 1.3rem; color:var(--text-main);"><i class="fa-solid fa-truck-medical" style="color:var(--primary)"></i> Gestione Servizio / Trasporto</h2>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="padding: 5px 10px; border:none; font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formTrasporto">
+                <input type="hidden" id="editId">
+                <div class="form-grid">
+                    <div class="input-group"><label>Regime / Convenzione</label><select id="regime" required><option value="Convenzione ASL Umbria 2">Convenzione ASL Umbria 2</option><option value="Privato / Tariffa Sociale">Privato / Tariffa Sociale</option><option value="Emergenza / 118">Emergenza / 118</option><option value="Convenzione ASL Umbria 2 (Dialisi)">Convenzione ASL Umbria 2 (Dialisi)</option></select></div>
+                    <div class="input-group"><label>Paziente</label><input type="text" id="paziente" list="lista-pazienti" required placeholder="Nome e Cognome"></div>
+                    <div class="input-group"><label>Codice Fiscale</label><input type="text" id="cf" placeholder="CF Paziente" style="text-transform: uppercase;"></div>
+                    <div class="input-group"><label>NRE / Autorizzazione</label><input type="text" id="nre" placeholder="N. NRE o Ricetta"></div>
+                    <div class="input-group"><label>Data Servizio</label><input type="date" id="data" required></div>
+                    <div class="input-group"><label>Ora</label><input type="time" id="ora" required></div>
+                    
+                    <div class="input-group full-width"><label>Indirizzo Partenza</label><input type="text" id="partenza" required placeholder="Via, Città..."></div>
+                    <div class="input-group full-width"><label>Eventuali Soste Intermedie</label><input type="text" id="soste" placeholder="Eventuali fermate intermedie"></div>
+                    
+                    <!-- Indirizzo Destinazione con link Visualizza Percorso -->
+                    <div class="input-group full-width">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label>Indirizzo Destinazione</label>
+                            <button type="button" onclick="apriPercorsoMaps('partenza', 'destinazione')" style="background:none; border:none; padding:0; font-size:0.75rem; color:var(--info); text-decoration:none; font-weight:700; cursor:pointer;"><i class="fa-solid fa-route"></i> Visualizza Percorso su Maps</button>
+                        </div>
+                        <input type="text" id="destinazione" list="destinazioni-asl" required placeholder="Ospedale, Centro...">
+                    </div>
+                    
+                    <div class="form-section-title full-width"><i class="fa-solid fa-road"></i> Chilometraggio e Spese</div>
+                    <div class="input-group"><label>KM Partenza Mezzo</label><input type="number" id="kmPartenza" value="0"></div>
+                    <div class="input-group"><label>KM Arrivo Mezzo</label><input type="number" id="kmArrivo" value="0"></div>
+                    <div class="input-group"><label>Spese Anticipate (€)</label><input type="number" step="0.01" id="speseImporto" value="0.00"></div>
+                    <div class="input-group full-width"><label>Causale / Nota Spesa</label><input type="text" id="speseNota" placeholder="Es. Ticket parcheggio, farmaci..."></div>
+
+                    <div class="form-section-title full-width"><i class="fa-solid fa-circle-info"></i> Dettagli Logistici & Mobilità</div>
+                    <div class="input-group"><label>Piano</label><input type="text" id="piano" placeholder="Es. 2° piano con ascensore"></div>
+                    <div class="input-group"><label>Ascensore</label><select id="ascensore"><option value="Sì">Sì</option><option value="No">No</option><option value="Stretto">Stretto</option></select></div>
+                    <div class="input-group"><label>Deambulante</label><select id="deambulante"><option value="Sì">Sì</option><option value="No">No</option></select></div>
+                    <div class="input-group"><label>Sedia a Rotelle</label><select id="sedia"><option value="No">No</option><option value="Sì (Pieghevole)">Sì (Pieghevole)</option><option value="Sì (Carrozzina propria)">Sì (Carrozzina propria)</option></select></div>
+
+                    <div class="form-section-title full-width"><i class="fa-solid fa-users"></i> Assegnazione Risorse</div>
+                    <div class="input-group"><label>Mezzo Assegnato</label><select id="mezzoSelezionato"><option value="">-- Seleziona --</option></select></div>
+                    <div class="input-group"><label>Autista</label><select id="autistaSelezionato"><option value="">-- Seleziona --</option></select></div>
+                    <div class="input-group"><label>Soccorritore</label><select id="soccorritoreSelezionato"><option value="">-- Seleziona --</option></select></div>
+                    <div class="input-group"><label>Stato Servizio</label><select id="statoServizio"><option value="Programmato">Programmato</option><option value="In Corso">In Corso</option><option value="Completato">Completato</option><option value="Da Rendicontare">Da Rendicontare</option></select></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fa-solid fa-save"></i> Salva Servizio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE PIANIFICAZIONE DIALISI -->
+    <div class="modal-overlay" id="modalDialisi">
+        <div class="modal" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
+                <h2 style="font-size: 1.3rem; color:var(--text-main);"><i class="fa-solid fa-calendar-days" style="color:var(--info)"></i> Pianificazione Ciclo Dialisi</h2>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="padding: 5px 10px; border:none; font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formDialisi">
+                <div class="form-grid">
+                    <div class="input-group full-width"><label>Paziente</label><input type="text" id="d-paziente" list="lista-pazienti" required placeholder="Nome e Cognome"></div>
+                    <div class="input-group"><label>Codice Fiscale</label><input type="text" id="d-cf" placeholder="CF Paziente" style="text-transform: uppercase;"></div>
+                    <div class="input-group"><label>Mezzo Assegnato</label><select id="d-mezzo" required><option value="">-- Seleziona Mezzo --</option></select></div>
+                    
+                    <div class="input-group full-width"><label>Indirizzo Partenza (Domicilio)</label><input type="text" id="d-partenza" required placeholder="Via, Città..."></div>
+                    <div class="input-group"><label>Eventuale Tappa / Note Partenza</label><input type="text" id="d-tappa" placeholder="Es. Reparto / Scala"></div>
+                    
+                    <!-- Ospedale / Arrivo Dialisi con link Visualizza Percorso -->
+                    <div class="input-group full-width">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label>Ospedale / Centro Dialisi (Arrivo)</label>
+                            <button type="button" onclick="apriPercorsoMaps('d-partenza', 'd-arrivo')" style="background:none; border:none; padding:0; font-size:0.75rem; color:var(--info); text-decoration:none; font-weight:700; cursor:pointer;"><i class="fa-solid fa-route"></i> Visualizza Percorso</button>
+                        </div>
+                        <input type="text" id="d-arrivo" list="destinazioni-asl" required placeholder="Es. Ospedale S. Maria di Terni">
+                    </div>
+
+                    <div class="form-section-title full-width"><i class="fa-solid fa-clock"></i> Programmazione Periodo e Orari</div>
+                    <div class="input-group"><label>Data Inizio Ciclo</label><input type="date" id="d-inizio" required></div>
+                    <div class="input-group"><label>Data Fine Ciclo</label><input type="date" id="d-fine" required></div>
+                    
+                    <div class="input-group full-width">
+                        <label>Giorni della Settimana</label>
+                        <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:5px; background:#f8fafc; padding:10px; border:1px solid var(--border); border-radius:6px;">
+                            <label style="text-transform:none; font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" name="d-giorni" value="1" checked> Lun</label>
+                            <label style="text-transform:none; font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" name="d-giorni" value="2"> Mar</label>
+                            <label style="text-transform:none; font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" name="d-giorni" value="3" checked> Mer</label>
+                            <label style="text-transform:none; font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" name="d-giorni" value="4"> Gio</label>
+                            <label style="text-transform:none; font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" name="d-giorni" value="5" checked> Ven</label>
+                            <label style="text-transform:none; font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" name="d-giorni" value="6"> Sab</label>
+                        </div>
+                    </div>
+
+                    <div class="input-group"><label>Turno Ospedaliero</label><select id="d-turno"><option value="mattina">Mattina (Andata 07:00 / Ritorno 12:00)</option><option value="pomeriggio">Pomeriggio (Andata 13:00 / Ritorno 17:00)</option></select></div>
+                    <div class="input-group"><label>KM Stimati Andata</label><input type="number" id="d-km-andata" value="15"></div>
+                    <div class="input-group"><label>KM Stimati Ritorno</label><input type="number" id="d-km-ritorno" value="15"></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2; background:var(--info);"><i class="fa-solid fa-calendar-plus"></i> Genera Viaggi Ricorrenti</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE DETTAGLI E CHIUSURA SERVIZIO -->
+    <div class="modal-overlay" id="modalDettagli">
+        <div class="modal" style="max-width: 700px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
+                <h2 style="font-size: 1.3rem; color:var(--text-main);"><i class="fa-solid fa-clipboard-list" style="color:#8b5cf6"></i> Dettagli Chiusura Servizio</h2>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="padding: 5px 10px; border:none; font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="dettagli-content"></div>
+            <div style="text-align:right; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border);">
+                <button type="button" class="btn btn-primary" onclick="chiudiModali()">Chiudi Finestra</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE TURNO -->
+    <div class="modal-overlay" id="modalTurno">
+        <div class="modal" style="max-width: 550px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
+                <h2 style="font-size: 1.3rem; color:var(--text-main);"><i class="fa-solid fa-user-clock"></i> Pianificazione Turno</h2>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="padding: 5px 10px; border:none; font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formTurno">
+                <input type="hidden" id="t-editId">
+                <div class="form-grid">
+                    <div class="input-group"><label>Data Turno</label><input type="date" id="t-data" required></div>
+                    <div class="input-group">
+                        <label>Fascia Oraria</label>
+                        <select id="t-fascia" required>
+                            <option value="Mattina (07:00 - 13:00)">Mattina (07:00 - 13:00)</option>
+                            <option value="Pomeriggio (13:00 - 19:00)">Pomeriggio (13:00 - 19:00)</option>
+                            <option value="Notte (19:00 - 07:00)">Notte (19:00 - 07:00)</option>
+                            <option value="Personalizzato">Personalizzato (Vedi Note)</option>
+                        </select>
+                    </div>
+                    <div class="input-group full-width"><label>Mezzo Assegnato</label><select id="t-mezzo"><option value="">-- Da definire --</option></select></div>
+                    <div class="form-section-title full-width"><i class="fa-solid fa-users"></i> Equipaggio</div>
+                    <div class="input-group"><label>Autista</label><select id="t-autista"><option value="">-- Da Coprire --</option></select></div>
+                    <div class="input-group"><label>Soccorritore</label><select id="t-soccorritore"><option value="">-- Da Coprire --</option></select></div>
+                    <div class="input-group full-width" style="margin-top: 10px;"><label>Note Aggiuntive</label><input type="text" id="t-note" placeholder="Es. Turno reperibilità..."></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fa-solid fa-save"></i> Salva Turno</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- MODALE ISCRIZIONI -->
+    <div class="modal-overlay" id="modalIscrizioni">
+        <div class="modal" style="max-width: 450px; text-align: center;">
+            <button type="button" class="btn-ghost" onclick="chiudiModali()" style="position: absolute; top: 15px; right: 15px; border: none; font-size: 1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="font-size: 1.4rem; color:var(--primary); margin-bottom: 15px;"><i class="fa-solid fa-mobile-screen"></i> Portale Iscrizioni Online</h2>
+            <div style="background: white; padding: 20px; border-radius: 12px; border: 2px dashed var(--primary); display: inline-block; margin-bottom: 15px;">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://forms.gle/3RA8sLdAipMuo3eCA" alt="QR Iscrizioni Google Form">
+            </div>
+            <div style="background: #f1f5f9; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.9rem; color: var(--text-main);">
+                <a href="https://forms.gle/3RA8sLdAipMuo3eCA" target="_blank" style="color:var(--info); text-decoration:none;">https://forms.gle/3RA8sLdAipMuo3eCA</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE TESSERA -->
+    <div class="modal-overlay" id="modalTesseraQR">
+        <div class="modal" style="max-width: 380px; padding: 0; background: transparent; box-shadow: none;">
+            <button type="button" class="btn-ghost" onclick="chiudiModali()" style="position: absolute; top: 10px; right: 10px; color: white; border: none; font-size: 1.5rem; z-index: 10; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.5);"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="tessera-card">
+                <div class="tessera-header">
+                    <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:5px;">
+                        <i class="fa-solid fa-file-medical" style="font-size:1.5rem;"></i>
+                        <span id="tessera-nome-ente" style="font-weight:800; font-size:1.1rem;">CUORE D'ARGENTO</span>
+                    </div>
+                    <h3 style="font-size: 0.8rem; margin: 0; font-weight:500;">Tessera di Riconoscimento</h3>
+                </div>
+                <div class="tessera-body">
+                    <img id="tessera-foto" src="https://via.placeholder.com/150" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border); margin-bottom: 15px;">
+                    <h2 id="tessera-nome" style="font-size: 1.3rem; color: var(--text-main); margin-bottom: 5px; font-weight:800;">Nome Cognome</h2>
+                    <div id="tessera-ruolo" style="font-size: 0.9rem; color: var(--primary); font-weight: 700; text-transform: uppercase; margin-bottom: 20px;">Ruolo</div>
+                    
+                    <div id="qrcode-container" style="display:flex; justify-content:center; align-items:center; min-height: 110px;"></div>
+                    
+                    <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 15px; margin-top: 15px;">
+                        <span>ID: <strong id="tessera-id-text" style="color:var(--text-main);">000</strong></span>
+                        <span>Scad: <strong id="tessera-quota-text" style="color:var(--success);">In Regola</strong></span>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <button type="button" class="btn btn-primary" onclick="scaricaTesseraPDF()" style="width: 100%; max-width:250px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size:1.1rem;"><i class="fa-solid fa-file-pdf"></i> Stampa Tessera (81/08)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE VOLONTARIO -->
+    <div class="modal-overlay" id="modalVolontario">
+        <div class="modal" style="max-width: 650px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
+                <h2 style="font-size: 1.3rem; color:var(--text-main);"><i class="fa-solid fa-address-book"></i> Gestione Anagrafica e Formazione</h2>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="padding: 5px 10px; border:none; font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formVolontario">
+                <input type="hidden" id="v-editId">
+                <div class="input-group full-width" style="text-align: center; margin-bottom: 20px;">
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                        <img id="v-foto-preview" src="https://via.placeholder.com/150" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--border);">
+                        <label for="v-foto-upload" class="btn btn-ghost" style="cursor:pointer; padding: 5px 15px; font-size: 0.8rem;"><i class="fa-solid fa-camera"></i> Carica Foto</label>
+                        <input type="file" id="v-foto-upload" accept="image/*" style="display:none;">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="input-group full-width"><label>Nome e Cognome</label><input type="text" id="v-nome" required></div>
+                    <div class="input-group"><label>Categoria Socio</label><select id="v-categoria" required><option value="Socio in Attesa">Socio in Attesa</option><option value="Volontario Operativo">Volontario Operativo</option><option value="Socio Ordinario">Socio Ordinario</option><option value="Socio Sostenitore">Socio Sostenitore</option></select></div>
+                    <div class="input-group"><label>Qualifica (Ruolo)</label><select id="v-ruolo"><option value="Da Assegnare">Da Assegnare</option><option value="Nessuna">Nessuna</option><option value="Soccorritore">Soccorritore Base</option><option value="Autista">Autista Soccorritore</option><option value="Sanitario">Infermiere / Medico</option></select></div>
+                    <div class="input-group"><label>Telefono</label><input type="tel" id="v-tel"></div>
+                    <div class="input-group"><label>Email</label><input type="email" id="v-email"></div>
+                    <div class="input-group"><label style="color:var(--success)">Scadenza Quota Annuale</label><input type="date" id="v-quota"></div>
+                    <div class="input-group"><label style="color:var(--primary)"><i class="fa-solid fa-key"></i> PIN Accesso</label><input type="text" id="v-pin" maxlength="4" placeholder="Es. 1234"></div>
+                </div>
+                <div class="form-section-title"><i class="fa-solid fa-graduation-cap"></i> Scadenze Sanitarie e Sicurezza (L. 81/08)</div>
+                <div class="form-grid">
+                    <div class="input-group"><label>Scadenza BLSD</label><input type="date" id="v-blsd"></div>
+                    <div class="input-group"><label>Certificato Medico</label><input type="date" id="v-medico"></div>
+                    <div class="input-group"><label>Sicurezza L.81/08 (Rischio Alto)</label><input type="date" id="v-sicurezza"></div>
+                    <div class="input-group"><label>Patente Guida Mezzi</label><input type="date" id="v-patente"></div>
+                </div>
+                <div class="input-group full-width" style="flex-direction: row; align-items: center; background: #f0fdf4; padding: 10px; border: 1px solid var(--success); border-radius: 6px; margin-top:15px;">
+                    <input type="checkbox" id="v-gdpr" required><label for="v-gdpr" style="margin-bottom:0; text-transform:none;">Confermo Consenso Privacy GDPR.</label>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fa-solid fa-save"></i> Salva Anagrafica</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE MEZZO -->
+    <div class="modal-overlay" id="modalMezzo">
+        <div class="modal" style="max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
+                <h2 style="font-size: 1.3rem; color:var(--text-main);">Registrazione Mezzo</h2>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="padding: 5px 10px; border:none; font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formMezzo">
+                <input type="hidden" id="m-editId">
+                <div class="input-group" style="margin-bottom:10px;"><label>Sigla Mezzo</label><input type="text" id="m-nome" required></div>
+                <div class="input-group" style="margin-bottom:10px;"><label>Targa</label><input type="text" id="m-targa" required style="text-transform: uppercase;"></div>
+                <div class="input-group" style="margin-bottom:10px;"><label>N. Autorizzazione ASL</label><input type="text" id="m-aut" required></div>
+                <div class="input-group" style="margin-bottom:10px;"><label>Scadenza Assicurazione</label><input type="date" id="m-assicurazione" required></div>
+                <div class="input-group" style="margin-bottom:20px;"><label>Scadenza Revisione</label><input type="date" id="m-revisione" required></div>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2;">Salva Veicolo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE FINANZE -->
+    <div class="modal-overlay" id="modalFinanze">
+        <div class="modal" style="max-width: 550px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
+                <h2 style="font-size: 1.3rem; color:var(--text-main);"><i class="fa-solid fa-scale-balanced" style="color:#8b5cf6"></i> Registra Movimento</h2>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="padding: 5px 10px; border:none; font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formFinanze">
+                <input type="hidden" id="f-editId">
+                <div class="form-grid">
+                    <div class="input-group"><label>Tipo</label><select id="f-tipo" required><option value="Entrata">Entrata</option><option value="Uscita">Uscita</option></select></div>
+                    <div class="input-group"><label>Data</label><input type="date" id="f-data" required></div>
+                </div>
+                <div class="input-group" style="margin-top:10px;"><label>Categoria</label><select id="f-categoria" required><option value="Quote Associative">Quote</option><option value="Donazioni">Donazioni</option><option value="Rimborsi ASL">Rimborsi ASL</option><option value="Altre Entrate">Altre Entrate</option></select></div>
+                <div class="input-group" style="margin-top:10px;"><label>Controparte / SDI</label><input type="text" id="f-controparte" required></div>
+                <div class="input-group" style="margin-top:10px;"><label>Descrizione</label><input type="text" id="f-descrizione"></div>
+                <div class="input-group" style="margin-top:10px; margin-bottom:20px;"><label>Importo (€)</label><input type="number" step="0.01" id="f-importo" required></div>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2; background:#8b5cf6;">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE SANIFICAZIONE -->
+    <div class="modal-overlay" id="modalSanificazione">
+        <div class="modal" style="max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
+                <h2 style="font-size: 1.3rem; color:var(--text-main);"><i class="fa-solid fa-spray-can-sparkles"></i> Log Sanificazione</h2>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="padding: 5px 10px; border:none; font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formSanificazione">
+                <input type="hidden" id="san-editId">
+                <div class="form-grid">
+                    <div class="input-group"><label>Data</label><input type="date" id="san-data" required></div>
+                    <div class="input-group"><label>Mezzo Sanificato</label><select id="san-mezzo" required><option value="">-- Seleziona --</option></select></div>
+                    <div class="input-group"><label>Operatore</label><select id="san-operatore" required><option value="">-- Seleziona --</option></select></div>
+                    <div class="input-group"><label>Tipo Intervento</label><select id="san-tipo" required><option value="Ordinaria (Fine Turno)">Ordinaria (Fine Turno)</option><option value="Straordinaria (Rischio Infettivo)">Straordinaria (Rischio Infettivo)</option><option value="Pulizia Vano Guida">Solo Vano Guida</option></select></div>
+                    <div class="input-group full-width"><label>Note (Prodotti usati, ecc.)</label><textarea id="san-note" rows="2" placeholder="Es. Usato disinfettante PMC PMC01..."></textarea></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2;">Registra Sanificazione</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LOGICA JAVASCRIPT PRINCIPALE -->
+    <script>
+        // TRAPPOLA PER LA MODALITÀ DI VERIFICA E TIMEOUT DI SICUREZZA
+        document.addEventListener('DOMContentLoaded', function() {
+            if (new URLSearchParams(window.location.search).has('verify')) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('verify-screen').style.display = 'flex';
+                
+                setTimeout(function() {
+                    if (!window.firebaseLoaded) {
+                        document.getElementById('verify-screen').innerHTML = '<div class="verify-card" style="padding:40px 20px;"><i class="fa-solid fa-wifi" style="font-size:4rem; color:var(--warning); margin-bottom:20px;"></i><h2 style="color:var(--text-main); font-weight:800;">Connessione Lenta</h2><p style="color:var(--text-light); margin-top:10px;">Il database sta impiegando troppo tempo a rispondere. Controlla la connessione internet del telefono.</p><button onclick="window.location.reload()" class="btn btn-primary" style="margin-top:20px; width:100%;">Ricarica Pagina</button></div>';
+                    }
+                }, 8000);
+            }
+        });
+
+        // Variabili Globali
+        var trasporti = [], volontari = [], mezzi = [], finanze = [], turni = [];
+        var sanificazioni = [], checklists = [];
+        var impostazioni = {};
+        var filtroDataAttivo = 'oggi', vistaTurni = 'board', filtroTurniAttivo = 'tutti';
+        var utenteLoggato = "Admin Direzione", fotoVolontarioBase64 = null, volontarioTesseraAttiva = null;
+        
+        // Gestione Fusi Orari e formattazione Date ISO
+        const getLocalISODate = function(dateObj) {
+            const tzoffset = dateObj.getTimezoneOffset() * 60000;
+            return new Date(dateObj.getTime() - tzoffset).toISOString().split('T')[0];
+        };
+        const todayStr = getLocalISODate(new Date());
+
+        // 1. Funzioni Globali Inline per il Menu e l'UI
+        window.switchMainTab = function(tabId) {
+            document.querySelectorAll('.tree-item, .side-tab').forEach(function(el) { el.classList.remove('active'); });
+            const navId = document.getElementById('nav-' + tabId); if(navId) navId.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+            const tabEl = document.getElementById('tab-' + tabId); if(tabEl) tabEl.classList.add('active');
+            const titles = { 'desktop': 'Pannello di Controllo', 'statistiche': 'KPI Operativi', 'operativo': 'Monitor Viaggi', 'asl': 'ASL', 'volontari': 'Volontari', 'mezzi': 'Mezzi', 'checklist': 'Checklist', 'runts': 'RUNTS', 'turni': 'Turni', 'sanificazioni': 'Sanificazioni', 'impostazioni': 'Impostazioni Ente' };
+            const titEl = document.getElementById('tab-title'); if(titEl) titEl.innerText = titles[tabId] || 'Pannello';
+            
+            if(tabId === 'statistiche' && typeof renderStatistiche === 'function') renderStatistiche();
+            if(tabId === 'asl' && typeof calcolaASL === 'function') calcolaASL(true);
+        };
+
+        window.toggleFolder = function(element) { element.parentElement.classList.toggle('open'); };
+        window.chiudiModali = function() { document.querySelectorAll('.modal-overlay').forEach(function(m) { m.classList.remove('active'); }); };
+        
+        // Filtri Operativi
+        window.impostaFiltroData = function(filtro) {
+            filtroDataAttivo = filtro;
+            ['oggi', 'domani', 'tutti'].forEach(function(f) {
+                const el = document.getElementById('flt-' + f);
+                if (el) el.classList.remove('active');
+            });
+            const attivoEl = document.getElementById('flt-' + filtro);
+            if (attivoEl) attivoEl.classList.add('active');
+            if (typeof renderOperativita === 'function') renderOperativita();
+        };
+
+        // Filtri Turni
+        window.filtraTurni = function(filtro) {
+            filtroTurniAttivo = filtro;
+            ['tutti', 'settimana'].forEach(function(f) {
+                const el = document.getElementById('flt-turni-' + f);
+                if (el) el.classList.remove('active');
+            });
+            const attivoEl = document.getElementById('flt-turni-' + filtro);
+            if (attivoEl) attivoEl.classList.add('active');
+            if (typeof renderTurni === 'function') renderTurni();
+        };
+
+        // Viste Turni
+        window.cambiaVistaTurni = function(vista) {
+            vistaTurni = vista;
+            ['board', 'table'].forEach(function(v) {
+                const el = document.getElementById('view-turni-' + v);
+                if (el) el.classList.remove('active');
+                const container = document.getElementById('turni-' + v + '-container');
+                if (container) {
+                    if (v === vista) {
+                        container.style.display = (vista === 'board') ? 'flex' : 'block';
+                    } else {
+                        container.style.display = 'none';
+                    }
+                }
+            });
+            const attivoEl = document.getElementById('view-turni-' + vista);
+            if (attivoEl) attivoEl.classList.add('active');
+        };
+
+        // UI Tessere e Generazione QR Verification Link
+        window.mostraTessera = function(id) {
+            const v = volontari.find(function(x) { return String(x.id) === String(id); });
+            if (!v) return;
+            volontarioTesseraAttiva = v;
+            
+            document.getElementById('tessera-nome').innerText = v.nome || 'N/D';
+            document.getElementById('tessera-ruolo').innerText = v.ruolo || 'Volontario';
+            document.getElementById('tessera-id-text').innerText = v.id || '000';
+            
+            const scadenza = checkScadenza(v.quota);
+            const quotaText = document.getElementById('tessera-quota-text');
+            if(quotaText) {
+                quotaText.innerHTML = scadenza.stato === 'ok' ? 'In Regola' : 'Scaduta';
+                quotaText.style.color = scadenza.stato === 'ok' ? 'var(--success)' : 'var(--alert-red)';
+            }
+            
+            const fotoEl = document.getElementById('tessera-foto');
+            if (fotoEl) {
+                fotoEl.src = v.foto || 'https://via.placeholder.com/150';
+            }
+            
+            const qrContainer = document.getElementById('qrcode-container');
+            if (qrContainer) {
+                while (qrContainer.firstChild) {
+                    qrContainer.removeChild(qrContainer.firstChild);
+                }
+                
+                let baseUrl = window.location.href.split('?')[0].split('#')[0];
+                let urlVerifica = baseUrl + "?verify=" + v.id;
+                
+                setTimeout(function() {
+                    new QRCode(qrContainer, {
+                        text: urlVerifica,
+                        width: 110, 
+                        height: 110,
+                        correctLevel: QRCode.CorrectLevel.L
+                    });
+                }, 50);
+            }
+            
+            document.getElementById('modalTesseraQR').classList.add('active');
+        };
+
+        window.toast = function(msg, type="success") {
+            const container = document.getElementById('toast-container'); if(!container) return;
+            const el = document.createElement('div'); el.className = 'toast';
+            el.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + msg;
+            container.appendChild(el); setTimeout(function() { el.remove(); }, 3000);
+        };
+
+        window.estraiDati = function(nodo) {
+            if (!nodo) return [];
+            if (Array.isArray(nodo)) { return nodo.filter(function(item) { return item !== null && typeof item === 'object'; }); }
+            if (typeof nodo === 'object') {
+                return Object.keys(nodo).map(function(key) {
+                    let item = nodo[key]; if (item && typeof item === 'object') { item.id = item.id || key; } return item;
+                }).filter(function(item) { return item !== null && typeof item === 'object'; });
+            }
+            return [];
+        };
+
+        window.checkScadenza = function(dataScadenza) {
+            if(!dataScadenza) return { stato: 'ok', html: '-' };
+            const diff = Math.ceil((new Date(dataScadenza) - new Date()) / (1000 * 60 * 60 * 24));
+            if (diff < 0) return { stato: 'scaduto', html: '<span class="badge" style="background:#fee2e2; color:var(--alert-red)">Scaduto</span>' };
+            if (diff <= 30) return { stato: 'allarme', html: '<span class="badge" style="background:#fef3c7; color:var(--warning)">' + diff + 'gg</span>' };
+            return { stato: 'ok', html: new Date(dataScadenza).toLocaleDateString('it-IT') };
+        };
+
+        window.getListByName = function(name) {
+            switch(name) {
+                case 'volontari': return volontari;
+                case 'mezzi': return mezzi;
+                case 'finanze': return finanze;
+                case 'turni': return turni;
+                case 'sanificazioni': return sanificazioni;
+                case 'trasporti': return trasporti;
+                default: return [];
+            }
+        };
+
+        // 2. Modali e Google Maps
+        window.openModal = function(modalId, formId, prefix) {
+            const formEl = document.getElementById(formId); if(formEl) formEl.reset();
+            if(document.getElementById(prefix + 'editId')) document.getElementById(prefix + 'editId').value = '';
+            if(document.getElementById(prefix + 'data')) document.getElementById(prefix + 'data').value = todayStr;
+            document.getElementById(modalId).classList.add('active');
+            if(window.initMapAutocomplete) setTimeout(window.initMapAutocomplete, 300);
+        };
+
+        window.apriModaleVolontario = function() { openModal('modalVolontario', 'formVolontario', 'v-'); fotoVolontarioBase64 = null; document.getElementById('v-foto-preview').src = 'https://via.placeholder.com/150'; };
+        window.apriModaleMezzo = function() { openModal('modalMezzo', 'formMezzo', 'm-'); };
+        window.apriModaleFinanze = function() { openModal('modalFinanze', 'formFinanze', 'f-'); };
+        window.apriModaleTurno = function() { openModal('modalTurno', 'formTurno', 't-'); };
+        window.apriModaleSanificazione = function() { openModal('modalSanificazione', 'formSanificazione', 'san-'); };
+        window.apriModaleServizio = function() { openModal('modalServizio', 'formTrasporto', ''); };
+        window.apriModaleDialisi = function() { openModal('modalDialisi', 'formDialisi', 'd-'); };
+
+        window.mostraIscrizioniOnline = function() { document.getElementById('modalIscrizioni').classList.add('active'); };
+
+        window.apriPercorsoMaps = function(idPartenza, idDestinazione) {
+            const part = document.getElementById(idPartenza).value.trim();
+            const dest = document.getElementById(idDestinazione).value.trim();
+            if (!part || !dest) { alert("Compila sia l'indirizzo di partenza che la destinazione per visualizzare il percorso."); return; }
+            const url = 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(part) + '&destination=' + encodeURIComponent(dest);
+            window.open(url, '_blank');
+        };
+
+        // 3. Connessione a Firebase
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDhi3SRh2mDqz8_T03xYVq4XtcRiAL7IF0",
+                authDomain: "cuore-d-argento.firebaseapp.com",
+                databaseURL: "https://cuore-d-argento-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "cuore-d-argento",
+                storageBucket: "cuore-d-argento.firebasestorage.app",
+                messagingSenderId: "271690439864",
+                appId: "1:271690439864:web:17b36ef2c5ab4263d3684d"
+            };
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+            
+            database.ref('/').on('value', function(snapshot) {
+                window.firebaseLoaded = true; // Spegne allarme timeout
+                
+                try {
+                    const rawData = snapshot.val() || {};
+                    let data = rawData;
+                    if (rawData.cuore_argento_db && typeof rawData.cuore_argento_db === 'object') {
+                        data = rawData.cuore_argento_db;
+                    } else {
+                        let altKey = Object.keys(rawData).find(function(k) {
+                            return rawData[k] && typeof rawData[k] === 'object' && (rawData[k].volontari || rawData[k].trasporti || rawData[k].mezzi);
+                        });
+                        if (altKey) data = rawData[altKey];
+                    }
+
+                    trasporti = estraiDati(data.trasporti); 
+                    volontari = estraiDati(data.volontari); 
+                    mezzi = estraiDati(data.mezzi); 
+                    finanze = estraiDati(data.finanze); 
+                    turni = estraiDati(data.turni);
+                    sanificazioni = estraiDati(data.sanificazioni); 
+                    checklists = estraiDati(data.checklists);
+                    impostazioni = data.impostazioni || { nome: "CUORE D'ARGENTO", piva: "", sdi: "", indirizzo: "", telefono: "", email: "", note: "" };
+
+                    // --- CONTROLLO MODALITÀ DI VERIFICA IDENTITÀ ---
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.has('verify')) {
+                        const verifyId = urlParams.get('verify');
+                        let volArray = estraiDati(data.volontari || {});
+                        const v = volArray.find(function(vol) { return String(vol.id) === String(verifyId); });
+                        const screen = document.getElementById('verify-screen');
+                        
+                        if (v) {
+                            let statoQuota = checkScadenza(v.quota).stato === 'ok';
+                            let coloreQuota = statoQuota ? 'var(--success)' : 'var(--alert-red)';
+                            let testoQuota = statoQuota ? 'IN REGOLA' : 'SCADUTA';
+                            let nomeEnteStampa = impostazioni.nome || "CUORE D'ARGENTO";
+                            let validitaBLSD = v.blsd ? new Date(v.blsd).toLocaleDateString('it-IT') : 'N/D';
+                            
+                            screen.innerHTML = '<div class="verify-card"><div class="verify-header"><i class="fa-solid fa-file-medical" style="font-size:2.5rem; margin-bottom:10px;"></i><h2 style="font-weight:800; letter-spacing:1px; margin-bottom:5px;">' + nomeEnteStampa.toUpperCase() + '</h2><p style="font-size:0.9rem; opacity:0.9;">Controllo Identità Elettronico</p></div><div class="verify-body"><img src="' + (v.foto || 'https://via.placeholder.com/150') + '" class="verify-foto"><h2 style="margin-top:15px; color:var(--text-main); font-weight:800; font-size:1.6rem;">' + (v.nome || 'N/D') + '</h2><div style="color:var(--primary); font-weight:800; text-transform:uppercase; margin-bottom:20px; font-size:1rem;">' + (v.ruolo || 'Volontario') + '</div><div style="text-align:left; background:#f8fafc; padding:20px; border-radius:12px; font-size:0.95rem; border:1px solid var(--border);"><div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;"><strong style="color:var(--text-light);">ID Univoco:</strong> <span style="font-weight:700;">' + v.id + '</span></div><div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;"><strong style="color:var(--text-light);">Categoria:</strong> <span style="font-weight:700;">' + (v.categoria || '-') + '</span></div><div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;"><strong style="color:var(--text-light);">Validità BLSD:</strong> <span style="font-weight:700;">' + validitaBLSD + '</span></div><div style="display:flex; justify-content:space-between;"><strong style="color:var(--text-light);">Stato Associazione:</strong> <span style="font-weight:800; color:' + coloreQuota + '">' + testoQuota + '</span></div></div><div style="margin-top:25px; color:var(--success); font-weight:800; font-size:1.1rem; display:flex; align-items:center; justify-content:center; gap:8px;"><i class="fa-solid fa-shield-check"></i> PROFILO AUTENTICATO</div></div></div>';
+                        } else {
+                            screen.innerHTML = '<div class="verify-card" style="padding:40px 20px;"><i class="fa-solid fa-triangle-exclamation" style="font-size:4rem; color:var(--alert-red); margin-bottom:20px;"></i><h2 style="color:var(--text-main); font-weight:800;">Utente non trovato</h2><p style="color:var(--text-light); margin-top:10px;">La scansione del QR Code non corrisponde a nessun volontario registrato nei sistemi.</p></div>';
+                        }
+                        return; // Ferma il rendering dell'app
+                    }
+                    // --- FINE BLOCCO VERIFICA ---
+
+                    // Flusso normale per l'App Desktop
+                    aggiornaListaPazienti(); aggiornaSelectDropdowns(); calcolaScadenzeBadge(); renderImpostazioni();
+                    renderOperativita(); calcolaASL(true); renderVolontari(); renderMezzi(); renderFinanze(); renderTurni(); renderSanificazioni(); renderChecklists(); renderStatistiche(); 
+                    
+                } catch (err) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.has('verify')) {
+                        document.getElementById('verify-screen').innerHTML = '<div class="verify-card" style="padding:40px 20px;"><i class="fa-solid fa-bug" style="font-size:4rem; color:var(--alert-red); margin-bottom:20px;"></i><h2 style="color:var(--text-main); font-weight:800;">Errore di Caricamento</h2><p style="color:var(--text-light); margin-top:10px;">Dettaglio tecnico: ' + err.message + '</p></div>';
+                    }
+                    console.error("Firebase Sync Error:", err);
+                }
+            });
+
+            window.salvaTutto = function() {
+                database.ref('cuore_argento_db').update({ 
+                    trasporti: trasporti, volontari: volontari, mezzi: mezzi, finanze: finanze, turni: turni, sanificazioni: sanificazioni, checklists: checklists, impostazioni: impostazioni 
+                }).then(function() { toast("Sincronizzato sul Cloud!"); }).catch(function(err) { alert("Errore Cloud: " + err.message); });
+            };
+        } catch (error) { 
+            console.error("Errore Firebase Globale:", error); 
+        }
+
+        // 4. Update UI Data
+        window.renderImpostazioni = function() {
+            if(document.getElementById('imp-nome')) {
+                document.getElementById('imp-nome').value = impostazioni.nome || "";
+                document.getElementById('imp-piva').value = impostazioni.piva || "";
+                document.getElementById('imp-sdi').value = impostazioni.sdi || "";
+                document.getElementById('imp-indirizzo').value = impostazioni.indirizzo || "";
+                document.getElementById('imp-telefono').value = impostazioni.telefono || "";
+                document.getElementById('imp-email').value = impostazioni.email || "";
+                document.getElementById('imp-note').value = impostazioni.note || "";
+            }
+            if(impostazioni.nome && document.getElementById('logo-ente-nome')) { document.getElementById('logo-ente-nome').innerText = impostazioni.nome.toUpperCase(); }
+            if(impostazioni.nome && document.getElementById('tessera-nome-ente')) { document.getElementById('tessera-nome-ente').innerText = impostazioni.nome.toUpperCase(); }
+        };
+
+        window.aggiornaListaPazienti = function() {
+            const dl = document.getElementById('lista-pazienti'); if (!dl) return;
+            const nomi = Array.from(new Set(trasporti.map(function(t) { return t.paziente; }).filter(Boolean))).sort();
+            dl.innerHTML = ''; nomi.forEach(function(n) { dl.innerHTML += '<option value="' + n + '">'; });
+        };
+
+        window.calcolaScadenzeBadge = function() {
+            let count = 0;
+            volontari.forEach(function(v) { if(checkScadenza(v.blsd).stato !== 'ok' || checkScadenza(v.medico).stato !== 'ok' || checkScadenza(v.quota).stato !== 'ok' || checkScadenza(v.sicurezza).stato !== 'ok' || checkScadenza(v.patente).stato !== 'ok') count++; });
+            mezzi.forEach(function(m) { if(checkScadenza(m.assicurazione).stato !== 'ok' || checkScadenza(m.revisione).stato !== 'ok') count++; });
+
+            const badge = document.getElementById('badge-scadenze'); const alertBox = document.getElementById('topbar-alert');
+            if (count > 0) { 
+                if(badge) { badge.style.display = 'flex'; badge.innerText = count; } 
+                if(alertBox) { alertBox.className = 'alert-scadenze urgenti'; alertBox.innerHTML = 'ATTENZIONE: ' + count + ' SCADENZE <i class="fa-solid fa-triangle-exclamation"></i>'; } 
+            } else { 
+                if(badge) badge.style.display = 'none'; 
+                if(alertBox) { alertBox.className = 'alert-scadenze'; alertBox.innerHTML = '<i class="fa-solid fa-shield-check"></i> Tutto Regolare'; } 
+            }
+        };
+
+        window.aggiornaSelectDropdowns = function() {
+            let mezzoOpts = '<option value="">-- Seleziona --</option>';
+            mezzi.forEach(function(m) { mezzoOpts += '<option value="' + m.nome + ' (' + m.targa + ')">' + m.nome + ' - ' + m.targa + '</option>'; });
+            let volOpts = '<option value="">-- Seleziona --</option>';
+            volontari.forEach(function(v) { volOpts += '<option value="' + v.nome + '">' + v.nome + ' (' + (v.ruolo || '') + ')</option>'; });
+
+            const loginUser = document.getElementById('login-user');
+            if(loginUser) {
+                const currentVal = loginUser.value;
+                let loginOpts = '<option value="Admin Direzione">Admin Direzione (Emergenza)</option>';
+                volontari.forEach(function(v) { loginOpts += '<option value="' + v.nome + '">' + v.nome + ' (' + (v.ruolo || '') + ')</option>'; });
+                loginUser.innerHTML = loginOpts;
+                let optionsArray = Array.from(loginUser.options).map(function(opt) { return opt.value; });
+                if(currentVal && optionsArray.includes(currentVal)) { loginUser.value = currentVal; } else { loginUser.value = "Admin Direzione"; }
+            }
+            ['mezzoSelezionato', 'd-mezzo', 't-mezzo', 'san-mezzo'].forEach(function(id) { if(document.getElementById(id)) document.getElementById(id).innerHTML = mezzoOpts; });
+            ['autistaSelezionato', 'soccorritoreSelezionato', 't-autista', 't-soccorritore', 'san-operatore'].forEach(function(id) { if(document.getElementById(id)) document.getElementById(id).innerHTML = volOpts; });
+        };
+
+        window.eseguiLogin = function() {
+            try {
+                const user = document.getElementById('login-user').value; const pin = document.getElementById('login-pin').value;
+                if(!user) { alert("Attenzione: Seleziona il tuo nome utente dalla tendina."); return; }
+                if(!pin) { alert("Attenzione: Inserisci il PIN di sicurezza."); return; }
+                let pinCorretto = "1234"; if (user === "Admin Direzione") { pinCorretto = "0000"; } else { const volontario = volontari.find(function(v) { return v.nome === user; }); if (volontario && volontario.pin) pinCorretto = String(volontario.pin); }
+                if(String(pin) !== String(pinCorretto)) { alert("PIN Errato. Riprova."); document.getElementById('login-pin').value = ''; return; }
+                utenteLoggato = user; document.getElementById('topbar-user-name').innerText = utenteLoggato;
+                const overlay = document.getElementById('login-screen'); overlay.style.opacity = '0'; setTimeout(function() { overlay.style.display = 'none'; }, 400); toast("Accesso completato: " + utenteLoggato);
+            } catch(err) { alert("Errore login: " + err.message); }
+        };
+
+        // 5. ASL e Fatturazione
+        window.calcolaASL = function(aggiornaPazientiSelect) {
+            const meseInput = document.getElementById('asl-mese'); const mese = meseInput ? meseInput.value : '';
+            const selectPaziente = document.getElementById('asl-paziente');
+            const tUscita = parseFloat(document.getElementById('tariffa-uscita') ? document.getElementById('tariffa-uscita').value : 0) || 0;
+            const tKm = parseFloat(document.getElementById('tariffa-km') ? document.getElementById('tariffa-km').value : 0) || 0;
+            const tbody = document.getElementById('asl-tabella-corpo');
+            if (!tbody) return;
+            
+            if (aggiornaPazientiSelect && selectPaziente) {
+                const currentVal = selectPaziente.value;
+                let pazientiList = Array.from(new Set(trasporti.filter(function(t) { return !mese || (t.data && t.data.startsWith(mese)); }).map(function(t) { return t.paziente; }).filter(Boolean))).sort();
+                let opts = '<option value="">-- Tutti i Pazienti --</option>'; pazientiList.forEach(function(p) { opts += '<option value="' + p + '">' + p + '</option>'; });
+                selectPaziente.innerHTML = opts; if (currentVal && pazientiList.includes(currentVal)) { selectPaziente.value = currentVal; }
+            }
+
+            const pSel = selectPaziente ? selectPaziente.value : '';
+            let vMese = trasporti.filter(function(t) {
+                let matchMese = !mese || (t.data && t.data.startsWith(mese));
+                let regimeStr = t.regime ? t.regime.toLowerCase() : '';
+                let matchRegime = !regimeStr.includes('privat');
+                return matchMese && matchRegime;
+            });
+            if (pSel) { vMese = vMese.filter(function(t) { return t.paziente === pSel; }); }
+
+            tbody.innerHTML = ''; let totKms = 0;
+            if (vMese.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--text-muted);">Nessun viaggio ASL trovato per i parametri selezionati.</td></tr>';
+            } else {
+                vMese.forEach(function(t) {
+                    let kmEffettivi = Math.max(0, (parseFloat(t.kmArrivo) || 0) - (parseFloat(t.kmPartenza) || 0)); totKms += kmEffettivi;
+                    let dataFormattata = t.data ? new Date(t.data).toLocaleDateString('it-IT') : '-';
+                    let statoColor = (t.statoServizio === 'Completato' || t.statoServizio === 'Da Rendicontare') ? 'var(--success)' : 'var(--warning)';
+                    tbody.innerHTML += '<tr><td>' + dataFormattata + '</td><td>' + (t.nre || '-') + '</td><td><strong>' + (t.paziente || '-') + '</strong></td><td>' + (t.partenza || '-') + ' -> ' + (t.destinazione || '-') + '</td><td>' + kmEffettivi.toFixed(0) + ' Km</td><td><span class="badge" style="background:' + statoColor + ';color:white">' + (t.statoServizio || 'Programmato') + '</span></td></tr>';
+                });
+            }
+
+            let totaleEuros = (vMese.length * tUscita) + (totKms * tKm);
+            const elTotEuro = document.getElementById('asl-totale-euro'); const elTotKm = document.getElementById('asl-tot-km');
+            if (elTotEuro) elTotEuro.innerText = '€ ' + totaleEuros.toFixed(2);
+            if (elTotKm) elTotKm.innerText = totKms.toFixed(0);
+        };
+
+        // 6. RENDER TABELLE E VISTE
+        window.renderOperativita = function() {
+            const ricerca = document.getElementById('ricerca') ? document.getElementById('ricerca').value.toLowerCase() : '';
+            let filtrati = [].concat(trasporti).sort(function(a, b) { return new Date(a.data+'T'+(a.ora||'00:00')) - new Date(b.data+'T'+(b.ora||'00:00')); });
+            
+            if (filtroDataAttivo === 'oggi') filtrati = filtrati.filter(function(t) { return t.data === todayStr; });
+            if (filtroDataAttivo === 'domani') { 
+                let d = new Date(); d.setDate(d.getDate()+1); 
+                let domStr = getLocalISODate(d); 
+                filtrati = filtrati.filter(function(t) { return t.data === domStr; }); 
+            }
+            
+            const tbody = document.getElementById('tabellaCorpo'); if(!tbody) return; tbody.innerHTML = '';
+            
+            if (!filtrati || filtrati.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Nessun servizio trovato.</td></tr>'; return;
+            }
+
+            filtrati.forEach(function(t) {
+                if (ricerca && !((t.paziente + ' ' + t.partenza + ' ' + t.regime).toLowerCase().includes(ricerca))) return;
+                let k = Math.max(0, (parseFloat(t.kmArrivo) || 0) - (parseFloat(t.kmPartenza) || 0));
+                let btnChiudi = (t.statoServizio !== 'Completato' && t.statoServizio !== 'Da Rendicontare') ? '<button type="button" class="btn btn-ghost" style="padding: 6px; color:var(--success)" onclick="chiudiServizio(\'' + t.id + '\')" title="Chiudi Servizio"><i class="fa-solid fa-flag-checkered"></i></button>' : '';
+                let btnDettagli = (t.statoServizio === 'Completato' || t.statoServizio === 'Da Rendicontare') ? '<button type="button" class="btn btn-ghost" style="padding: 6px; color:#8b5cf6" onclick="vediDettagliChiusura(\'' + t.id + '\')" title="Vedi Dettagli"><i class="fa-solid fa-paperclip"></i></button>' : '';
+                tbody.innerHTML += '<tr><td><strong>' + (t.ora||'-') + '</strong><br><small>' + new Date(t.data).toLocaleDateString('it-IT') + '</small></td><td><strong>' + t.paziente + '</strong><br><small>' + t.regime + '</small></td><td>Da: ' + t.partenza + '<br>A: ' + t.destinazione + ' <br><small style="color:var(--info);">(' + k + ' Km)</small></td><td><strong>' + (t.mezzoSelezionato || '-') + '</strong></td><td><span class="badge" style="background:' + (t.statoServizio === 'Completato' ? 'var(--success)' : 'var(--warning)') + ';color:white">' + (t.statoServizio||'Programmato') + '</span></td><td style="text-align: right; min-width: 160px;">' + btnChiudi + btnDettagli + '<button type="button" class="btn btn-ghost" style="padding: 6px; color:var(--info)" onclick="modificaServizio(\'' + t.id + '\')"><i class="fa-solid fa-pen"></i></button><button type="button" class="btn btn-ghost" style="padding: 6px; color:var(--primary)" onclick="stampaSchedaSingola(\'' + t.id + '\')"><i class="fa-solid fa-print"></i></button><button type="button" class="btn btn-ghost" style="padding: 6px; color:var(--danger)" onclick="eliminaItem(\'trasporti\', \'' + t.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
+            });
+        };
+
+        window.renderVolontari = function() {
+            const tbody = document.getElementById('volontari-corpo'); if(!tbody) return; tbody.innerHTML = '';
+            if (!volontari || volontari.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Nessun volontario registrato.</td></tr>'; return; }
+            volontari.forEach(function(v) {
+                let fotoHtml = v.foto ? '<img src="' + v.foto + '" style="width:35px;height:35px;border-radius:50%;object-fit:cover;">' : '<div style="width:35px;height:35px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user" style="color:#94a3b8"></i></div>';
+                tbody.innerHTML += '<tr><td><div style="display:flex; align-items:center; gap:10px;">' + fotoHtml + ' <strong>' + (v.nome||'-') + '</strong></div></td><td>' + (v.categoria||'-') + '<br><small>' + (v.ruolo||'-') + '</small></td><td>' + (v.tel||'-') + '<br>PIN: <strong>' + (v.pin || '1234') + '</strong></td><td>BLSD: ' + checkScadenza(v.blsd).html + '<br>Med: ' + checkScadenza(v.medico).html + '</td><td>L81: ' + checkScadenza(v.sicurezza).html + '<br>Pat: ' + checkScadenza(v.patente).html + '</td><td style="text-align:right; min-width: 130px;"><button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--primary)" onclick="mostraTessera(\'' + v.id + '\')"><i class="fa-solid fa-id-badge"></i></button> <button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--info)" onclick="editItem(\'volontari\', \'' + v.id + '\')"><i class="fa-solid fa-pen"></i></button> <button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem(\'volontari\', \'' + v.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
+            });
+        };
+
+        window.renderMezzi = function() {
+            const tbody = document.getElementById('mezzi-corpo'); if(!tbody) return; tbody.innerHTML = '';
+            if (!mezzi || mezzi.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Nessun mezzo registrato.</td></tr>'; return; }
+            mezzi.forEach(function(m) {
+                tbody.innerHTML += '<tr><td><strong>' + (m.nome||'-') + '</strong></td><td>' + (m.targa||'-') + '</td><td>' + (m.aut||'-') + '</td><td>' + checkScadenza(m.assicurazione).html + '</td><td>' + checkScadenza(m.revisione).html + '</td><td style="text-align:right;"><button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--info)" onclick="editItem(\'mezzi\', \'' + m.id + '\')"><i class="fa-solid fa-pen"></i></button> <button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem(\'mezzi\', \'' + m.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
+            });
+        };
+
+        window.renderFinanze = function() {
+            const tbody = document.getElementById('finanze-corpo'); if(!tbody) return; tbody.innerHTML = ''; let entrate = 0, uscite = 0;
+            if (!finanze || finanze.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 30px; color: var(--text-muted);">Nessun movimento finanziario registrato.</td></tr>';
+            } else {
+                finanze.forEach(function(f) {
+                    if(f.tipo === 'Entrata') entrate += parseFloat(f.importo)||0; else uscite += parseFloat(f.importo)||0;
+                    let color = f.tipo === 'Entrata' ? 'var(--success)' : 'var(--alert-red)';
+                    tbody.innerHTML += '<tr><td>' + new Date(f.data||todayStr).toLocaleDateString('it-IT') + '</td><td><strong style="color:' + color + '">' + (f.tipo||'-') + '</strong></td><td>' + (f.categoria||'-') + '</td><td>' + (f.controparte||'-') + '</td><td>' + (f.descrizione||'-') + '</td><td><strong>€ ' + (parseFloat(f.importo)||0).toFixed(2) + '</strong></td><td style="text-align:right;"><button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--info)" onclick="editItem(\'finanze\', \'' + f.id + '\')"><i class="fa-solid fa-pen"></i></button> <button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem(\'finanze\', \'' + f.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
+                });
+            }
+            if(document.getElementById('runts-entrate')) document.getElementById('runts-entrate').innerText = '€ ' + entrate.toFixed(2);
+            if(document.getElementById('runts-uscite')) document.getElementById('runts-uscite').innerText = '€ ' + uscite.toFixed(2);
+            if(document.getElementById('runts-saldo')) document.getElementById('runts-saldo').innerText = '€ ' + (entrate - uscite).toFixed(2);
+        };
+
+        window.renderTurni = function() {
+            const tbody = document.getElementById('turni-corpo'); const boardContainer = document.getElementById('turni-board-container');
+            if(tbody) {
+                tbody.innerHTML = ''; let tFiltrati = [].concat(turni);
+                if(filtroTurniAttivo === 'settimana') { const today = new Date(); tFiltrati = tFiltrati.filter(function(t) { const diff = (new Date(t.data) - today) / (1000*60*60*24); return diff >= -1 && diff <= 7; }); }
+                if(!tFiltrati || tFiltrati.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 30px; color: var(--text-muted);">Nessun turno trovato.</td></tr>';
+                } else {
+                    tFiltrati.sort(function(a,b) { return new Date(a.data) - new Date(b.data); }).forEach(function(t) {
+                        let stato = (t.autista && t.soccorritore) ? '<span class="badge" style="background:var(--success);color:white">Coperto</span>' : '<span class="badge" style="background:var(--alert-red);color:white">Da Coprire</span>';
+                        tbody.innerHTML += '<tr><td><strong>' + (t.data ? new Date(t.data).toLocaleDateString('it-IT') : '-') + '</strong></td><td>' + (t.fascia||'-') + '</td><td>' + (t.mezzo || 'Da assegnare') + '</td><td>' + (t.autista || 'Nessuno') + '</td><td>' + (t.soccorritore || 'Nessuno') + '</td><td>' + stato + '</td><td style="text-align:right;"><button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--info)" onclick="editItem(\'turni\', \'' + t.id + '\')"><i class="fa-solid fa-pen"></i></button> <button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem(\'turni\', \'' + t.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
+                    });
+                }
+            }
+            if(boardContainer) {
+                boardContainer.innerHTML = ''; let dates = Array.from(new Set(turni.map(function(t){ return t.data; }).filter(Boolean))).sort();
+                if (filtroTurniAttivo === 'settimana') { const today = new Date(); dates = dates.filter(function(d) { const diff = (new Date(d) - today) / (1000*60*60*24); return diff >= -1 && diff <= 7; }); }
+                if(dates.length === 0) { boardContainer.innerHTML = '<div style="width:100%; text-align:center; padding:30px; color:var(--text-light);">Nessun turno pianificato per questo periodo.</div>'; }
+                dates.forEach(function(date) {
+                    const dateObj = new Date(date); const isToday = date === todayStr; const headerClass = isToday ? 'turno-day-header today' : 'turno-day-header';
+                    let html = '<div class="turno-day-col"><div class="' + headerClass + '">' + dateObj.toLocaleDateString('it-IT', {weekday:'long', day:'2-digit', month:'short'}) + '</div><div class="turno-cards">';
+                    turni.filter(function(t) { return t.data === date; }).forEach(function(t) {
+                        let isCovered = t.autista && t.soccorritore; let isPartial = (t.autista && !t.soccorritore) || (!t.autista && t.soccorritore); let cardClass = isCovered ? 'coperto' : (isPartial ? 'parziale' : 'scoperto');
+                        html += '<div class="turno-card ' + cardClass + '"><div class="turno-card-time"><i class="fa-regular fa-clock"></i> ' + (t.fascia||'-') + '</div><div class="turno-card-role"><strong>Autista:</strong> <span>' + (t.autista || '<i class="fa-solid fa-triangle-exclamation" style="color:var(--alert-red)"></i> Manca') + '</span></div><div class="turno-card-role"><strong>Soccorr:</strong> <span>' + (t.soccorritore || '<i class="fa-solid fa-triangle-exclamation" style="color:var(--alert-red)"></i> Manca') + '</span></div><div class="turno-card-role"><strong>Mezzo:</strong> <span>' + (t.mezzo || '-') + '</span></div><div class="turno-card-actions"><button type="button" class="btn-ghost" style="padding:2px 5px; font-size:0.75rem;" onclick="editItem(\'turni\', \'' + t.id + '\')"><i class="fa-solid fa-pen"></i> Modifica</button></div></div>';
+                    });
+                    html += '</div></div>'; boardContainer.innerHTML += html;
+                });
+            }
+        };
+
+        window.renderSanificazioni = function() {
+            const tbody = document.getElementById('sanificazioni-corpo'); if(!tbody) return; tbody.innerHTML = '';
+            if (!sanificazioni || sanificazioni.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Nessuna sanificazione registrata.</td></tr>';
+                return;
+            }
+            sanificazioni.forEach(function(s) {
+                tbody.innerHTML += '<tr><td>' + (s.data ? new Date(s.data).toLocaleDateString('it-IT') : '-') + '</td><td><strong>' + (s.mezzo||'-') + '</strong></td><td>' + (s.tipo||'-') + '</td><td>' + (s.operatore||'-') + '</td><td><small>' + (s.note||'-') + '</small></td><td style="text-align:right;"><button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--info)" onclick="editItem(\'sanificazioni\', \'' + s.id + '\')"><i class="fa-solid fa-pen"></i></button> <button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem(\'sanificazioni\', \'' + s.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
+            });
+        };
+
+        window.renderChecklists = function() {
+            const tbody = document.getElementById('checklist-corpo'); if(!tbody) return; tbody.innerHTML = '';
+            if (!checklists || checklists.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-muted);">Nessuna checklist registrata.</td></tr>';
+                return;
+            }
+            [].concat(checklists).sort(function(a,b){ return new Date(b.data || 0) - new Date(a.data || 0); }).forEach(function(c) {
+                let dotazioni = 'Sirene: ' + c.sirene + ', Barella: ' + c.barella + ', Zaino: ' + c.zaino + ', DAE: ' + c.dae;
+                let isAlert = (c.sirene !== 'OK' || c.barella !== 'OK' || c.zaino !== 'OK' || c.dae !== 'OK' || c.carburante === 'Riserva');
+                let alertStyle = isAlert ? 'color:var(--alert-red); font-weight:700;' : 'color:var(--text-main);';
+                tbody.innerHTML += '<tr><td>' + (c.data ? new Date(c.data).toLocaleString('it-IT') : '-') + '</td><td><strong>' + (c.mezzo||'-') + '</strong></td><td>' + (c.autista||'-') + '<br><small>' + (c.km ? c.km + ' Km' : '-') + '</small></td><td style="' + (c.carburante === 'Riserva' ? 'color:var(--alert-red); font-weight:700;' : '') + '">' + (c.carburante||'-') + '</td><td style="' + alertStyle + '"><small>' + dotazioni + '</small></td><td><small>' + (c.note||'-') + '</small></td></tr>';
+            });
+        };
+
+        window.renderStatistiche = function() {
+            const ks = document.getElementById('kpi-servizi'); if(!ks) return; ks.innerText = trasporti.length;
+            let totKm = 0; trasporti.forEach(function(t) { totKm += Math.max(0, (parseInt(t.kmArrivo) || 0) - (parseInt(t.kmPartenza) || 0)); });
+            const kkm = document.getElementById('kpi-km'); if(kkm) kkm.innerText = totKm;
+            const kvt = document.getElementById('kpi-vol-tot'); if(kvt) kvt.innerText = volontari.length;
+            const kva = document.getElementById('kpi-vol-aut'); if(kva) kva.innerText = volontari.filter(function(v) { return v.ruolo && v.ruolo.includes('Autista'); }).length;
+            const kvs = document.getElementById('kpi-vol-soc'); if(kvs) kvs.innerText = volontari.filter(function(v) { return v.ruolo && v.ruolo.includes('Soccorritore'); }).length;
+            const kmz = document.getElementById('kpi-mezzi'); if(kmz) kmz.innerText = mezzi.length;
+        };
+
+        // 7. Modifica e Chiusura
+        window.modificaServizio = function(id) {
+            const formEl = document.getElementById('formTrasporto'); if(formEl) formEl.reset();
+            const t = trasporti.find(function(x) { return String(x.id) === String(id); }); if (!t) return;
+            document.getElementById('editId').value = t.id;
+            ['regime','paziente','cf','nre','data','ora','partenza','soste','destinazione','kmPartenza','kmArrivo','piano','ascensore','deambulante','sedia','speseImporto','speseNota'].forEach(function(k) {
+                if(document.getElementById(k)) document.getElementById(k).value = t[k] !== undefined ? t[k] : '';
+            });
+            if(document.getElementById('mezzoSelezionato')) document.getElementById('mezzoSelezionato').value = t.mezzoSelezionato || ''; 
+            if(document.getElementById('autistaSelezionato')) document.getElementById('autistaSelezionato').value = t.autistaSelezionato || ''; 
+            if(document.getElementById('soccorritoreSelezionato')) document.getElementById('soccorritoreSelezionato').value = t.soccorritoreSelezionato || ''; 
+            if(document.getElementById('statoServizio')) document.getElementById('statoServizio').value = t.statoServizio || 'Programmato';
+            document.getElementById('modalServizio').classList.add('active');
+        };
+
+        window.chiudiServizio = function(id) {
+            const t = trasporti.find(function(x) { return String(x.id) === String(id); }); if (!t) return;
+            if (t.statoServizio === 'Completato' || t.statoServizio === 'Da Rendicontare') { toast("Servizio già chiuso.", "warning"); return; }
+            let kmCalcolati = Math.max(0, (parseFloat(t.kmArrivo) || 0) - (parseFloat(t.kmPartenza) || 0));
+            let kmInseriti = prompt('CHIUSURA SERVIZIO: ' + t.paziente + '\nInserisci i KM TOTALI percorsi:', kmCalcolati > 0 ? kmCalcolati : "");
+            if (kmInseriti === null) return; 
+            t.kmPartenza = 0; t.kmArrivo = parseFloat(kmInseriti) || 0; t.oraChiusura = new Date().toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'});
+            t.statoServizio = (t.regime.toLowerCase().includes('asl') || t.regime.toLowerCase().includes('dimissioni')) ? "Da Rendicontare" : "Completato";
+            t.utente_modifica = utenteLoggato; window.salvaTutto(); toast("Servizio chiuso.");
+        };
+
+        window.vediDettagliChiusura = function(id) {
+            const t = trasporti.find(function(x) { return String(x.id) === String(id); }); if(!t) return;
+            let html = '<div style="display:flex; gap:20px; flex-wrap:wrap; font-size:0.95rem;"><div style="flex:1; min-width:250px;"><p style="margin-bottom:6px;"><strong>Paziente:</strong> ' + (t.paziente || '-') + '</p><p style="margin-bottom:6px;"><strong>Percorso:</strong> ' + (t.partenza || '-') + ' -> ' + (t.destinazione || '-') + '</p><p style="margin-bottom:6px;"><strong>Data e Ora:</strong> ' + new Date(t.data).toLocaleDateString('it-IT') + ' alle ' + t.ora + '</p><p style="margin-bottom:6px; color:var(--success); font-weight:700;">Chiuso alle: ' + (t.oraChiusura || 'N/D') + '</p></div><div style="flex:1; min-width:250px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid var(--border);"><p style="margin-bottom:6px;"><strong>KM Mezzo (Arrivo):</strong> ' + (t.kmArrivo || 0) + '</p><p style="margin-bottom:6px;"><strong>KM Effettivi Percorsi:</strong> ' + Math.max(0, (parseInt(t.kmArrivo) || 0) - (parseInt(t.kmPartenza) || 0)) + '</p><hr style="margin:10px 0; border:0; border-top:1px dashed var(--border);"><p style="margin-bottom:6px;"><strong>Spese Anticipate:</strong> <span style="color:var(--warning); font-weight:700;">€ ' + (parseFloat(t.speseImporto)||0).toFixed(2) + '</span></p><p style="margin-bottom:6px;"><strong>Causale Spesa:</strong> ' + (t.speseNota || 'Nessuna') + '</p></div></div>';
+            html += '<div style="display:flex; gap:15px; margin-top:20px; flex-wrap:wrap;">';
+            if(t.fotoScontrino) html += '<div style="flex:1; border:1px solid var(--border); border-radius:8px; padding:15px; text-align:center; min-width:250px;"><h4 style="margin-bottom:10px; font-size:0.9rem; color:var(--text-main); text-transform:uppercase;"><i class="fa-solid fa-receipt" style="color:var(--warning)"></i> Foto Scontrino</h4><img src="' + t.fotoScontrino + '" style="max-width:100%; max-height:250px; border-radius:4px; cursor:pointer;" onclick="window.open(\'' + t.fotoScontrino + '\', \'_blank\')"></div>';
+            if(t.firma) html += '<div style="flex:1; border:1px solid var(--border); border-radius:8px; padding:15px; text-align:center; min-width:250px;"><h4 style="margin-bottom:10px; font-size:0.9rem; color:var(--text-main); text-transform:uppercase;"><i class="fa-solid fa-signature" style="color:var(--primary)"></i> Firma</h4><img src="' + t.firma + '" style="max-width:100%; max-height:200px; border-radius:4px; background:white;"></div>';
+            html += '</div>'; document.getElementById('dettagli-content').innerHTML = html; document.getElementById('modalDettagli').classList.add('active');
+        };
+
+        window.editItem = function(lista, id) {
+            const arr = getListByName(lista); const item = arr.find(function(x) { return String(x.id) === String(id); }); if(!item) return;
+            let prefix, modalId;
+            if(lista === 'volontari') { prefix = 'v-'; modalId = 'modalVolontario'; document.getElementById('v-foto-preview').src = item.foto || 'https://via.placeholder.com/150'; fotoVolontarioBase64 = null; }
+            else if(lista === 'mezzi') { prefix = 'm-'; modalId = 'modalMezzo'; }
+            else if(lista === 'finanze') { prefix = 'f-'; modalId = 'modalFinanze'; }
+            else if(lista === 'turni') { prefix = 't-'; modalId = 'modalTurno'; }
+            else if(lista === 'sanificazioni') { prefix = 'san-'; modalId = 'modalSanificazione'; }
+            if(prefix) {
+                const formEl = document.querySelector('#' + modalId + ' form'); if(formEl) formEl.reset();
+                document.getElementById(prefix + 'editId').value = item.id;
+                Object.keys(item).forEach(function(k) { const el = document.getElementById(prefix + k); if(el) { if(el.type === 'checkbox') el.checked = item[k]; else el.value = item[k]; } });
+                document.getElementById(modalId).classList.add('active');
+            }
+        };
+
+        window.eliminaItem = function(lista, id) {
+            if(confirm("Sei sicuro di voler eliminare questo elemento? L'azione è irreversibile.")) {
+                if(lista === 'volontari') volontari = volontari.filter(function(x) { return String(x.id) !== String(id); });
+                else if(lista === 'trasporti') trasporti = trasporti.filter(function(x) { return String(x.id) !== String(id); });
+                else if(lista === 'mezzi') mezzi = mezzi.filter(function(x) { return String(x.id) !== String(id); });
+                else if(lista === 'finanze') finanze = finanze.filter(function(x) { return String(x.id) !== String(id); });
+                else if(lista === 'turni') turni = turni.filter(function(x) { return String(x.id) !== String(id); });
+                else if(lista === 'sanificazioni') sanificazioni = sanificazioni.filter(function(x) { return String(x.id) !== String(id); });
+                window.salvaTutto();
+            }
+        };
+
+        // 8. Event Listeners per i form
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(window.initMapAutocomplete, 500); // init places fallback
+
+            const aslMeseInput = document.getElementById('asl-mese');
+            if(aslMeseInput && !aslMeseInput.value) { aslMeseInput.value = new Date().toISOString().slice(0, 7); }
+
+            const loginForm = document.getElementById('login-form');
+            if(loginForm) { loginForm.addEventListener('submit', function(e) { e.preventDefault(); window.eseguiLogin(); }); }
+
+            const formImp = document.getElementById('formImpostazioni');
+            if(formImp) {
+                formImp.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    impostazioni = {
+                        nome: document.getElementById('imp-nome').value, piva: document.getElementById('imp-piva').value,
+                        sdi: document.getElementById('imp-sdi').value, indirizzo: document.getElementById('imp-indirizzo').value,
+                        telefono: document.getElementById('imp-telefono').value, email: document.getElementById('imp-email').value, note: document.getElementById('imp-note').value
+                    };
+                    window.salvaTutto(); window.renderImpostazioni(); toast("Anagrafica Aziendale salvata con successo!");
+                });
+            }
+
+            const inputFoto = document.getElementById('v-foto-upload');
+            if(inputFoto) {
+                inputFoto.addEventListener('change', function(e) {
+                    const file = e.target.files[0]; if(!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas'); const MAX_SIZE = 400; 
+                            let width = img.width; let height = img.height;
+                            if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                            canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+                            fotoVolontarioBase64 = canvas.toDataURL('image/jpeg', 0.8); document.getElementById('v-foto-preview').src = fotoVolontarioBase64;
+                        }
+                        img.src = event.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function collegaFormStandard(formId, arrayName, prefix, fields) {
+                const form = document.getElementById(formId); if (!form) return;
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault(); const arr = getListByName(arrayName); const editId = document.getElementById(prefix + 'editId') ? document.getElementById(prefix + 'editId').value : '';
+                    let obj = {}; 
+                    fields.forEach(function(f) { const el = document.getElementById(prefix + f); if (el) obj[f] = el.type === 'checkbox' ? el.checked : el.value; });
+                    obj.utente_modifica = utenteLoggato; obj.data_modifica = new Date().toLocaleString('it-IT');
+                    if (editId) { const idx = arr.findIndex(function(x) { return String(x.id) === String(editId); }); if (idx > -1) arr[idx] = Object.assign({}, arr[idx], obj); } 
+                    else { obj.id = Date.now(); arr.push(obj); }
+                    window.salvaTutto(); window.chiudiModali(); toast("Salvataggio completato!");
+                });
+            }
+
+            collegaFormStandard('formMezzo', 'mezzi', 'm-', ['nome', 'targa', 'aut', 'assicurazione', 'revisione']);
+            collegaFormStandard('formFinanze', 'finanze', 'f-', ['tipo', 'data', 'categoria', 'controparte', 'descrizione', 'importo']);
+            collegaFormStandard('formTurno', 'turni', 't-', ['data', 'fascia', 'mezzo', 'autista', 'soccorritore', 'note']);
+            collegaFormStandard('formSanificazione', 'sanificazioni', 'san-', ['data', 'mezzo', 'operatore', 'tipo', 'note']);
+
+            const formVol = document.getElementById('formVolontario');
+            if(formVol) {
+                formVol.addEventListener('submit', function(e) {
+                    e.preventDefault(); const editId = document.getElementById('v-editId').value;
+                    const obj = {
+                        nome: document.getElementById('v-nome').value, categoria: document.getElementById('v-categoria').value, ruolo: document.getElementById('v-ruolo').value,
+                        tel: document.getElementById('v-tel').value, email: document.getElementById('v-email').value, quota: document.getElementById('v-quota').value,
+                        pin: document.getElementById('v-pin').value, blsd: document.getElementById('v-blsd').value, medico: document.getElementById('v-medico').value,
+                        sicurezza: document.getElementById('v-sicurezza').value, patente: document.getElementById('v-patente').value, gdpr: document.getElementById('v-gdpr').checked,
+                        foto: fotoVolontarioBase64, utente_modifica: utenteLoggato, data_modifica: new Date().toLocaleString('it-IT')
+                    };
+                    if (editId) { 
+                        const idx = volontari.findIndex(function(x) { return String(x.id) === String(editId); }); 
+                        if (idx > -1) { if(!fotoVolontarioBase64 && volontari[idx].foto) { obj.foto = volontari[idx].foto; } volontari[idx] = Object.assign({}, volontari[idx], obj); } 
+                    } else { obj.id = Date.now(); volontari.push(obj); }
+                    window.salvaTutto(); window.chiudiModali(); toast("Anagrafica salvata!");
+                });
+            }
+
+            const formTrasp = document.getElementById('formTrasporto');
+            if(formTrasp) {
+                formTrasp.addEventListener('submit', function(e) {
+                    e.preventDefault(); const editId = document.getElementById('editId').value;
+                    const obj = {
+                        regime: document.getElementById('regime').value, paziente: document.getElementById('paziente').value, cf: document.getElementById('cf').value.toUpperCase(),
+                        nre: document.getElementById('nre').value, data: document.getElementById('data').value, ora: document.getElementById('ora').value,
+                        partenza: document.getElementById('partenza').value, soste: document.getElementById('soste').value, destinazione: document.getElementById('destinazione').value,
+                        kmPartenza: document.getElementById('kmPartenza').value, kmArrivo: document.getElementById('kmArrivo').value,
+                        piano: document.getElementById('piano').value, ascensore: document.getElementById('ascensore').value, deambulante: document.getElementById('deambulante').value,
+                        sedia: document.getElementById('sedia').value, speseImporto: parseFloat(document.getElementById('speseImporto').value) || 0, speseNota: document.getElementById('speseNota').value,
+                        mezzoSelezionato: document.getElementById('mezzoSelezionato').value, autistaSelezionato: document.getElementById('autistaSelezionato').value, soccorritoreSelezionato: document.getElementById('soccorritoreSelezionato').value, statoServizio: document.getElementById('statoServizio').value,
+                        utente_modifica: utenteLoggato, data_modifica: new Date().toLocaleString('it-IT')
+                    };
+                    if (editId) { const idx = trasporti.findIndex(function(t) { return String(t.id) === String(editId); }); if (idx > -1) trasporti[idx] = Object.assign({}, trasporti[idx], obj); } 
+                    else { obj.id = Date.now(); trasporti.push(obj); }
+                    window.salvaTutto(); window.chiudiModali(); toast(editId ? "Servizio aggiornato!" : "Nuovo servizio inserito!");
+                });
+            }
+
+            const formDia = document.getElementById('formDialisi');
+            if(formDia) {
+                formDia.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const p = document.getElementById('d-paziente').value, cf = document.getElementById('d-cf').value.toUpperCase(), mz = document.getElementById('d-mezzo').value, ptz = document.getElementById('d-partenza').value, tp = document.getElementById('d-tappa').value.trim(), arr = document.getElementById('d-arrivo').value;
+                    const dIn = new Date(document.getElementById('d-inizio').value), dFi = new Date(document.getElementById('d-fine').value);
+                    const giorniScelti = Array.from(document.querySelectorAll('input[name="d-giorni"]:checked')).map(function(cb) { return parseInt(cb.value); });
+                    if(dFi < dIn) return alert("Errore Date");
+                    let curr = new Date(dIn); let count = 0; let oA = document.getElementById('d-turno').value === 'mattina' ? "07:00" : "13:00"; let oR = document.getElementById('d-turno').value === 'mattina' ? "12:00" : "17:00";
+                    while(curr <= dFi) {
+                        if(giorniScelti.includes(curr.getDay())) {
+                            let dStr = getLocalISODate(curr); 
+                            let pStr = ptz + (tp ? ' (Tappa: ' + tp + ')' : "");
+                            trasporti.push({ id: Date.now() + count++, regime: "Convenzione ASL Umbria 2 (Dialisi)", paziente: p, cf: cf, nre: "DIALISI", data: dStr, ora: oA, partenza: pStr, destinazione: arr, kmPartenza: 0, kmArrivo: parseFloat(document.getElementById('d-km-andata').value)||0, mezzoSelezionato: mz, statoServizio: "Programmato", speseNota: "Ciclo Dialisi - Andata", utente_modifica: utenteLoggato });
+                            trasporti.push({ id: Date.now() + count++, regime: "Convenzione ASL Umbria 2 (Dialisi)", paziente: p, cf: cf, nre: "DIALISI", data: dStr, ora: oR, partenza: arr, destinazione: pStr, kmPartenza: 0, kmArrivo: parseFloat(document.getElementById('d-km-ritorno').value)||0, mezzoSelezionato: mz, statoServizio: "Programmato", speseNota: "Ciclo Dialisi - Ritorno", utente_modifica: utenteLoggato });
+                        }
+                        curr.setDate(curr.getDate() + 1);
+                    }
+                    window.salvaTutto(); window.chiudiModali(); toast("Generati " + count + " viaggi!");
+                });
+            }
+        });
+
+        // 9. Stampe e Report (PDF)
+        
+        // Generazione ed esportazione PDF Tessera a norma di legge (D.Lgs 81/08)
+        window.scaricaTesseraPDF = function() {
+            if(!volontarioTesseraAttiva) return;
+            try {
+                const jsPDF = window.jspdf.jsPDF; 
+                // Formato standard badge internazionale ISO CR80 (54x86 mm)
+                const doc = new jsPDF('p', 'mm', [86, 54]); 
+                
+                // 1. Intestazione Ente (Datore di Lavoro / Organizzazione)
+                doc.setFillColor(198, 40, 40); // Colore rosso
+                doc.rect(0, 0, 54, 18, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+                
+                let nomeEnte = impostazioni.nome || "CUORE D'ARGENTO ODV";
+                let splitTitle = doc.splitTextToSize(nomeEnte.toUpperCase(), 50);
+                doc.text(splitTitle, 27, 8, { align: 'center' });
+                
+                doc.setFontSize(5.5);
+                doc.setFont("helvetica", "normal");
+                doc.text("TESSERA DI RICONOSCIMENTO", 27, 14, { align: 'center' });
+                doc.text("Ai sensi del D.Lgs. 81/08 e s.m.i.", 27, 16.5, { align: 'center' });
+                
+                // 2. Fotografia del Volontario (Obbligatoria per legge)
+                if (volontarioTesseraAttiva.foto) {
+                    try {
+                        doc.addImage(volontarioTesseraAttiva.foto, 'JPEG', 17, 22, 20, 25);
+                        doc.setDrawColor(198, 40, 40);
+                        doc.setLineWidth(0.5);
+                        doc.rect(17, 22, 20, 25); // Cornice foto
+                    } catch(e) {
+                        console.warn("Errore inserimento foto", e);
+                    }
+                } else {
+                    // Placeholder se manca la foto
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setFillColor(240, 240, 240);
+                    doc.rect(17, 22, 20, 25, 'FD');
+                    doc.setTextColor(150, 150, 150);
+                    doc.setFontSize(8);
+                    doc.text("FOTO", 27, 35, { align: 'center' });
+                }
+                
+                // 3. Generalità e Qualifica
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+                doc.text(volontarioTesseraAttiva.nome || "Nome Non Inserito", 27, 53, { align: 'center' });
+                
+                doc.setFontSize(7);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(100, 100, 100);
+                doc.text("Qualifica / Ruolo Operativo:", 27, 58, { align: 'center' });
+                
+                doc.setFontSize(9);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(198, 40, 40);
+                doc.text(volontarioTesseraAttiva.ruolo || "Volontario", 27, 62, { align: 'center' });
+                
+                // 4. Dati di Validità e Matricola
+                doc.setFontSize(6.5);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont("helvetica", "normal");
+                doc.text("Matricola / ID: " + (volontarioTesseraAttiva.id || "000"), 4, 73);
+                
+                let validitaStr = (volontarioTesseraAttiva.quota) ? new Date(volontarioTesseraAttiva.quota).toLocaleDateString('it-IT') : "Illimitata";
+                doc.text("Scadenza: " + validitaStr, 4, 77);
+                
+                // 5. Firma Legale Rappresentante
+                doc.setDrawColor(0, 0, 0);
+                doc.setLineWidth(0.2);
+                doc.line(28, 80, 50, 80);
+                doc.setFontSize(5);
+                doc.text("Firma del Legale Rappresentante", 39, 83, { align: 'center' });
+                
+                // Salvataggio
+                doc.save('Tessera_' + (volontarioTesseraAttiva.nome || 'ID' + volontarioTesseraAttiva.id).replace(/\s+/g, '_') + '.pdf');
+                toast("Download tessera di legge completato!");
+            } catch(e) {
+                alert("Errore generazione PDF. Assicurati che il browser supporti la creazione di documenti.");
+                console.error(e);
+            }
+        };
+
+        window.stampaProspettoASL = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4');
+            const mese = document.getElementById('asl-mese').value; const pSel = document.getElementById('asl-paziente').value;
+            const tUscita = parseFloat(document.getElementById('tariffa-uscita').value) || 0; const tKm = parseFloat(document.getElementById('tariffa-km').value) || 0;
+            if (!mese) { alert("Seleziona il mese di riferimento."); return; }
+            
+            const vMese = trasporti.filter(function(t) {
+                let regimeStr = t.regime ? t.regime.toLowerCase() : '';
+                return (!mese || (t.data && t.data.startsWith(mese))) && !regimeStr.includes('privat');
+            });
+            const vFiltrati = pSel ? vMese.filter(function(t) { return t.paziente === pSel; }) : vMese;
+            if (vFiltrati.length === 0) { alert("Nessun viaggio da rendicontare per i criteri scelti."); return; }
+            
+            let nomeEnte = impostazioni.nome || "Associazione Cuore d'Argento OdV";
+            doc.setFontSize(16); doc.setTextColor(198, 40, 40); doc.text(nomeEnte.toUpperCase(), 14, 20); 
+            doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.text('Prospetto Rendiconto ASL - Mese: ' + mese, 14, 28);
+            if (pSel) doc.text('Filtro Paziente: ' + pSel, 14, 34);
+            
+            let totKms = 0; 
+            const tBody = vFiltrati.map(function(t) { 
+                let kP = parseFloat(t.kmPartenza) || 0; let kA = parseFloat(t.kmArrivo) || 0; let k = Math.max(0, kA - kP); totKms += k; 
+                return [new Date(t.data).toLocaleDateString('it-IT'), t.nre || '-', t.paziente, t.partenza + ' -> ' + t.destinazione, k.toFixed(0) + ' Km']; 
+            });
+            
+            doc.autoTable({ startY: pSel ? 40 : 34, head: [['Data', 'NRE', 'Paziente', 'Percorso', 'Km Effettivi']], body: tBody, theme: 'grid', headStyles: { fillColor: [198, 40, 40] }, styles: { fontSize: 9 } });
+            
+            let finalY = doc.lastAutoTable.finalY + 10; doc.setFontSize(11); 
+            doc.text('Totale Viaggi: ' + vFiltrati.length, 14, finalY); doc.text('Totale Km: ' + totKms.toFixed(0), 14, finalY + 6); 
+            doc.text('Tariffa Uscita Fissa: Euro ' + tUscita.toFixed(2), 14, finalY + 12); doc.text('Tariffa al Km: Euro ' + tKm.toFixed(2), 14, finalY + 18);
+            
+            let importoTotale = (vFiltrati.length * tUscita) + (totKms * tKm);
+            doc.setFontSize(14); doc.setTextColor(16, 185, 129); doc.text('TOTALE DA RENDICONTARE: Euro ' + importoTotale.toFixed(2), 14, finalY + 28);
+            if (impostazioni.piva) { doc.setFontSize(9); doc.setTextColor(100, 100, 100); doc.text("P.IVA/CF: " + impostazioni.piva + (impostazioni.sdi ? " - SDI: " + impostazioni.sdi : ""), 14, finalY + 36); }
+            
+            doc.save('Rendiconto_ASL_' + mese + '.pdf'); toast("Prospetto ASL Scaricato!");
+        };
+
+        window.stampaSchedaSingola = function(id) {
+            const t = trasporti.find(function(x) { return String(x.id) === String(id); }); if (!t) return;
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a5'); 
+            let nomeEnte = impostazioni.nome || "Cuore d'Argento OdV";
+            doc.setFontSize(14); doc.setTextColor(198, 40, 40); doc.text(nomeEnte + " - Foglio di Viaggio", 10, 15);
+            doc.setFontSize(10); doc.setTextColor(0, 0, 0); doc.text('Data: ' + new Date(t.data).toLocaleDateString('it-IT') + ' - Ora: ' + t.ora, 10, 25); doc.text('Paziente: ' + t.paziente, 10, 32); doc.text('Cod. Fiscale: ' + (t.cf || '-'), 10, 39); doc.text('Regime: ' + t.regime, 10, 46); doc.text('NRE/Autorizzazione: ' + (t.nre || '-'), 10, 53);
+            doc.line(10, 57, 138, 57); doc.text('Da: ' + t.partenza, 10, 65); doc.text('A: ' + t.destinazione, 10, 72); doc.text('Mezzo: ' + (t.mezzoSelezionato || '-'), 10, 79); doc.line(10, 83, 138, 83);
+            doc.text("Firma Capo Equipaggio:", 10, 95); doc.text("_______________________", 55, 95); doc.text("Firma Medico/Struttura:", 10, 110); doc.text("_______________________", 55, 110);
+            doc.save('Foglio_' + t.paziente.replace(/\s+/g, '') + '.pdf'); toast("Stampato!");
+        };
+
+        window.stampaRendicontoRUNTS = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4');
+            const anno = document.getElementById('runts-anno').value || new Date().getFullYear(); const fAnno = finanze.filter(function(f) { return f.data && f.data.startsWith(anno); });
+            
+            let nomeEnte = impostazioni.nome || "Associazione Cuore d'Argento OdV";
+            doc.setFontSize(16); doc.setTextColor(139, 92, 246); doc.text(nomeEnte.toUpperCase(), 14, 20); 
+            if(impostazioni.piva) { doc.setFontSize(9); doc.setTextColor(100, 100, 100); doc.text("P.IVA/CF: " + impostazioni.piva + (impostazioni.indirizzo ? " - " + impostazioni.indirizzo : ""), 14, 24); }
+            doc.setFontSize(12); doc.setTextColor(0,0,0); doc.text('Rendiconto Finanziario RUNTS - Anno ' + anno, 14, 30);
+            
+            let tE = 0, tU = 0; const body = fAnno.map(function(f) { if(f.tipo === 'Entrata') tE += parseFloat(f.importo)||0; else tU += parseFloat(f.importo)||0; return [new Date(f.data).toLocaleDateString('it-IT'), f.tipo, f.categoria, f.controparte, 'E. ' + (parseFloat(f.importo)||0).toFixed(2)]; });
+            doc.autoTable({ startY: 35, head: [['Data', 'Tipo', 'Categoria RUNTS', 'Controparte/SDI', 'Importo']], body: body, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
+            let fY = doc.lastAutoTable.finalY + 15; doc.setFontSize(11); doc.text('Tot. Entrate: Euro ' + tE.toFixed(2), 14, fY); doc.text('Tot. Uscite: Euro ' + tU.toFixed(2), 14, fY + 6); doc.setFontSize(13); doc.text('SALDO FINALE: Euro ' + (tE - tU).toFixed(2), 14, fY + 16);
+            doc.save('Modello_D_' + anno + '.pdf'); toast("Modello D RUNTS Generato!");
+        };
+
+        window.esportaExcelFinanze = function() {
+            const anno = document.getElementById('runts-anno').value || new Date().getFullYear(); const fAnno = finanze.filter(function(f) { return f.data && f.data.startsWith(anno); });
+            let csv = "data:text/csv;charset=utf-8,Data,Tipo,Categoria RUNTS,Controparte,Descrizione,Importo\n";
+            fAnno.forEach(function(f) { csv += f.data + ',' + f.tipo + ',' + f.categoria + ',"' + f.controparte + '","' + f.descrizione + '",' + f.importo + '\n'; });
+            const l = document.createElement("a"); l.setAttribute("href", encodeURI(csv)); l.setAttribute("download", 'Export_' + anno + '.csv');
+            document.body.appendChild(l); l.click(); document.body.removeChild(l); toast("File Excel pronto!");
+        };
+    </script>
+</body>
+</html>
