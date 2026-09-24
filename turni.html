@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Turni & Equipaggi - Cuore d'Argento ODV</title>
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- jsPDF per la stampa del tabellone turni -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- FIREBASE SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #c62828;
+            --primary-dark: #8e0000;
+            --secondary: #1e293b;
+            --bg: #f1f5f9;
+            --panel: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #cbd5e1;
+            --success: #10b981;
+            --success-bg: #d1fae5;
+            --warning: #f59e0b;
+            --warning-bg: #fef3c7;
+            --danger: #ef4444;
+            --danger-bg: #fee2e2;
+            --info: #3b82f6;
+            --info-bg: #dbeafe;
+            --wa-green: #25d366;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        /* HEADER */
+        header { background: linear-gradient(135deg, var(--secondary), #0f172a); color: white; padding: 16px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; z-index: 100; position: sticky; top: 0; }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .brand-icon { width: 44px; height: 44px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: white; box-shadow: 0 4px 12px rgba(198, 40, 40, 0.4); }
+        .brand-text h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: 0.5px; }
+        .brand-text span { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
+
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .btn { padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(198, 40, 40, 0.3); }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-ghost { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+        .btn-ghost:hover { background: rgba(255,255,255,0.2); }
+
+        /* KPI BAR */
+        .kpi-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 20px 24px 10px 24px; max-width: 1400px; margin: 0 auto; width: 100%; }
+        .kpi-card { background: white; padding: 16px 20px; border-radius: var(--radius); border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.02); border-left: 5px solid var(--primary); }
+        .kpi-info h4 { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+        .kpi-info .val { font-size: 1.8rem; font-weight: 800; color: var(--text-main); line-height: 1; }
+        .kpi-icon { font-size: 2.2rem; color: #e2e8f0; }
+
+        /* LEGENDA FASCE ORARIE */
+        .legenda-fasce { max-width: 1400px; margin: 0 auto 10px auto; width: 100%; padding: 0 24px; }
+        .legenda-box { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 18px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 0.8rem; }
+        .legenda-title { font-weight: 800; color: var(--primary); text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+        .badge-sigla { background: #0f172a; color: white; font-weight: 800; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; }
+        .legenda-item { display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; }
+
+        /* CONTROLLI E VISTE */
+        .controls-bar { max-width: 1400px; margin: 0 auto; width: 100%; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .filter-group { display: flex; gap: 4px; background: white; padding: 4px; border-radius: 10px; border: 1px solid var(--border); }
+        .filter-btn { padding: 8px 16px; border: none; border-radius: 8px; background: transparent; font-weight: 700; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
+        .filter-btn.active { background: var(--secondary); color: white; }
+
+        .date-picker-wrap { display: flex; align-items: center; gap: 10px; background: white; padding: 6px 14px; border-radius: 10px; border: 1px solid var(--border); }
+        .date-picker-wrap input { border: none; outline: none; font-size: 0.9rem; font-weight: 700; color: var(--text-main); background: transparent; cursor: pointer; }
+
+        /* CONTENITORE VISTE */
+        .content-area { max-width: 1400px; margin: 0 auto; width: 100%; padding: 10px 24px 40px 24px; flex: 1; display: flex; flex-direction: column; }
+        
+        /* VISTA KANBAN */
+        .board-container { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 20px; align-items: flex-start; min-height: 500px; }
+        .board-container::-webkit-scrollbar { height: 10px; }
+        .board-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+
+        .day-column { flex: 0 0 320px; background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.03); max-height: 78vh; }
+        .day-header { padding: 14px 16px; background: var(--secondary); color: white; border-radius: 11px 11px 0 0; font-weight: 800; font-size: 0.95rem; display: flex; flex-direction: column; gap: 4px; }
+        .day-header.today { background: var(--primary); }
+        .day-header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .day-vol-count { font-size: 0.75rem; font-weight: 600; opacity: 0.9; display: flex; align-items: center; gap: 6px; }
+        .day-cards { padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; flex: 1; }
+
+        /* SCHEDA TURNO */
+        .shift-card { background: #f8fafc; border: 1px solid var(--border); border-left: 5px solid var(--text-muted); border-radius: 10px; padding: 14px; position: relative; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .shift-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+        .shift-card.coperto { border-left-color: var(--success); }
+        .shift-card.parziale { border-left-color: var(--warning); }
+        .shift-card.scoperto { border-left-color: var(--danger); background: #fff5f5; }
+
+        .shift-time { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 800; font-size: 0.85rem; color: var(--text-main); border-bottom: 1px dashed var(--border); padding-bottom: 6px; }
+        .shift-head-left { display: flex; align-items: center; gap: 6px; }
+        .shift-sigla-tag { background: #0f172a; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 800; }
+        
+        .shift-badges { display: flex; gap: 6px; align-items: center; }
+        .shift-status-badge { font-size: 0.68rem; font-weight: 800; padding: 3px 7px; border-radius: 6px; text-transform: uppercase; }
+        .status-coperto { background: var(--success-bg); color: var(--success); }
+        .status-parziale { background: var(--warning-bg); color: var(--warning); }
+        .status-scoperto { background: var(--danger-bg); color: var(--danger); }
+        .badge-count { font-size: 0.68rem; font-weight: 800; padding: 3px 6px; border-radius: 6px; background: white; border: 1px solid var(--border); color: var(--text-main); }
+
+        .crew-row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.85rem; }
+        .crew-label { color: var(--text-muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
+        .crew-name { font-weight: 700; color: var(--text-main); }
+        .crew-name.missing { color: var(--danger); font-style: italic; }
+
+        .shift-vehicle { margin-top: 8px; padding: 6px 8px; background: white; border: 1px solid var(--border); border-radius: 6px; font-size: 0.78rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+        .shift-note { font-size: 0.75rem; color: #78350f; background: #fffbeb; padding: 6px 8px; border-radius: 6px; margin-top: 8px; border-left: 3px solid var(--warning); }
+        
+        .conflict-alert { background: #fee2e2; border: 1px solid #f87171; color: #991b1b; padding: 6px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-top: 8px; display: flex; align-items: center; gap: 6px; }
+
+        .shift-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; }
+        .btn-icon { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: white; color: var(--text-main); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .btn-icon:hover { background: #e2e8f0; }
+
+        /* VISTA TABELLARE CON RIGA DI INSERIMENTO INLINE */
+        .table-view-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: none; }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 950px; }
+        th { padding: 12px 14px; background: #f8fafc; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; border-bottom: 2px solid var(--border); }
+        td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 0.88rem; vertical-align: middle; }
+        tr:hover td { background: #f8fafc; }
+        
+        /* RIGA AGGIUNTA RAPIDA INLINE IN TABELLA */
+        .quick-add-row { background: #f1f5f9; border-bottom: 2px solid var(--border); }
+        .quick-add-row td { padding: 8px 10px; }
+        .quick-input { width: 100%; height: 36px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.82rem; font-weight: 600; outline: none; background: white; }
+        .quick-input:focus { border-color: var(--primary); }
+
+        /* VISTA MATRICE MENSILE EXCEL CON CELLE CLICCABILI */
+        .matrix-view-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: none; padding: 15px; position: relative; }
+        .matrix-table { border-collapse: collapse; width: 100%; min-width: 1100px; font-size: 0.8rem; text-align: center; }
+        .matrix-table th, .matrix-table td { border: 1px solid #cbd5e1; padding: 6px 3px; }
+        .matrix-table th.col-name { text-align: left; padding-left: 12px; width: 160px; background: #f1f5f9; font-weight: 800; position: sticky; left: 0; z-index: 5; }
+        .matrix-table td.col-name { text-align: left; padding-left: 12px; background: #f8fafc; font-weight: 700; position: sticky; left: 0; z-index: 5; }
+        .matrix-table th.col-day { background: #0f172a; color: white; width: 34px; font-weight: 800; }
+        .matrix-table th.col-day.weekend { background: #059669; }
+        
+        /* CELLE INTERATTIVE INLINE */
+        .matrix-td-interactive { cursor: pointer; transition: 0.15s; position: relative; user-select: none; }
+        .matrix-td-interactive:hover { background: #e0f2fe !important; }
+        .matrix-cell-tag { background: #fee2e2; color: #991b1b; font-weight: 800; border-radius: 4px; padding: 4px 2px; display: inline-block; width: 28px; font-size: 0.75rem; border: 1px solid #f87171; }
+        .matrix-cell-empty { color: #cbd5e1; font-size: 0.7rem; }
+        .matrix-td-interactive:hover .matrix-cell-empty { color: var(--primary); font-weight: 800; }
+
+        /* MENU CONTESTUALE POP-OVER PER LA SELEZIONE DELLA SIGLA */
+        #matrix-popover { position: fixed; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); border: 1px solid var(--border); padding: 8px; z-index: 4000; display: none; flex-direction: column; gap: 4px; width: 180px; }
+        .popover-header { font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; padding: 4px 6px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+        .popover-btn { padding: 6px 10px; border-radius: 6px; border: none; background: #f8fafc; font-weight: 700; font-size: 0.8rem; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.15s; }
+        .popover-btn:hover { background: var(--primary); color: white; }
+        .popover-btn.delete { color: var(--danger); background: #fee2e2; margin-top: 4px; }
+        .popover-btn.delete:hover { background: var(--danger); color: white; }
+
+        /* MODALE DI INSERIMENTO / MODIFICA */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 15px; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal { background: white; border-radius: 16px; width: 100%; max-width: 580px; max-height: 92vh; overflow-y: auto; padding: 25px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); transform: scale(0.95); transition: 0.2s; }
+        .modal-overlay.active .modal { transform: scale(1); }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; }
+        .modal-header h2 { font-size: 1.25rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .form-control { width: 100%; height: 46px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; font-weight: 600; outline: none; background: #f8fafc; }
+        .form-control:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.1); }
+        .form-row { display: flex; gap: 12px; }
+        .form-row .form-group { flex: 1; }
+
+        #toast { position: fixed; bottom: 25px; right: 25px; background: #1e293b; color: white; padding: 14px 22px; border-radius: 30px; font-weight: 700; font-size: 0.9rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transform: translateY(100px); opacity: 0; transition: 0.3s; z-index: 3000; display: flex; align-items: center; gap: 10px; }
+        #toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body onclick="chiudiPopover(event)">
+
+    <!-- HEADER DI NAVIGAZIONE -->
+    <header>
+        <div class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-user-clock"></i></div>
+            <div class="brand-text">
+                <h1>Cuore d'Argento ODV</h1>
+                <span>Centrale Operativa - Gestione & Controllo Turni</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-ghost" onclick="apriGestionalePrincipale()"><i class="fa-solid fa-arrow-left"></i> Gestionale</button>
+            <button class="btn btn-ghost" onclick="esportaCSVMatrice()"><i class="fa-solid fa-file-excel"></i> Esporta Excel CSV</button>
+            <button class="btn btn-ghost" onclick="stampaTabellonePDF()"><i class="fa-solid fa-file-pdf"></i> Stampa A4</button>
+            <button class="btn btn-primary" onclick="apriModaleTurno()"><i class="fa-solid fa-plus"></i> Nuovo Turno</button>
+        </div>
+    </header>
+
+    <!-- KPI VELOCI DI COPERTURA & VOLONTARI -->
+    <div class="kpi-bar">
+        <div class="kpi-card" style="border-left-color: var(--primary);">
+            <div class="kpi-info">
+                <h4>Turni Totali</h4>
+                <div class="val" id="kpi-totale">0</div>
+            </div>
+            <i class="fa-solid fa-calendar-check kpi-icon"></i>
+        </div>
+        <div class="kpi-card" style="border-left-color: var(--success);">
+            <div class="kpi-info">
+                <h4>Equipaggi OK (2/2)</h4>
+                <div class="val" id="kpi-coperti" style="color:var(--success)">0</div>
+            </div>
+            <i class="fa-solid fa-circle-check kpi-icon"></i>
+        </div>
+        <div class="kpi-card" style="border-left-color: var(--warning);">
+            <div class="kpi-info">
+                <h4>Turni Parziali (1/2)</h4>
+                <div class="val" id="kpi-parziali" style="color:var(--warning)">0</div>
+            </div>
+            <i class="fa-solid fa-user-check kpi-icon"></i>
+        </div>
+        <div class="kpi-card" style="border-left-color: var(--danger);">
+            <div class="kpi-info">
+                <h4>Turni Scoperti (0/2)</h4>
+                <div class="val" id="kpi-scoperti" style="color:var(--danger)">0</div>
+            </div>
+            <i class="fa-solid fa-triangle-exclamation kpi-icon"></i>
+        </div>
+        <div class="kpi-card" style="border-left-color: var(--info);">
+            <div class="kpi-info">
+                <h4>Ore Servizio Mese</h4>
+                <div class="val" id="kpi-ore-totali" style="color:var(--info)">0h</div>
+            </div>
+            <i class="fa-solid fa-business-time kpi-icon"></i>
+        </div>
+    </div>
+
+    <!-- LEGENDA FASCE ORARIE UFFICIALI (DA EXCEL) -->
+    <div class="legenda-fasce">
+        <div class="legenda-box">
+            <span class="legenda-title"><i class="fa-solid fa-clock"></i> Fasce & Ore:</span>
+            <div class="legenda-item"><span class="badge-sigla">1</span> <span>06:30 - 14:00 (7.5h)</span></div>
+            <div class="legenda-item"><span class="badge-sigla">1C</span> <span>06:30 - 12:30 (6.0h)</span></div>
+            <div class="legenda-item"><span class="badge-sigla">1M</span> <span>11:30 - 14:00 (2.5h)</span></div>
+            <div class="legenda-item"><span class="badge-sigla">1A</span> <span>06:30 - 08:00 (1.5h)</span></div>
+            <div class="legenda-item"><span class="badge-sigla">2</span> <span>14:00 - 20:00 (6.0h)</span></div>
+            <div class="legenda-item"><span class="badge-sigla">2L</span> <span>12:30 - 20:00 (7.5h)</span></div>
+            <div class="legenda-item"><span class="badge-sigla">2C</span> <span>17:00 - 19:30 (2.5h)</span></div>
+        </div>
+    </div>
+
+    <!-- BARRA CONTROLLI E VISTE -->
+    <div class="controls-bar">
+        <div class="filter-group">
+            <button class="filter-btn active" id="btn-view-board" onclick="cambiaVista('board')"><i class="fa-solid fa-table-columns"></i> Kanban</button>
+            <button class="filter-btn" id="btn-view-matrix" onclick="cambiaVista('matrix')"><i class="fa-solid fa-table-cells"></i> Matrice Excel (Click & Salva)</button>
+            <button class="filter-btn" id="btn-view-table" onclick="cambiaVista('table')"><i class="fa-solid fa-list-ul"></i> Tabella con Inserimento Rapido</button>
+        </div>
+
+        <div class="filter-group">
+            <button class="filter-btn active" id="flt-settimana" onclick="impostaFiltroPeriodo('settimana')">Questa Settimana</button>
+            <button class="filter-btn" id="flt-mese" onclick="impostaFiltroPeriodo('mese')">Questo Mese</button>
+            <button class="filter-btn" id="flt-tutti" onclick="impostaFiltroPeriodo('tutti')">Tutti</button>
+        </div>
+
+        <div class="date-picker-wrap">
+            <i class="fa-solid fa-calendar-day" style="color:var(--primary);"></i>
+            <input type="date" id="data-centro" onchange="centraSuData(this.value)">
+        </div>
+    </div>
+
+    <!-- AREA VISTE OPERATIVE -->
+    <main class="content-area">
+        <!-- VISTA 1: BOARD KANBAN PER GIORNO -->
+        <div class="board-container" id="kanban-board">
+            <div style="padding:40px; text-align:center; width:100%; color:var(--text-muted);">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem; margin-bottom:10px;"></i>
+                <p>Sincronizzazione turni dal database cloud...</p>
+            </div>
+        </div>
+
+        <!-- VISTA 2: MATRICE MENSILE EXCEL CON ASSEGNAZIONE DIRETTA NELLE CELLE -->
+        <div class="matrix-view-card" id="matrix-view">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h3 style="font-size:1.05rem; font-weight:800; color:var(--text-main);"><i class="fa-solid fa-file-excel" style="color:#10b981;"></i> Griglia Presenze Mensile (Inserimento Diretto da Cella)</h3>
+                    <span style="font-size:0.8rem; color:var(--text-muted);">💡 <strong>Come funziona:</strong> Clicca su qualsiasi casella del calendario per assegnare, cambiare o rimuovere al volo la sigla del turno.</span>
+                </div>
+                <button class="btn btn-ghost" onclick="esportaCSVMatrice()" style="color:var(--text-main); border-color:var(--border);"><i class="fa-solid fa-download"></i> Scarica Foglio CSV</button>
+            </div>
+            <div id="matrix-container" style="overflow-x:auto;"></div>
+        </div>
+
+        <!-- VISTA 3: TABELLA DETTAGLIATA CON RIGA DI INSERIMENTO INLINE RAPIDO -->
+        <div class="table-view-card" id="table-view">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:130px;">Data</th>
+                        <th style="width:190px;">Fascia / Sigla</th>
+                        <th style="width:170px;">Mezzo Assegnato</th>
+                        <th style="width:150px;">Autista</th>
+                        <th style="width:150px;">Soccorritore</th>
+                        <th style="width:160px;">Note</th>
+                        <th style="text-align:right; width:110px;">Azione Rapida</th>
+                    </tr>
+                    <!-- RIGA INSERIMENTO INLINE DIRETTO IN TABELLA -->
+                    <tr class="quick-add-row">
+                        <td><input type="date" id="q-data" class="quick-input" required></td>
+                        <td>
+                            <select id="q-fascia" class="quick-input">
+                                <option value="[1] 06:30 - 14:00">[1] 06:30 - 14:00</option>
+                                <option value="[1C] 06:30 - 12:30">[1C] 06:30 - 12:30</option>
+                                <option value="[1M] 11:30 - 14:00">[1M] 11:30 - 14:00</option>
+                                <option value="[1A] 06:30 - 08:00">[1A] 06:30 - 08:00</option>
+                                <option value="[2] 14:00 - 20:00">[2] 14:00 - 20:00</option>
+                                <option value="[2L] 12:30 - 20:00">[2L] 12:30 - 20:00</option>
+                                <option value="[2C] 17:00 - 19:30">[2C] 17:00 - 19:30</option>
+                            </select>
+                        </td>
+                        <td><select id="q-mezzo" class="quick-input select-mezzi-quick"></select></td>
+                        <td><select id="q-autista" class="quick-input select-volontari-quick"></select></td>
+                        <td><select id="q-soccorritore" class="quick-input select-volontari-quick"></select></td>
+                        <td><input type="text" id="q-note" class="quick-input" placeholder="Note veloci..."></td>
+                        <td style="text-align:right;">
+                            <button type="button" class="btn btn-primary" onclick="inserisciTurnoInline()" style="padding:6px 12px; font-size:0.8rem; width:100%;">
+                                <i class="fa-solid fa-plus"></i> Inserisci
+                            </button>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody id="table-corpo"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- POPOVER CONTESTUALE PER SELEZIONE RAPIDA SIGLA NELLA MATRICE -->
+    <div id="matrix-popover">
+        <div class="popover-header" id="popover-target-info">Assegna Turno</div>
+        <button class="popover-btn" onclick="applicaSiglaDaPopover('[1] 06:30 - 14:00')"><span>[1]</span> <small>06:30-14:00</small></button>
+        <button class="popover-btn" onclick="applicaSiglaDaPopover('[1C] 06:30 - 12:30')"><span>[1C]</span> <small>06:30-12:30</small></button>
+        <button class="popover-btn" onclick="applicaSiglaDaPopover('[1M] 11:30 - 14:00')"><span>[1M]</span> <small>11:30-14:00</small></button>
+        <button class="popover-btn" onclick="applicaSiglaDaPopover('[1A] 06:30 - 08:00')"><span>[1A]</span> <small>06:30-08:00</small></button>
+        <button class="popover-btn" onclick="applicaSiglaDaPopover('[2] 14:00 - 20:00')"><span>[2]</span> <small>14:00-20:00</small></button>
+        <button class="popover-btn" onclick="applicaSiglaDaPopover('[2L] 12:30 - 20:00')"><span>[2L]</span> <small>12:30-20:00</small></button>
+        <button class="popover-btn" onclick="applicaSiglaDaPopover('[2C] 17:00 - 19:30')"><span>[2C]</span> <small>17:00-19:30</small></button>
+        <button class="popover-btn delete" onclick="rimuoviTurnoDaPopover()"><i class="fa-solid fa-trash"></i> <span>Rimuovi</span></button>
+    </div>
+
+    <!-- MODALE DI INSERIMENTO / MODIFICA COMPLETA -->
+    <div class="modal-overlay" id="modalTurno">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-user-clock" style="color:var(--primary);"></i> <span id="modal-title">Pianifica Turno</span></h2>
+                <button type="button" class="btn-icon" onclick="chiudiModale()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="formTurno" onsubmit="salvaTurno(event)">
+                <input type="hidden" id="t-editId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Data del Turno</label>
+                        <input type="date" id="t-data" class="form-control" required onchange="verificaConflittiLive()">
+                    </div>
+                    <div class="form-group">
+                        <label>Fascia Oraria / Sigla Turno</label>
+                        <select id="t-fascia" class="form-control" required onchange="verificaConflittiLive()">
+                            <optgroup label="Mattina">
+                                <option value="[1] 06:30 - 14:00">[1] 06:30 - 14:00 (7.5 ore)</option>
+                                <option value="[1C] 06:30 - 12:30">[1C] 06:30 - 12:30 (6.0 ore)</option>
+                                <option value="[1M] 11:30 - 14:00">[1M] 11:30 - 14:00 (2.5 ore)</option>
+                                <option value="[1A] 06:30 - 08:00">[1A] 06:30 - 08:00 (1.5 ore)</option>
+                            </optgroup>
+                            <optgroup label="Pomeriggio">
+                                <option value="[2] 14:00 - 20:00">[2] 14:00 - 20:00 (6.0 ore)</option>
+                                <option value="[2L] 12:30 - 20:00">[2L] 12:30 - 20:00 (7.5 ore)</option>
+                                <option value="[2C] 17:00 - 19:30">[2C] 17:00 - 19:30 (2.5 ore)</option>
+                            </optgroup>
+                            <optgroup label="Altro">
+                                <option value="Personalizzato">Personalizzato (Vedi Note)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Mezzo Assegnato</label>
+                    <select id="t-mezzo" class="form-control">
+                        <option value="">-- Nessun Mezzo Assegnato --</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Autista</label>
+                        <select id="t-autista" class="form-control" onchange="verificaConflittiLive()">
+                            <option value="">-- Da Coprire --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Soccorritore</label>
+                        <select id="t-soccorritore" class="form-control" onchange="verificaConflittiLive()">
+                            <option value="">-- Da Coprire --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="modal-conflict-box" class="conflict-alert" style="display:none; margin-bottom:15px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="modal-conflict-msg"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Note Operative / Reperibilità</label>
+                    <input type="text" id="t-note" class="form-control" placeholder="Es. Dialisi, Guardia Medica, Reperibilità...">
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:25px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModale()" style="flex:1; color:var(--text-main); border-color:var(--border);">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fa-solid fa-save"></i> Salva Turno</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICHE -->
+    <div id="toast"><i class="fa-solid fa-circle-check" style="color:#4ade80"></i> <span id="toast-msg">Operazione completata!</span></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhi3SRh2mDqz8_T03xYVq4XtcRiAL7IF0",
+            authDomain: "cuore-d-argento.firebaseapp.com",
+            databaseURL: "https://cuore-d-argento-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "cuore-d-argento",
+            storageBucket: "cuore-d-argento.firebasestorage.app",
+            messagingSenderId: "271690439864",
+            appId: "1:271690439864:web:17b36ef2c5ab4263d3684d"
+        };
+
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const database = firebase.database();
+        let dbRootPath = 'cuore_argento_db';
+
+        const societaInfo = {
+            nome: "Associazione di Volontariato Cuore d'Argento ODV",
+            sede: "Via della Stazione n. 51 – 05035 Narni Scalo (TR)",
+            cfPiva: "C.F. / P.IVA: 01725470551",
+            runts: "RUNTS Det. n. 870/2025 Regione Umbria",
+            autorizzazione: "Aut. Esercizio n. 8642 del 19/08/2025"
+        };
+
+        const ORE_FASCE = {
+            '1': 7.5,
+            '1C': 6.0,
+            '1M': 2.5,
+            '1A': 1.5,
+            '2': 6.0,
+            '2L': 7.5,
+            '2C': 2.5
+        };
+
+        let turni = [];
+        let volontari = [];
+        let mezzi = [];
+        let vistaAttiva = 'board';
+        let filtroPeriodo = 'settimana';
+        let popoverTarget = null; // Memorizza { nome, dataStr, turnoId }
+
+        const getLocalISODate = (d) => {
+            const tzoffset = d.getTimezoneOffset() * 60000;
+            return new Date(d.getTime() - tzoffset).toISOString().split('T')[0];
+        };
+        const todayStr = getLocalISODate(new Date());
+
+        document.getElementById('data-centro').value = todayStr;
+        document.getElementById('q-data').value = todayStr;
+
+        // ASCOLTO FIREBASE REALTIME
+        database.ref('/').on('value', (snapshot) => {
+            const raw = snapshot.val() || {};
+            let data = raw;
+            if (raw.cuore_argento_db && typeof raw.cuore_argento_db === 'object') {
+                data = raw.cuore_argento_db;
+                dbRootPath = 'cuore_argento_db';
+            } else {
+                let altKey = Object.keys(raw).find(k => raw[k] && typeof raw[k] === 'object' && (raw[k].volontari || raw[k].turni));
+                if (altKey) { data = raw[altKey]; dbRootPath = altKey; }
+            }
+
+            turni = estraiDati(data.turni);
+            volontari = estraiDati(data.volontari);
+            mezzi = estraiDati(data.mezzi);
+
+            popolaDropdown();
+            aggiornaKPI();
+            renderTutto();
+        });
+
+        function estraiDati(nodo) {
+            if (!nodo) return [];
+            if (Array.isArray(nodo)) {
+                return nodo.map((item, idx) => {
+                    if (item && typeof item === 'object') {
+                        if (!item.id && item.id !== 0) item.id = String(idx);
+                        return item;
+                    }
+                    return null;
+                }).filter(Boolean);
+            }
+            if (typeof nodo === 'object') {
+                return Object.keys(nodo).map(k => {
+                    let it = nodo[k];
+                    if (it && typeof it === 'object') it.id = it.id || k;
+                    return it;
+                }).filter(Boolean);
+            }
+            return [];
+        }
+
+        function popolaDropdown() {
+            let optMezzi = '<option value="">-- Nessun Mezzo --</option>';
+            mezzi.forEach(m => {
+                optMezzi += `<option value="${m.nome} (${m.targa})">${m.nome} - ${m.targa}</option>`;
+            });
+            document.getElementById('t-mezzo').innerHTML = optMezzi;
+            document.querySelectorAll('.select-mezzi-quick').forEach(el => el.innerHTML = optMezzi);
+
+            let optAutisti = '<option value="">-- Da Coprire --</option>';
+            let optSoccorr = '<option value="">-- Da Coprire --</option>';
+            let optQuickVol = '<option value="">-- Seleziona --</option>';
+            
+            volontari.forEach(v => {
+                let r = v.ruolo || '';
+                let alertIcon = checkScadenzaVolontario(v) ? ' ⚠️' : '';
+                let label = `${v.nome} (${r})${alertIcon}`;
+                optAutisti += `<option value="${v.nome}">${label}</option>`;
+                optSoccorr += `<option value="${v.nome}">${label}</option>`;
+                optQuickVol += `<option value="${v.nome}">${v.nome}</option>`;
+            });
+
+            document.getElementById('t-autista').innerHTML = optAutisti;
+            document.getElementById('t-soccorritore').innerHTML = optSoccorr;
+            document.querySelectorAll('.select-volontari-quick').forEach(el => el.innerHTML = optQuickVol);
+        }
+
+        function checkScadenzaVolontario(v) {
+            if (!v) return false;
+            let campi = ['blsd', 'medico', 'sicurezza'];
+            for (let c of campi) {
+                if (v[c]) {
+                    let diff = Math.ceil((new Date(v[c]) - new Date()) / (1000 * 60 * 60 * 24));
+                    if (diff < 0) return true;
+                }
+            }
+            return false;
+        }
+
+        function estraiSigla(fasciaStr) {
+            if (!fasciaStr) return '';
+            let match = fasciaStr.match(/\[(.*?)\]/);
+            return match ? match[1] : fasciaStr.slice(0, 3);
+        }
+
+        function calcolaOreTurno(fasciaStr) {
+            let sigla = estraiSigla(fasciaStr);
+            return ORE_FASCE[sigla] || 4.0;
+        }
+
+        function contaVolontariTurno(t) {
+            let c = 0;
+            if (t.autista && t.autista.trim() !== '') c++;
+            if (t.soccorritore && t.soccorritore.trim() !== '') c++;
+            return c;
+        }
+
+        function aggiornaKPI() {
+            const tot = turni.length;
+            let cop = 0, parz = 0, scop = 0;
+            let oreTot = 0;
+
+            const centro = new Date(document.getElementById('data-centro').value || todayStr);
+            const annoMese = `${centro.getFullYear()}-${String(centro.getMonth() + 1).padStart(2, '0')}`;
+
+            turni.forEach(t => {
+                let n = contaVolontariTurno(t);
+                if (n === 2) cop++;
+                else if (n === 1) parz++;
+                else scop++;
+
+                if (t.data && t.data.startsWith(annoMese)) {
+                    let ore = calcolaOreTurno(t.fascia);
+                    oreTot += (ore * n);
+                }
+            });
+
+            document.getElementById('kpi-totale').innerText = tot;
+            document.getElementById('kpi-coperti').innerText = cop;
+            document.getElementById('kpi-parziali').innerText = parz;
+            document.getElementById('kpi-scoperti').innerText = scop;
+            document.getElementById('kpi-ore-totali').innerText = `${oreTot.toFixed(0)}h`;
+        }
+
+        function filtraTurni() {
+            let filtrati = [].concat(turni);
+            const centro = new Date(document.getElementById('data-centro').value || todayStr);
+
+            if (filtroPeriodo === 'settimana') {
+                filtrati = filtrati.filter(t => {
+                    if (!t.data) return false;
+                    const d = new Date(t.data);
+                    const diff = (d - centro) / (1000 * 60 * 60 * 24);
+                    return diff >= -1 && diff <= 6;
+                });
+            } else if (filtroPeriodo === 'mese') {
+                const annoMese = `${centro.getFullYear()}-${String(centro.getMonth() + 1).padStart(2, '0')}`;
+                filtrati = filtrati.filter(t => t.data && t.data.startsWith(annoMese));
+            }
+            return filtrati.sort((a, b) => new Date(a.data) - new Date(b.data));
+        }
+
+        function renderTutto() {
+            if (vistaAttiva === 'board') renderKanban();
+            else if (vistaAttiva === 'matrix') renderMatriceExcel();
+            else renderTabella();
+        }
+
+        function renderKanban() {
+            const container = document.getElementById('kanban-board');
+            container.innerHTML = '';
+
+            const turniFiltrati = filtraTurni();
+            let dateSet = Array.from(new Set(turniFiltrati.map(t => t.data).filter(Boolean))).sort();
+
+            if (dateSet.length === 0) {
+                container.innerHTML = `
+                    <div style="padding:60px 20px; text-align:center; width:100%; color:var(--text-muted);">
+                        <i class="fa-solid fa-mug-hot" style="font-size:3.5rem; color:var(--border); margin-bottom:15px;"></i>
+                        <h3>Nessun Turno in Questo Periodo</h3>
+                        <p style="margin-top:6px;">Usa il pulsante "Nuovo Turno" o la vista Tabella per pianificare al volo gli equipaggi.</p>
+                    </div>`;
+                return;
+            }
+
+            dateSet.forEach(dataIso => {
+                const turniGiorno = turniFiltrati.filter(t => t.data === dataIso);
+                const dObj = new Date(dataIso);
+                const isOggi = dataIso === todayStr;
+                const titoloGiorno = dObj.toLocaleDateString('it-IT', { weekday: 'long', day: '2-digit', month: 'short' });
+
+                let volontariGiorno = new Set();
+                turniGiorno.forEach(t => {
+                    if (t.autista) volontariGiorno.add(t.autista);
+                    if (t.soccorritore) volontariGiorno.add(t.soccorritore);
+                });
+
+                let col = document.createElement('div');
+                col.className = 'day-column';
+                col.innerHTML = `
+                    <div class="day-header ${isOggi ? 'today' : ''}">
+                        <div class="day-header-top">
+                            <span>${titoloGiorno.charAt(0).toUpperCase() + titoloGiorno.slice(1)}</span>
+                            <span class="day-counter">${turniGiorno.length} turni</span>
+                        </div>
+                        <div class="day-vol-count">
+                            <i class="fa-solid fa-users"></i> ${volontariGiorno.size} volontari in servizio
+                        </div>
+                    </div>
+                    <div class="day-cards" id="cards-${dataIso}"></div>
+                `;
+
+                container.appendChild(col);
+                const cardsWrap = col.querySelector(`#cards-${dataIso}`);
+
+                turniGiorno.forEach(t => {
+                    const numVol = contaVolontariTurno(t);
+                    const isCoperto = numVol === 2;
+                    const isParziale = numVol === 1;
+                    const statoClass = isCoperto ? 'coperto' : (isParziale ? 'parziale' : 'scoperto');
+                    const badgeClass = isCoperto ? 'status-coperto' : (isParziale ? 'status-parziale' : 'status-scoperto');
+                    const badgeText = isCoperto ? 'Coperto' : (isParziale ? 'Parziale' : 'Scoperto');
+
+                    let conflictMsg = "";
+                    if (t.autista) {
+                        let doppioAut = turniGiorno.filter(ot => ot.id !== t.id && (ot.autista === t.autista || ot.soccorritore === t.autista));
+                        if (doppioAut.length > 0) conflictMsg = `${t.autista} ha un altro turno oggi!`;
+                    }
+                    if (t.soccorritore && !conflictMsg) {
+                        let doppioSocc = turniGiorno.filter(ot => ot.id !== t.id && (ot.autista === t.soccorritore || ot.soccorritore === t.soccorritore));
+                        if (doppioSocc.length > 0) conflictMsg = `${t.soccorritore} ha un altro turno oggi!`;
+                    }
+
+                    let sigla = estraiSigla(t.fascia);
+
+                    let card = document.createElement('div');
+                    card.className = `shift-card ${statoClass}`;
+                    card.innerHTML = `
+                        <div class="shift-time">
+                            <div class="shift-head-left">
+                                ${sigla ? `<span class="shift-sigla-tag">${sigla}</span>` : ''}
+                                <span>${t.fascia || 'Fascia Oraria'}</span>
+                            </div>
+                            <div class="shift-badges">
+                                <span class="badge-count" title="Volontari presenti nel turno">${numVol}/2</span>
+                                <span class="shift-status-badge ${badgeClass}">${badgeText}</span>
+                            </div>
+                        </div>
+                        <div class="crew-row">
+                            <span class="crew-label">Autista:</span>
+                            <span class="crew-name ${!t.autista ? 'missing' : ''}">${t.autista || 'DA ASSEGNARE'}</span>
+                        </div>
+                        <div class="crew-row">
+                            <span class="crew-label">Soccorritore:</span>
+                            <span class="crew-name ${!t.soccorritore ? 'missing' : ''}">${t.soccorritore || 'DA ASSEGNARE'}</span>
+                        </div>
+                        <div class="shift-vehicle">
+                            <i class="fa-solid fa-truck-medical" style="color:var(--primary);"></i>
+                            <span>${t.mezzo || 'Mezzo da definire'}</span>
+                        </div>
+                        ${t.note ? `<div class="shift-note"><i class="fa-solid fa-circle-info"></i> ${t.note}</div>` : ''}
+                        ${conflictMsg ? `<div class="conflict-alert"><i class="fa-solid fa-triangle-exclamation"></i> ${conflictMsg}</div>` : ''}
+                        <div class="shift-actions">
+                            <button class="btn-icon" onclick="inviaWhatsAppTurno('${t.id}')" title="Condividi Equipaggio su WhatsApp" style="color:var(--wa-green);"><i class="fa-brands fa-whatsapp"></i></button>
+                            <button class="btn-icon" onclick="modificaTurno('${t.id}')" title="Modifica Turno"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-icon" onclick="eliminaTurno('${t.id}')" title="Elimina Turno" style="color:var(--danger);"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                    cardsWrap.appendChild(card);
+                });
+            });
+        }
+
+        // VISTA MATRICE EXCEL: Con Clic Diretto sulla Cella per Inserimento Rapido
+        function renderMatriceExcel() {
+            const container = document.getElementById('matrix-container');
+            const dataBase = new Date(document.getElementById('data-centro').value || todayStr);
+            const anno = dataBase.getFullYear();
+            const mese = dataBase.getMonth();
+
+            const ultimoGiorno = new Date(anno, mese + 1, 0).getDate();
+            const turniMese = turni.filter(t => t.data && t.data.startsWith(`${anno}-${String(mese + 1).padStart(2, '0')}`));
+
+            let nomiVolontari = Array.from(new Set(volontari.map(v => v.nome).concat(turniMese.map(t => t.autista)).concat(turniMese.map(t => t.soccorritore)))).filter(Boolean).sort();
+
+            if (nomiVolontari.length === 0) {
+                container.innerHTML = `<p style="padding:20px; color:var(--text-muted); text-align:center;">Nessun volontario registrato da visualizzare nella matrice.</p>`;
+                return;
+            }
+
+            let html = `<table class="matrix-table"><thead><tr><th class="col-name">VOLONTARIO</th>`;
+
+            for (let g = 1; g <= ultimoGiorno; g++) {
+                let d = new Date(anno, mese, g);
+                let isWe = (d.getDay() === 0 || d.getDay() === 6);
+                let nomeGiorno = d.toLocaleDateString('it-IT', { weekday: 'short' }).slice(0, 2);
+                html += `<th class="col-day ${isWe ? 'weekend' : ''}">${g}<br><span style="font-size:0.65rem; opacity:0.8;">${nomeGiorno}</span></th>`;
+            }
+            html += `<th style="background:#1e293b; color:white; width:55px;">TURNI</th>`;
+            html += `<th style="background:var(--primary); color:white; width:65px;">ORE</th></tr></thead><tbody>`;
+
+            nomiVolontari.forEach(nome => {
+                let countTurni = 0;
+                let totOre = 0;
+                html += `<tr><td class="col-name">${nome}</td>`;
+
+                for (let g = 1; g <= ultimoGiorno; g++) {
+                    let dStr = `${anno}-${String(mese + 1).padStart(2, '0')}-${String(g).padStart(2, '0')}`;
+                    let turniVol = turniMese.filter(t => t.data === dStr && (t.autista === nome || t.soccorritore === nome));
+
+                    if (turniVol.length > 0) {
+                        countTurni += turniVol.length;
+                        turniVol.forEach(t => totOre += calcolaOreTurno(t.fascia));
+                        let sigle = turniVol.map(t => estraiSigla(t.fascia)).join('/');
+                        let firstTurnoId = turniVol[0].id;
+                        html += `<td class="matrix-td-interactive" onclick="apriPopoverMatrice(event, '${nome}', '${dStr}', '${firstTurnoId}')">
+                                    <span class="matrix-cell-tag" title="Clicca per modificare">${sigle}</span>
+                                 </td>`;
+                    } else {
+                        html += `<td class="matrix-td-interactive" onclick="apriPopoverMatrice(event, '${nome}', '${dStr}', null)">
+                                    <span class="matrix-cell-empty">+</span>
+                                 </td>`;
+                    }
+                }
+                html += `<td><strong>${countTurni}</strong></td>`;
+                html += `<td style="color:var(--primary); font-weight:800;">${totOre.toFixed(1)}h</td></tr>`;
+            });
+
+            // RIGA TOTALI GIORNALIERI
+            html += `<tr style="background:#f1f5f9; font-weight:800;"><td class="col-name">VOLONTARI/GIORNO</td>`;
+            for (let g = 1; g <= ultimoGiorno; g++) {
+                let dStr = `${anno}-${String(mese + 1).padStart(2, '0')}-${String(g).padStart(2, '0')}`;
+                let turniG = turniMese.filter(t => t.data === dStr);
+                let volG = new Set();
+                turniG.forEach(t => {
+                    if (t.autista) volG.add(t.autista);
+                    if (t.soccorritore) volG.add(t.soccorritore);
+                });
+                html += `<td>${volG.size > 0 ? `<strong style="color:var(--primary);">${volG.size}</strong>` : '-'}</td>`;
+            }
+            html += `<td>-</td><td>-</td></tr></tbody></table>`;
+
+            container.innerHTML = html;
+        }
+
+        // APERTURA POPOVER SELEZIONE SIGLA RAPIDA DA CELLA MATRICE
+        function apriPopoverMatrice(e, nome, dataStr, turnoId) {
+            e.stopPropagation();
+            popoverTarget = { nome, dataStr, turnoId };
+            
+            const popover = document.getElementById('matrix-popover');
+            const dataF = new Date(dataStr).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+            document.getElementById('popover-target-info').innerText = `${nome} (${dataF})`;
+
+            // Calcolo coordinate schermo
+            let x = e.clientX + 10;
+            let y = e.clientY - 40;
+            if (x + 190 > window.innerWidth) x = window.innerWidth - 200;
+            if (y + 300 > window.innerHeight) y = window.innerHeight - 310;
+
+            popover.style.left = `${Math.max(10, x)}px`;
+            popover.style.top = `${Math.max(10, y)}px`;
+            popover.style.display = 'flex';
+        }
+
+        function chiudiPopover(e) {
+            const popover = document.getElementById('matrix-popover');
+            if (popover && !popover.contains(e.target)) {
+                popover.style.display = 'none';
+                popoverTarget = null;
+            }
+        }
+
+        // APPLICAZIONE ISTANTANEA DELLA SIGLA DA CELLA
+        function applicaSiglaDaPopover(fasciaCompleta) {
+            if (!popoverTarget) return;
+            const { nome, dataStr, turnoId } = popoverTarget;
+            const id = turnoId || Date.now().toString();
+
+            const turnoObj = {
+                id: id,
+                data: dataStr,
+                fascia: fasciaCompleta,
+                mezzo: "Da Assegnare",
+                autista: nome,
+                soccorritore: "",
+                note: "Assegnato direttamente da matrice",
+                data_modifica: new Date().toLocaleString('it-IT')
+            };
+
+            database.ref(dbRootPath + '/turni/' + id).set(turnoObj)
+                .then(() => {
+                    document.getElementById('matrix-popover').style.display = 'none';
+                    showToast(`Turno [${estraiSigla(fasciaCompleta)}] assegnato a ${nome}!`);
+                })
+                .catch(err => alert("Errore: " + err.message));
+        }
+
+        // RIMOZIONE RAPIDA DA CELLA
+        function rimuoviTurnoDaPopover() {
+            if (!popoverTarget || !popoverTarget.turnoId) {
+                document.getElementById('matrix-popover').style.display = 'none';
+                return;
+            }
+            if (confirm("Vuoi cancellare questo turno dalla griglia?")) {
+                database.ref(dbRootPath + '/turni/' + popoverTarget.turnoId).remove()
+                    .then(() => {
+                        document.getElementById('matrix-popover').style.display = 'none';
+                        showToast("Turno rimosso dalla matrice!");
+                    })
+                    .catch(err => alert("Errore: " + err.message));
+            }
+        }
+
+        // VISTA TABELLARE: Con Inserimento Inline
+        function renderTabella() {
+            const tbody = document.getElementById('table-corpo');
+            tbody.innerHTML = '';
+
+            const turniFiltrati = filtraTurni();
+            if (turniFiltrati.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">Nessun turno registrato. Compila la riga superiore per inserire subito un turno!</td></tr>`;
+                return;
+            }
+
+            turniFiltrati.forEach(t => {
+                const numVol = contaVolontariTurno(t);
+                const badgeClass = numVol === 2 ? 'status-coperto' : (numVol === 1 ? 'status-parziale' : 'status-scoperto');
+                const badgeText = numVol === 2 ? 'Coperto (2/2)' : (numVol === 1 ? 'Parziale (1/2)' : 'Scoperto (0/2)');
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${t.data ? new Date(t.data).toLocaleDateString('it-IT') : '-'}</strong></td>
+                        <td><strong style="color:var(--primary);">${t.fascia || '-'}</strong></td>
+                        <td><strong>${t.mezzo || 'Da Assegnare'}</strong></td>
+                        <td style="${!t.autista ? 'color:var(--danger); font-weight:700;' : ''}">${t.autista || 'MANCANTE'}</td>
+                        <td style="${!t.soccorritore ? 'color:var(--danger); font-weight:700;' : ''}">${t.soccorritore || 'MANCANTE'}</td>
+                        <td><small>${t.note || '-'}</small></td>
+                        <td style="text-align:right;">
+                            <button class="btn-icon" onclick="inviaWhatsAppTurno('${t.id}')" title="Invia su WhatsApp" style="display:inline-flex; color:var(--wa-green);"><i class="fa-brands fa-whatsapp"></i></button>
+                            <button class="btn-icon" onclick="modificaTurno('${t.id}')" style="display:inline-flex;"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-icon" onclick="eliminaTurno('${t.id}')" style="display:inline-flex; color:var(--danger);"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // INSERIMENTO RAPIDO DALLA RIGA INLINE DELLA TABELLA
+        function inserisciTurnoInline() {
+            const dataS = document.getElementById('q-data').value;
+            const fascia = document.getElementById('q-fascia').value;
+            const mezzo = document.getElementById('q-mezzo').value;
+            const aut = document.getElementById('q-autista').value;
+            const socc = document.getElementById('q-soccorritore').value;
+            const note = document.getElementById('q-note').value;
+
+            if (!dataS) { alert("Seleziona la data del turno."); return; }
+
+            const id = Date.now().toString();
+            const turnoObj = {
+                id: id,
+                data: dataS,
+                fascia: fascia,
+                mezzo: mezzo || "Da Assegnare",
+                autista: aut || "",
+                soccorritore: socc || "",
+                note: note || "",
+                data_modifica: new Date().toLocaleString('it-IT')
+            };
+
+            database.ref(dbRootPath + '/turni/' + id).set(turnoObj)
+                .then(() => {
+                    document.getElementById('q-note').value = '';
+                    showToast("Turno inserito direttamente in tabella!");
+                })
+                .catch(err => alert("Errore di inserimento: " + err.message));
+        }
+
+        function inviaWhatsAppTurno(id) {
+            const t = turni.find(x => String(x.id) === String(id));
+            if (!t) return;
+
+            let dataF = t.data ? new Date(t.data).toLocaleDateString('it-IT') : '';
+            let testo = `🚨 *CUORE D'ARGENTO ODV - ASSEGNAZIONE TURNO*\n\n` +
+                        `📅 *Data:* ${dataF}\n` +
+                        `⏰ *Fascia/Sigla:* ${t.fascia || '-'}\n` +
+                        `🚑 *Mezzo:* ${t.mezzo || 'Da Definire'}\n` +
+                        `👤 *Autista:* ${t.autista || '⚠️ DA COPRIRE'}\n` +
+                        `👤 *Soccorritore:* ${t.soccorritore || '⚠️ DA COPRIRE'}\n` +
+                        (t.note ? `📝 *Note:* ${t.note}\n` : '') +
+                        `\nSi prega di dare conferma della presenza in centrale.`;
+
+            let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(testo)}`;
+            window.open(url, '_blank');
+        }
+
+        function esportaCSVMatrice() {
+            const dataBase = new Date(document.getElementById('data-centro').value || todayStr);
+            const anno = dataBase.getFullYear();
+            const mese = dataBase.getMonth();
+            const ultimoGiorno = new Date(anno, mese + 1, 0).getDate();
+            const turniMese = turni.filter(t => t.data && t.data.startsWith(`${anno}-${String(mese + 1).padStart(2, '0')}`));
+
+            let nomiVolontari = Array.from(new Set(volontari.map(v => v.nome).concat(turniMese.map(t => t.autista)).concat(turniMese.map(t => t.soccorritore)))).filter(Boolean).sort();
+
+            let csv = "Volontario";
+            for (let g = 1; g <= ultimoGiorno; g++) { csv += `,${g}`; }
+            csv += ",Turni Totali,Ore Totali\n";
+
+            nomiVolontari.forEach(nome => {
+                let countTurni = 0;
+                let totOre = 0;
+                let riga = `"${nome}"`;
+
+                for (let g = 1; g <= ultimoGiorno; g++) {
+                    let dStr = `${anno}-${String(mese + 1).padStart(2, '0')}-${String(g).padStart(2, '0')}`;
+                    let turniVol = turniMese.filter(t => t.data === dStr && (t.autista === nome || t.soccorritore === nome));
+
+                    if (turniVol.length > 0) {
+                        countTurni += turniVol.length;
+                        turniVol.forEach(t => totOre += calcolaOreTurno(t.fascia));
+                        let sigle = turniVol.map(t => estraiSigla(t.fascia)).join('/');
+                        riga += `,"${sigle}"`;
+                    } else {
+                        riga += `,""`;
+                    }
+                }
+                riga += `,${countTurni},${totOre.toFixed(1)}\n`;
+                csv += riga;
+            });
+
+            const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Matrice_Turni_CdA_${anno}_${String(mese + 1).padStart(2, '0')}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Foglio Excel CSV scaricato!");
+        }
+
+        function cambiaVista(v) {
+            vistaAttiva = v;
+            document.getElementById('btn-view-board').classList.toggle('active', v === 'board');
+            document.getElementById('btn-view-matrix').classList.toggle('active', v === 'matrix');
+            document.getElementById('btn-view-table').classList.toggle('active', v === 'table');
+            
+            document.getElementById('kanban-board').style.display = v === 'board' ? 'flex' : 'none';
+            document.getElementById('matrix-view').style.display = v === 'matrix' ? 'block' : 'none';
+            document.getElementById('table-view').style.display = v === 'table' ? 'block' : 'none';
+            renderTutto();
+        }
+
+        function impostaFiltroPeriodo(f) {
+            filtroPeriodo = f;
+            document.getElementById('flt-settimana').classList.toggle('active', f === 'settimana');
+            document.getElementById('flt-mese').classList.toggle('active', f === 'mese');
+            document.getElementById('flt-tutti').classList.toggle('active', f === 'tutti');
+            renderTutto();
+        }
+
+        function centraSuData(val) {
+            if (val) renderTutto();
+        }
+
+        function apriModaleTurno() {
+            document.getElementById('formTurno').reset();
+            document.getElementById('t-editId').value = '';
+            document.getElementById('t-data').value = todayStr;
+            document.getElementById('modal-conflict-box').style.display = 'none';
+            document.getElementById('modal-title').innerText = 'Pianifica Turno';
+            document.getElementById('modalTurno').classList.add('active');
+        }
+
+        function modificaTurno(id) {
+            const t = turni.find(x => String(x.id) === String(id));
+            if (!t) return;
+            document.getElementById('t-editId').value = t.id;
+            document.getElementById('t-data').value = t.data || todayStr;
+            document.getElementById('t-fascia').value = t.fascia || '[1] 06:30 - 14:00';
+            document.getElementById('t-mezzo').value = t.mezzo || '';
+            document.getElementById('t-autista').value = t.autista || '';
+            document.getElementById('t-soccorritore').value = t.soccorritore || '';
+            document.getElementById('t-note').value = t.note || '';
+            document.getElementById('modal-title').innerText = 'Modifica Turno Equipaggio';
+            document.getElementById('modalTurno').classList.add('active');
+            verificaConflittiLive();
+        }
+
+        function chiudiModale() {
+            document.getElementById('modalTurno').classList.remove('active');
+        }
+
+        function verificaConflittiLive() {
+            const dataS = document.getElementById('t-data').value;
+            const aut = document.getElementById('t-autista').value;
+            const socc = document.getElementById('t-soccorritore').value;
+            const editId = document.getElementById('t-editId').value;
+            const box = document.getElementById('modal-conflict-box');
+            const msg = document.getElementById('modal-conflict-msg');
+
+            box.style.display = 'none';
+
+            if (!dataS) return;
+
+            if (aut && socc && aut === socc) {
+                box.style.display = 'flex';
+                msg.innerText = "Attenzione: Stesso volontario selezionato sia come Autista che come Soccorritore!";
+                return;
+            }
+
+            let vAut = volontari.find(v => v.nome === aut);
+            if (vAut && checkScadenzaVolontario(vAut)) {
+                box.style.display = 'flex';
+                msg.innerText = `Attenzione: ${aut} ha certificati o BLSD in scadenza o scaduti!`;
+                return;
+            }
+
+            let vSocc = volontari.find(v => v.nome === socc);
+            if (vSocc && checkScadenzaVolontario(vSocc)) {
+                box.style.display = 'flex';
+                msg.innerText = `Attenzione: ${socc} ha certificati o BLSD in scadenza o scaduti!`;
+                return;
+            }
+
+            let turniGiorno = turni.filter(t => t.data === dataS && String(t.id) !== String(editId));
+
+            if (aut) {
+                let dup = turniGiorno.find(t => t.autista === aut || t.soccorritore === aut);
+                if (dup) {
+                    box.style.display = 'flex';
+                    msg.innerText = `Attenzione: ${aut} è già assegnato a un altro turno in data ${new Date(dataS).toLocaleDateString('it-IT')} (${dup.fascia})!`;
+                    return;
+                }
+            }
+
+            if (socc) {
+                let dup = turniGiorno.find(t => t.autista === socc || t.soccorritore === socc);
+                if (dup) {
+                    box.style.display = 'flex';
+                    msg.innerText = `Attenzione: ${socc} è già assegnato a un altro turno in data ${new Date(dataS).toLocaleDateString('it-IT')} (${dup.fascia})!`;
+                    return;
+                }
+            }
+        }
+
+        function salvaTurno(e) {
+            e.preventDefault();
+            const editId = document.getElementById('t-editId').value;
+            const id = editId || Date.now().toString();
+
+            const turnoObj = {
+                id: id,
+                data: document.getElementById('t-data').value,
+                fascia: document.getElementById('t-fascia').value,
+                mezzo: document.getElementById('t-mezzo').value,
+                autista: document.getElementById('t-autista').value,
+                soccorritore: document.getElementById('t-soccorritore').value,
+                note: document.getElementById('t-note').value,
+                data_modifica: new Date().toLocaleString('it-IT')
+            };
+
+            database.ref(dbRootPath + '/turni/' + id).set(turnoObj)
+                .then(() => {
+                    chiudiModale();
+                    showToast(editId ? "Turno aggiornato!" : "Nuovo turno salvato sul Cloud!");
+                })
+                .catch(err => alert("Errore di salvataggio: " + err.message));
+        }
+
+        function eliminaTurno(id) {
+            if (confirm("Sei sicuro di voler rimuovere questo turno dal tabellone?")) {
+                database.ref(dbRootPath + '/turni/' + id).remove()
+                    .then(() => showToast("Turno rimosso!"))
+                    .catch(err => alert("Errore eliminazione: " + err.message));
+            }
+        }
+
+        function stampaTabellonePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+
+            doc.setFontSize(14);
+            doc.setTextColor(198, 40, 40);
+            doc.text(societaInfo.nome.toUpperCase(), 14, 15);
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 20);
+
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`TABELLONE TURNI ED EQUIPAGGI - Data Stampa: ${new Date().toLocaleDateString('it-IT')}`, 14, 28);
+            doc.line(14, 31, 282, 31);
+
+            const turniStampa = filtraTurni();
+            const body = turniStampa.map(t => {
+                let n = contaVolontariTurno(t);
+                let statoStr = n === 2 ? 'COPERTO (2/2)' : (n === 1 ? 'PARZIALE (1/2)' : 'SCOPERTO (0/2)');
+                return [
+                    t.data ? new Date(t.data).toLocaleDateString('it-IT') : '-',
+                    t.fascia || '-',
+                    t.mezzo || 'Da Definire',
+                    t.autista || 'MANCANTE',
+                    t.soccorritore || 'MANCANTE',
+                    statoStr,
+                    t.note || '-'
+                ];
+            });
+
+            doc.autoTable({
+                startY: 35,
+                head: [['Data', 'Sigla / Orario', 'Mezzo Assegnato', 'Autista', 'Soccorritore', 'Stato & Volontari', 'Note']],
+                body: body,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 41, 59] },
+                styles: { fontSize: 8 },
+                didParseCell: function(data) {
+                    if (data.column.index === 5) {
+                        if (data.cell.raw.includes('COPERTO')) {
+                            data.cell.styles.textColor = [16, 185, 129];
+                            data.cell.styles.fontStyle = 'bold';
+                        } else if (data.cell.raw.includes('PARZIALE')) {
+                            data.cell.styles.textColor = [245, 158, 11];
+                            data.cell.styles.fontStyle = 'bold';
+                        } else {
+                            data.cell.styles.textColor = [239, 68, 68];
+                            data.cell.styles.fontStyle = 'bold';
+                        }
+                    }
+                }
+            });
+
+            doc.save(`Tabellone_Turni_${todayStr}.pdf`);
+            showToast("Tabellone PDF generato!");
+        }
+
+        function apriGestionalePrincipale() {
+            window.location.href = "index.html";
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3500);
+        }
+    </script>
+</body>
+</html>

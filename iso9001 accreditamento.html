@@ -22,7 +22,7 @@
             --secondary: #1e293b;
             --bg-body: #f8fafc; --bg-panel: #ffffff; --text-main: #334155; --text-light: #94a3b8;
             --border: #e2e8f0; --alert-green: #10b981; --alert-red: #ef4444;
-            --success: #10b981; --warning: #f59e0b; --info: #3b82f6;
+            --success: #10b981; --warning: #f59e0b; --info: #3b82f6; --danger: #ef4444;
             --radius: 8px;
         }
 
@@ -103,26 +103,12 @@
     <script>
         var trasporti = [], volontari = [], mezzi = [], sanificazioni = [], elettromedicali = [], nonConformita = [], fornitori = [], customerSat = [], verbali = [], checklists = [];
         
-        // Dati di default iniziali (sincronizzati e persistenti su Firebase)
-        var turniReperibilita = [
-            { id: 1, data: "2026-06-01", turno: "Mattina", nome: "Mario Rossi", qualifica: "Soccorritore", reperibile: "NO", sostituto: "-", note: "Regolare" },
-            { id: 2, data: "2026-06-01", turno: "Notte", nome: "Luca Bianchi", qualifica: "Autista Soccorritore", reperibile: "SI", sostituto: "Giuseppe Verdi", note: "Reperibilità H24" }
-        ];
+        var turniReperibilita = [];
+        var continuitaServizio = [];
+        var formazionePersonale = [];
+        var verificheQualitaDati = [];
 
-        var continuitaServizio = [
-            { id: 1, data: "2026-05-15", evento: "Guasto Mezzo", coinvolto: "Ambulanza DG347YP", azione: "Attivazione mezzo sostitutivo come da convenzione CRI Avigliano", esito: "Risolto", note: "Intervento tempestivo" }
-        ];
-
-        var formazionePersonale = [
-            { id: 1, nome: "Mario Rossi", qualifica: "Soccorritore", corso: "BLSD Esecutore", datacorso: "2024-05-10", datascadenza: "2026-05-10", stato: "Regolare", note: "Certificato ASL" },
-            { id: 2, nome: "Luca Bianchi", qualifica: "Autista Soccorritore", corso: "Corso Base Soccorritore", datacorso: "2023-01-15", datascadenza: "2026-06-30", stato: "In Scadenza", note: "Rinnovo in corso" }
-        ];
-
-        var verificheQualitaDati = [
-            { id: 1, data: "2026-03-15", dato: "Tempi di risposta servizi", acc: "OK", comp: "OK", riprod: "OK", temp: "OK", esito: "Conforme", azioni: "-", resp: "RSI" }
-        ];
-
-        var utenteLoggato = "Resp. Qualità ISO 9001";
+        var utenteLoggato = localStorage.getItem("nome_utente_gestionale") || "Resp. Qualità ISO 9001";
         const todayStr = new Date().toISOString().split('T')[0];
         
         function toast(msg, type="success") {
@@ -139,14 +125,22 @@
         }
 
         function checkScadenza(dataScadenza) {
-            if(!dataScadenza) return { stato: 'ok', html: '-' };
-            const diff = Math.ceil((new Date(dataScadenza) - new Date()) / (1000 * 60 * 60 * 24));
-            if (diff < 0) return { stato: 'scaduto', html: `<span class="badge" style="background:#fee2e2; color:var(--danger)">Scaduto</span>` };
-            if (diff <= 30) return { stato: 'allarme', html: `<span class="badge" style="background:#fef3c7; color:var(--warning)">${diff}gg</span>` };
-            return { stato: 'ok', html: new Date(dataScadenza).toLocaleDateString('it-IT') };
+            if(!dataScadenza || dataScadenza === "" || dataScadenza === "-") return { stato: 'ok', html: '-' };
+            const dataElemento = new Date(dataScadenza);
+            if (isNaN(dataElemento.getTime())) return { stato: 'ok', html: dataScadenza }; 
+            
+            const diff = Math.ceil((dataElemento - new Date()) / (1000 * 60 * 60 * 24));
+            const formatData = dataElemento.toLocaleDateString('it-IT');
+            
+            if (diff < 0) return { stato: 'scaduto', html: `<span class="badge" style="background:#fee2e2; color:var(--danger)">Scaduto (${formatData})</span>` };
+            if (diff <= 30) return { stato: 'allarme', html: `<span class="badge" style="background:#fef3c7; color:var(--warning)">In scadenza (${diff}gg)</span>` };
+            return { stato: 'ok', html: formatData };
         }
 
-        window.chiudiModali = () => { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); };
+        window.chiudiModali = () => { 
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); 
+            document.querySelectorAll('form').forEach(f => f.reset());
+        };
     </script>
 </head>
 <body>
@@ -171,7 +165,6 @@
     </header>
 
     <div class="main-container">
-        <!-- SIDEBAR INTEGRATA -->
         <aside class="sidebar">
             <div class="sidebar-title">Moduli Certificati ASL & ISO <i class="fa-solid fa-clipboard-check"></i></div>
             <ul class="tree-menu" style="flex-direction: column; display: flex;">
@@ -194,7 +187,6 @@
                 <h3 id="tab-title" style="color:var(--text-main); font-size:1.2rem; font-weight:800;">Cruscotto KPI (Riesame)</h3>
             </div>
 
-            <!-- TAB DIREZIONE E STATISTICHE (KPI) -->
             <div id="tab-statistiche" class="tab-content active">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <p style="color: var(--text-light); font-size: 0.9rem;">Indicatori aggregati in tempo reale (Sola Lettura da Operativo)</p>
@@ -217,7 +209,6 @@
                 </div>
             </div>
 
-            <!-- TAB CENTRO STAMPE E REGISTRI ASL -->
             <div id="tab-stampe-asl" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-print"></i> Centro Stampe e Registri Ufficiali (Conformità ASL / ISO 9001)</h3>
@@ -232,7 +223,6 @@
                         </div>
                         <button class="btn btn-primary" onclick="stampaRegistroTurniAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Turni (PDF)</button>
                     </div>
-
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
                             <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-shield-heart"></i> Registro Continuità del Servizio</h4>
@@ -240,7 +230,6 @@
                         </div>
                         <button class="btn btn-primary" onclick="stampaRegistroContinuitaAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Continuità (PDF)</button>
                     </div>
-
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
                             <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-graduation-cap"></i> Registro Formazione Personale</h4>
@@ -248,7 +237,6 @@
                         </div>
                         <button class="btn btn-primary" onclick="stampaRegistroFormazioneAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Formazione (PDF)</button>
                     </div>
-
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
                             <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-square-check"></i> Verifiche Qualità Dati</h4>
@@ -256,7 +244,6 @@
                         </div>
                         <button class="btn btn-primary" onclick="stampaRegistroVerificheDatiAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Verifiche Dati (PDF)</button>
                     </div>
-
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
                             <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-book"></i> Registro Non Conformità (RRP)</h4>
@@ -264,7 +251,6 @@
                         </div>
                         <button class="btn btn-primary" onclick="stampaRegistroNCAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Registro NC (PDF)</button>
                     </div>
-
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
                             <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-spray-can-sparkles"></i> Sanificazioni & Elettromedicali</h4>
@@ -278,7 +264,6 @@
                 </div>
             </div>
 
-            <!-- TAB TURNI E REPERIBILITA -->
             <div id="tab-turni" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-calendar-days"></i> Registro Turni e Reperibilità Personale</h3>
@@ -295,7 +280,6 @@
                 </div>
             </div>
 
-            <!-- TAB CONTINUITA DEL SERVIZIO -->
             <div id="tab-continuita" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-shield-heart"></i> Registro Continuità del Servizio & Emergenze</h3>
@@ -306,13 +290,12 @@
                 </div>
                 <div class="glass-panel table-container">
                     <table>
-                        <thead><tr><th>Data</th><th>Evento (es. Guasto Mezzo)</th><th>Coinvolto</th><th>Azione Correttiva</th><th>Esito</th><th>Note</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <thead><tr><th>Data</th><th>Evento (es. Guasto Mezzo)</th><th>Segnalante</th><th>Coinvolto</th><th>Azione Correttiva</th><th>Esito</th><th>Note</th><th style="text-align:right;">Azioni</th></tr></thead>
                         <tbody id="continuita-corpo"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- TAB FORMAZIONE PERSONALE -->
             <div id="tab-formazione" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-graduation-cap"></i> Registro Formazione e Scadenze (BLSD)</h3>
@@ -323,16 +306,15 @@
                 </div>
                 <div class="glass-panel table-container">
                     <table>
-                        <thead><tr><th>Operatore</th><th>Qualifica</th><th>Corso (BLSD, Base...)</th><th>Data Corso</th><th>Scadenza</th><th>Stato</th><th>Note</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <thead><tr><th>Operatore</th><th>Qualifica</th><th>Corso (BLSD, Base...)</th><th>Data Corso</th><th>Scadenza</th><th>Stato (Check Dati)</th><th>Note</th><th style="text-align:right;">Azioni</th></tr></thead>
                         <tbody id="formazione-corpo"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- TAB VERIFICHE QUALITA DATI -->
             <div id="tab-verifichedati" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <h3 style="color: var(--primary);"><i class="fa-solid fa-square-check"></i> Registro Verifica Qualità dei Dati</h3>
+                    <h3 style="color: var(--primary);"><i class="fa-solid fa-square-check"></i> Registro Verifica Qualità Dati</h3>
                     <div style="display: flex; gap: 10px;">
                         <button class="btn btn-primary" onclick="apriModale('modalVerificaDato', 'formVerificaDato', 'vd-')"><i class="fa-solid fa-plus"></i> Nuova Verifica RSI</button>
                         <button class="btn btn-ghost" onclick="stampaRegistroVerificheDatiAsl()" style="border-color: var(--primary); color: var(--primary);"><i class="fa-solid fa-file-pdf"></i> Stampa Registro</button>
@@ -346,25 +328,23 @@
                 </div>
             </div>
 
-            <!-- TAB CUSTOMER SATISFACTION -->
             <div id="tab-customersat" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-star"></i> Registro Soddisfazione Utenti</h3>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button class="btn btn-ghost" onclick="stampaQuestionarioCartaceo()" style="border-color: var(--secondary); color: var(--secondary);"><i class="fa-solid fa-file-lines"></i> Stampa Questionario</button>
                         <button class="btn btn-ghost" onclick="document.getElementById('modalQRCustomerSat').classList.add('active')" style="border-color: #ec4899; color: #ec4899;"><i class="fa-solid fa-qrcode"></i> QR Esterno</button>
-                        <button class="btn btn-ghost" onclick="apriModale('modalCustomerSat', 'formCustomerSat', 'cs-')" style="border-color: var(--primary); color: var(--primary);"><i class="fa-solid fa-plus"></i> Inserisci Esito</button>
+                        <button class="btn btn-primary" onclick="apriModale('modalCustomerSat', 'formCustomerSat', 'cs-')"><i class="fa-solid fa-plus"></i> Inserisci Esito</button>
                     </div>
                 </div>
                 <div class="glass-panel table-container">
                     <table>
-                        <thead><tr><th>Data</th><th>Compilatore</th><th>Voto Finale</th><th>Media Servizio</th><th>Media Veicolo</th><th>Consiglierebbe?</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <thead><tr><th>Data</th><th>Compilatore</th><th>Voto Finale</th><th>Consiglierebbe?</th><th style="text-align:right;">Azioni</th></tr></thead>
                         <tbody id="customersat-corpo"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- TAB NON CONFORMITA -->
             <div id="tab-nc" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-triangle-exclamation"></i> Workflow Gestione Reclami & Non Conformità</h3>
@@ -378,7 +358,6 @@
                 </div>
             </div>
 
-            <!-- TAB ALBO FORNITORI -->
             <div id="tab-fornitori" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-handshake"></i> Albo Fornitori Qualificati</h3>
@@ -392,7 +371,6 @@
                 </div>
             </div>
 
-            <!-- TAB ELETTROMEDICALI -->
             <div id="tab-elettromedicali" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-heart-pulse"></i> Inventario Elettromedicali (DAE, O2)</h3>
@@ -406,7 +384,6 @@
                 </div>
             </div>
 
-            <!-- TAB SANIFICAZIONI -->
             <div id="tab-sanificazioni" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-spray-can-sparkles"></i> Registro Sanificazioni</h3>
@@ -419,16 +396,13 @@
                     </table>
                 </div>
             </div>
-
         </main>
     </div>
 
-    <!-- === MODALI D'INSERIMENTO === -->
-    
-    <!-- Modale Turno -->
+    <!-- Modali -->
     <div class="modal-overlay" id="modalTurno">
         <div class="modal" style="max-width: 550px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-calendar-days"></i> Gestione Turno e Reperibilità <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-calendar-days"></i> Gestione Turno e Reperibilità <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
             <form id="formTurno">
                 <input type="hidden" id="turn-editId">
                 <div class="form-grid">
@@ -445,18 +419,18 @@
         </div>
     </div>
 
-    <!-- Modale Continuità Servizio -->
     <div class="modal-overlay" id="modalContinuita">
         <div class="modal" style="max-width: 600px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-shield-heart"></i> Registro Continuità del Servizio <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-shield-heart"></i> Registro Continuità del Servizio <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
             <form id="formContinuita">
                 <input type="hidden" id="cont-editId">
                 <div class="form-grid">
                     <div class="input-group"><label>Data Evento</label><input type="date" id="cont-data" required></div>
                     <div class="input-group"><label>Tipo Evento</label><select id="cont-evento"><option value="Guasto Mezzo">Guasto Mezzo</option><option value="Assenza Operatore">Assenza Operatore</option><option value="Emergenza Straordinaria">Emergenza Straordinaria</option></select></div>
-                    <div class="input-group full-width"><label>Mezzo o Operatore Coinvolto</label><input type="text" id="cont-coinvolto" required placeholder="Es. Ambulanza DG347YP"></div>
-                    <div class="input-group full-width"><label>Azione Correttiva (es. Mezzo sostitutivo / CRI Avigliano)</label><textarea id="cont-azione" required rows="2"></textarea></div>
-                    <div class="input-group"><label>Esito</label><select id="cont-esito"><option value="Risolto">Risolto</option><option value="In Gestione">In Gestione</option></select></div>
+                    <div class="input-group"><label>Segnalato Da</label><input type="text" id="cont-segnalante" value="Centrale Operativa" required></div>
+                    <div class="input-group"><label>Mezzo o Operatore Coinvolto</label><input type="text" id="cont-coinvolto" required placeholder="Es. Ambulanza DG347YP"></div>
+                    <div class="input-group full-width"><label>Azione Correttiva (es. Mezzo sostitutivo)</label><textarea id="cont-azione" required rows="2"></textarea></div>
+                    <div class="input-group"><label>Esito</label><select id="cont-esito"><option value="In Gestione">In Gestione</option><option value="Risolto">Risolto</option></select></div>
                     <div class="input-group full-width"><label>Note</label><input type="text" id="cont-note"></div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Evento</button></div>
@@ -464,19 +438,19 @@
         </div>
     </div>
 
-    <!-- Modale Formazione -->
+    <!-- MODIFICATA: Select Nome Operatore per la Formazione Personale -->
     <div class="modal-overlay" id="modalFormazione">
         <div class="modal" style="max-width: 550px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-graduation-cap"></i> Scheda Formazione Personale <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-graduation-cap"></i> Scheda Formazione Personale <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
             <form id="formFormazione">
                 <input type="hidden" id="form-editId">
                 <div class="form-grid">
-                    <div class="input-group"><label>Nome Operatore</label><input type="text" id="form-nome" required></div>
+                    <div class="input-group"><label>Nome Operatore</label><select id="form-nome" required><option value="">-- Seleziona Operatore --</option></select></div>
                     <div class="input-group"><label>Qualifica</label><input type="text" id="form-qualifica" value="Soccorritore"></div>
                     <div class="input-group"><label>Corso (BLSD, Base, ecc.)</label><input type="text" id="form-corso" required value="BLSD"></div>
                     <div class="input-group"><label>Data Corso</label><input type="date" id="form-datacorso" required></div>
                     <div class="input-group"><label>Data Scadenza (es. 24 mesi BLSD)</label><input type="date" id="form-datascadenza" required></div>
-                    <div class="input-group"><label>Stato Conformità</label><select id="form-stato"><option value="Regolare">Regolare</option><option value="In Scadenza">In Scadenza</option><option value="Scaduto">Scaduto</option></select></div>
+                    <div class="input-group"><label>Stato Base</label><select id="form-stato"><option value="Regolare">Regolare</option><option value="In Scadenza">In Scadenza</option><option value="Scaduto">Scaduto</option></select></div>
                     <div class="input-group full-width"><label>Note</label><input type="text" id="form-note"></div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Formazione</button></div>
@@ -484,10 +458,9 @@
         </div>
     </div>
 
-    <!-- Modale Verifica Dati -->
     <div class="modal-overlay" id="modalVerificaDato">
         <div class="modal" style="max-width: 600px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-square-check"></i> Registro Verifica Qualità Dati <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-square-check"></i> Registro Verifica Qualità Dati <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
             <form id="formVerificaDato">
                 <input type="hidden" id="vd-editId">
                 <div class="form-grid">
@@ -506,15 +479,14 @@
         </div>
     </div>
 
-    <!-- Modale NC -->
     <div class="modal-overlay" id="modalNC">
         <div class="modal" style="max-width: 650px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-triangle-exclamation"></i> Reclamo o Non Conformità (Workflow RRP) <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-triangle-exclamation"></i> Reclamo o Non Conformità (Workflow RRP) <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
             <form id="formNC">
                 <input type="hidden" id="nc-editId">
                 <div class="form-grid">
                     <div class="input-group"><label>Data Rilevazione</label><input type="date" id="nc-data" required></div>
-                    <div class="input-group"><label>Rilevatore (Volontario)</label><select id="nc-rilevatore" required><option value="">-- Seleziona --</option></select></div>
+                    <div class="input-group"><label>Rilevatore (Volontario/Paziente)</label><select id="nc-rilevatore" required><option value="Utente Esterno">Utente Esterno</option></select></div>
                     <div class="input-group full-width"><label>Tipologia Segnalazione</label><select id="nc-tipo" required><option value="Reclamo da Paziente/ASL">Reclamo da Paziente/ASL</option><option value="Osservazione">Osservazione</option><option value="Guasto/Malfunzionamento Mezzo">Guasto/Malfunzionamento Mezzo</option></select></div>
                     <div class="input-group full-width"><label>Descrizione Evento</label><textarea id="nc-descrizione" required rows="3"></textarea></div>
                     <div class="input-group full-width"><label>Azione Correttiva</label><textarea id="nc-azione" rows="2"></textarea></div>
@@ -525,16 +497,15 @@
         </div>
     </div>
 
-    <!-- Modale Fornitore -->
     <div class="modal-overlay" id="modalFornitore">
         <div class="modal" style="max-width: 600px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-handshake"></i> Aggiungi Fornitore <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-handshake"></i> Aggiungi Fornitore <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
             <form id="formFornitore">
                 <input type="hidden" id="forn-editId">
                 <div class="form-grid">
                     <div class="input-group full-width"><label>Ragione Sociale / P.IVA</label><input type="text" id="forn-ragione" required></div>
                     <div class="input-group"><label>Categoria</label><input type="text" id="forn-categoria" required placeholder="Es. Materiale Sanitario"></div>
-                    <div class="input-group"><label>Scadenza Contratto</label><input type="date" id="forn-scadenza"></div>
+                    <div class="input-group"><label>Scadenza Contratto</label><input type="date" id="forn-scadenza" required></div>
                     <div class="input-group"><label>Valutazione Annuale</label><select id="forn-valutazione"><option value="Positiva">Positiva</option><option value="Sufficiente">Sufficiente</option><option value="Negativa">Negativa</option><option value="Da Valutare">Da Valutare</option></select></div>
                     <div class="input-group full-width"><label>Note</label><input type="text" id="forn-note"></div>
                 </div>
@@ -543,10 +514,9 @@
         </div>
     </div>
 
-    <!-- Modale Elettromedicale -->
     <div class="modal-overlay" id="modalElettromedicale">
         <div class="modal" style="max-width: 600px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-heart-pulse"></i> Inserisci Apparecchio <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-heart-pulse"></i> Inserisci Apparecchio <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
             <form id="formElettromedicale">
                 <input type="hidden" id="el-editId">
                 <div class="form-grid">
@@ -562,10 +532,9 @@
         </div>
     </div>
 
-    <!-- Modale Sanificazione -->
     <div class="modal-overlay" id="modalSanificazione">
         <div class="modal" style="max-width: 600px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-spray-can-sparkles"></i> Registra Operazione <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-spray-can-sparkles"></i> Registra Operazione <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
             <form id="formSanificazione">
                 <input type="hidden" id="san-editId">
                 <div class="form-grid">
@@ -580,7 +549,32 @@
         </div>
     </div>
 
-    <!-- === SCRIPT FUNZIONALI E DI SINCRONIZZAZIONE FIREBASE === -->
+    <div class="modal-overlay" id="modalCustomerSat">
+        <div class="modal" style="max-width: 550px;">
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-star"></i> Inserisci Esito Soddisfazione <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
+            <form id="formCustomerSat">
+                <input type="hidden" id="cs-editId">
+                <div class="form-grid">
+                    <div class="input-group"><label>Data Compilazione</label><input type="date" id="cs-data" required></div>
+                    <div class="input-group"><label>Compilatore (Opzionale)</label><input type="text" id="cs-compilatore" value="Anonimo"></div>
+                    <div class="input-group"><label>Voto Globale (1 a 5)</label><input type="number" id="cs-voto_globale" min="1" max="5" required placeholder="Es. 5"></div>
+                    <div class="input-group"><label>Consiglierebbe il servizio?</label><select id="cs-consiglia"><option value="Sì">Sì</option><option value="No">No</option></select></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Esito</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalQRCustomerSat">
+        <div class="modal" style="max-width: 400px; text-align:center;">
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-qrcode"></i> Scansione QR Paziente <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
+            <div style="padding: 20px; background: white; border-radius: 8px; display: inline-flex; justify-content: center; align-items: center; margin-top: 10px;">
+                <div id="qrcode"></div>
+            </div>
+            <p style="margin-top: 15px; font-size: 0.85rem; color: var(--text-light);">Fai inquadrare questo codice ai pazienti a fine trasporto per la compilazione del questionario online sul loro smartphone.</p>
+        </div>
+    </div>
+
     <script>
         document.getElementById('date-display').innerText = new Date().toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -600,7 +594,12 @@
             }
         }
 
+        var database;
         window.salvaNodo = (nomeNodo, dati) => {
+            if(!database) {
+                alert("Database non connesso. Aprire da server o Netlify, non in file:// locale.");
+                return;
+            }
             database.ref('cuore_argento_db/' + nomeNodo).set(dati)
             .then(() => { toast("Salvataggio su Firebase completato!"); })
             .catch((err) => { alert("Errore Cloud: " + err.message); });
@@ -618,7 +617,7 @@
             };
 
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-            const database = firebase.database();
+            database = firebase.database();
             
             database.ref('cuore_argento_db').on('value', (snapshot) => {
                 const data = snapshot.val() || {};
@@ -628,24 +627,13 @@
                 elettromedicali = estraiDati(data.elettromedicali); nonConformita = estraiDati(data.nonConformita); 
                 customerSat = estraiDati(data.customerSat); fornitori = estraiDati(data.fornitori); verbali = estraiDati(data.verbali);
                 
-                // Caricamento con fallback sui dati di default se Firebase è vuoto
                 turniReperibilita = estraiDati(data.turniReperibilita, turniReperibilita);
                 continuitaServizio = estraiDati(data.continuitaServizio, continuitaServizio);
                 formazionePersonale = estraiDati(data.formazionePersonale, formazionePersonale);
                 verificheQualitaDati = estraiDati(data.verificheQualitaDati, verificheQualitaDati);
 
-                popolaTendine();
-                renderStatistiche();
-                renderTurni();
-                renderContinuita();
-                renderFormazione();
-                renderVerificheDati();
-                renderNC();
-                renderCustomerSat();
-                renderVerbali();
-                renderFornitori();
-                renderElettromedicali();
-                renderSanificazioni();
+                popolaTendine(); renderStatistiche(); renderTurni(); renderContinuita(); renderFormazione(); 
+                renderVerificheDati(); renderNC(); renderCustomerSat(); renderFornitori(); renderElettromedicali(); renderSanificazioni();
             });
 
         } catch (error) {
@@ -653,11 +641,19 @@
             alert("Connessione al database fallita.");
         }
 
+        // MODIFICATA: Popolamento della tendina Nome Operatore nella Formazione
         function popolaTendine() {
-            let vOpts = '<option value="">-- Seleziona --</option>';
-            volontari.forEach(v => { vOpts += `<option value="${v.nome}">${v.nome}</option>`; });
-            if(document.getElementById('nc-rilevatore')) document.getElementById('nc-rilevatore').innerHTML = vOpts;
-            if(document.getElementById('san-operatore')) document.getElementById('san-operatore').innerHTML = vOpts;
+            let vOptsNC = '<option value="Utente Esterno">Utente Esterno</option>';
+            let vOptsPuri = '<option value="">-- Seleziona Operatore --</option>';
+            
+            volontari.forEach(v => { 
+                vOptsNC += `<option value="${v.nome}">${v.nome}</option>`; 
+                vOptsPuri += `<option value="${v.nome}">${v.nome}</option>`;
+            });
+            
+            if(document.getElementById('nc-rilevatore')) document.getElementById('nc-rilevatore').innerHTML = vOptsNC;
+            if(document.getElementById('san-operatore')) document.getElementById('san-operatore').innerHTML = vOptsPuri;
+            if(document.getElementById('form-nome')) document.getElementById('form-nome').innerHTML = vOptsPuri;
         }
 
         window.apriModale = (modalId, formId, prefix) => {
@@ -704,24 +700,50 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             collegaForm('formTurno', 'turniReperibilita', 'turn-', ['data', 'turno', 'nome', 'qualifica', 'reperibile', 'sostituto', 'note']);
-            collegaForm('formContinuita', 'continuitaServizio', 'cont-', ['data', 'evento', 'coinvolto', 'azione', 'esito', 'note']);
+            collegaForm('formContinuita', 'continuitaServizio', 'cont-', ['data', 'evento', 'segnalante', 'coinvolto', 'azione', 'esito', 'note']);
             collegaForm('formFormazione', 'formazionePersonale', 'form-', ['nome', 'qualifica', 'corso', 'datacorso', 'datascadenza', 'stato', 'note']);
             collegaForm('formVerificaDato', 'verificheQualitaDati', 'vd-', ['data', 'dato', 'acc', 'comp', 'riprod', 'temp', 'esito', 'resp', 'azioni']);
-            
-            // Nuovi collegamenti aggiunti per sanificazioni, elettromedicali e fornitori
             collegaForm('formNC', 'nonConformita', 'nc-', ['data', 'rilevatore', 'tipo', 'descrizione', 'azione', 'stato']);
             collegaForm('formFornitore', 'fornitori', 'forn-', ['ragione', 'categoria', 'scadenza', 'valutazione', 'note']);
             collegaForm('formElettromedicale', 'elettromedicali', 'el-', ['tipo', 'modello', 'matricola', 'assegnazione', 'scad-manutenzione', 'scad-consumabili']);
             collegaForm('formSanificazione', 'sanificazioni', 'san-', ['data', 'mezzo', 'tipo', 'operatore', 'note']);
+            collegaForm('formCustomerSat', 'customerSat', 'cs-', ['data', 'compilatore', 'voto_globale', 'consiglia']);
+            
+            // MODIFICATA: Event listener per auto-compilazione Qualifica in Formazione
+            const formNomeEl = document.getElementById('form-nome');
+            if(formNomeEl) {
+                formNomeEl.addEventListener('change', (e) => {
+                    const selVol = volontari.find(v => v.nome === e.target.value);
+                    if(selVol && document.getElementById('form-qualifica')) {
+                        document.getElementById('form-qualifica').value = selVol.ruolo || selVol.qualifica || 'Soccorritore';
+                    }
+                });
+            }
+            
+            const qrContainer = document.getElementById("qrcode");
+            if(qrContainer) {
+                new QRCode(qrContainer, { text: "https://docs.google.com/forms/d/e/1FAIpQLSerxr5ggAvhPCAPKwkPGKkm5tbjsDYWIiPlguYWskejUX7g-w/viewform?usp=sharing&ouid=117117615506418942572", width: 160, height: 160 });
+            }
         });
 
+        // MODIFICATA: Ottimizzazione KPI e sicurezza riferimenti DOM
         window.renderStatistiche = () => {
-            if(document.getElementById('kpi-servizi')) document.getElementById('kpi-servizi').innerText = trasporti.length;
-            if(document.getElementById('kpi-nc')) document.getElementById('kpi-nc').innerText = nonConformita.filter(n => n.stato !== 'Chiusa').length;
-            if(document.getElementById('kpi-fornitori')) document.getElementById('kpi-fornitori').innerText = fornitori.length;
-            if(document.getElementById('kpi-cs') && customerSat.length > 0) {
-                let sum = 0; customerSat.forEach(c => sum += (parseFloat(c.voto_globale || c['voto-globale']) || 5));
-                document.getElementById('kpi-cs').innerText = (sum / customerSat.length).toFixed(1) + " / 5";
+            const kpiServizi = document.getElementById('kpi-servizi');
+            const kpiNc = document.getElementById('kpi-nc');
+            const kpiFornitori = document.getElementById('kpi-fornitori');
+            const kpiCs = document.getElementById('kpi-cs');
+
+            if (kpiServizi) kpiServizi.innerText = trasporti.length;
+            if (kpiNc) kpiNc.innerText = nonConformita.filter(n => n.stato !== 'Chiusa').length;
+            if (kpiFornitori) kpiFornitori.innerText = fornitori.length;
+            
+            if (kpiCs) {
+                if (customerSat.length > 0) {
+                    const sum = customerSat.reduce((acc, c) => acc + (parseFloat(c.voto_globale || c['voto-globale']) || 5), 0);
+                    kpiCs.innerText = (sum / customerSat.length).toFixed(1) + " / 5";
+                } else {
+                    kpiCs.innerText = "N/D";
+                }
             }
         };
 
@@ -729,22 +751,23 @@
             const tbody = document.getElementById('turni-corpo'); if(!tbody) return; tbody.innerHTML = '';
             turniReperibilita.forEach(t => {
                 let repBg = t.reperibile === 'SI' ? 'var(--warning)' : 'var(--text-light)';
-                tbody.innerHTML += `<tr><td>${t.data}</td><td><strong>${t.turno}</strong></td><td>${t.nome}</td><td>${t.qualifica}</td><td><span class="badge" style="background:${repBg}; color:white">${t.reperibile}</span></td><td>${t.sostituto}</td><td><small>${t.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem('turniReperibilita', '${t.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                tbody.innerHTML += `<tr><td>${t.data}</td><td><strong>${t.turno}</strong></td><td>${t.nome}</td><td>${t.qualifica}</td><td><span class="badge" style="background:${repBg}; color:white">${t.reperibile}</span></td><td>${t.sostituto}</td><td><small>${t.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('turniReperibilita', '${t.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
         };
 
         window.renderContinuita = () => {
             const tbody = document.getElementById('continuita-corpo'); if(!tbody) return; tbody.innerHTML = '';
             continuitaServizio.forEach(c => {
-                tbody.innerHTML += `<tr><td>${c.data}</td><td><strong>${c.evento}</strong></td><td>${c.coinvolto}</td><td><small>${c.azione}</small></td><td><span class="badge" style="background:var(--success); color:white">${c.esito}</span></td><td><small>${c.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem('continuitaServizio', '${c.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                let badgeColor = c.esito === 'Risolto' ? 'var(--success)' : 'var(--warning)';
+                tbody.innerHTML += `<tr><td>${c.data}</td><td><strong>${c.evento}</strong></td><td>${c.segnalante || 'Centrale'}</td><td>${c.coinvolto}</td><td><small>${c.azione || '-'}</small></td><td><span class="badge" style="background:${badgeColor}; color:white">${c.esito}</span></td><td><small>${c.note || '-'}</small></td><td style="text-align:right;"><button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--info)" aria-label="Modifica" onclick="editItem('continuitaServizio', '${c.id}')"><i class="fa-solid fa-pen"></i></button> <button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('continuitaServizio', '${c.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
         };
 
         window.renderFormazione = () => {
             const tbody = document.getElementById('formazione-corpo'); if(!tbody) return; tbody.innerHTML = '';
             formazionePersonale.forEach(f => {
-                let stBg = f.stato === 'Regolare' ? 'var(--success)' : (f.stato === 'In Scadenza' ? 'var(--warning)' : 'var(--alert-red)');
-                tbody.innerHTML += `<tr><td><strong>${f.nome}</strong></td><td>${f.qualifica}</td><td>${f.corso}</td><td>${f.datacorso}</td><td>${f.datascadenza}</td><td><span class="badge" style="background:${stBg}; color:white">${f.stato}</span></td><td><small>${f.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem('formazionePersonale', '${f.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                let validazioneScadenza = checkScadenza(f.datascadenza);
+                tbody.innerHTML += `<tr><td><strong>${f.nome}</strong></td><td>${f.qualifica}</td><td>${f.corso}</td><td>${f.datacorso}</td><td>${f.datascadenza}</td><td>${validazioneScadenza.html}</td><td><small>${f.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--info)" aria-label="Modifica" onclick="editItem('formazionePersonale', '${f.id}')"><i class="fa-solid fa-pen"></i></button> <button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('formazionePersonale', '${f.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
         };
 
@@ -752,47 +775,84 @@
             const tbody = document.getElementById('verifichedati-corpo'); if(!tbody) return; tbody.innerHTML = '';
             verificheQualitaDati.forEach(v => {
                 let esBg = v.esito === 'Conforme' ? 'var(--success)' : 'var(--alert-red)';
-                tbody.innerHTML += `<tr><td>${v.data}</td><td><strong>${v.dato}</strong></td><td>${v.acc}</td><td>${v.comp}</td><td>${v.riprod}</td><td>${v.temp}</td><td><span class="badge" style="background:${esBg}; color:white">${v.esito}</span></td><td><small>${v.azioni || '-'}</small></td><td>${v.resp}</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem('verificheQualitaDati', '${v.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                tbody.innerHTML += `<tr><td>${v.data}</td><td><strong>${v.dato}</strong></td><td>${v.acc}</td><td>${v.comp}</td><td>${v.riprod}</td><td>${v.temp}</td><td><span class="badge" style="background:${esBg}; color:white">${v.esito}</span></td><td><small>${v.azioni || '-'}</small></td><td>${v.resp}</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('verificheQualitaDati', '${v.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
+        };
+
+        window.chiudiNC = (idNC) => {
+            if(!confirm("Confermi di voler chiudere definitivamente questa pratica?")) return;
+            const reclamo = nonConformita.find(n => String(n.id) === String(idNC));
+            if(reclamo && reclamo.stato !== "Chiusa") {
+                reclamo.stato = "Chiusa";
+                reclamo.utente_modifica = utenteLoggato; 
+                salvaNodo('nonConformita', nonConformita);
+                renderNC();
+                renderStatistiche();
+            }
         };
 
         window.renderNC = () => {
             const tbody = document.getElementById('nc-corpo'); if(!tbody) return; tbody.innerHTML = '';
             nonConformita.forEach(n => {
-                let bg = n.stato === 'Aperta' ? 'var(--alert-red)' : 'var(--success)';
-                tbody.innerHTML += `<tr><td>${n.data}</td><td>${n.tipo}</td><td>${n.rilevatore}</td><td><small>${n.descrizione}</small></td><td><small>${n.azione}</small></td><td><span class="badge" style="background:${bg};color:white">${n.stato}</span></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem('nonConformita', '${n.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                let bg = n.stato === 'Aperta' ? 'var(--alert-red)' : (n.stato === 'In Gestione' ? 'var(--warning)' : 'var(--success)');
+                let btnChiudi = n.stato !== 'Chiusa' ? `<button class="btn btn-ghost" title="Chiudi Pratica Manualmente" style="padding: 4px 6px; color:var(--success)" aria-label="Chiudi Pratica" onclick="chiudiNC('${n.id}')"><i class="fa-solid fa-check"></i></button>` : '';
+
+                tbody.innerHTML += `<tr><td>${n.data}</td><td>${n.tipo}</td><td>${n.rilevatore}</td><td><small>${n.descrizione}</small></td><td><small>${n.azione || '-'}</small></td><td><span class="badge" style="background:${bg};color:white">${n.stato}</span></td><td style="text-align:right;">${btnChiudi}<button class="btn btn-ghost" title="Genera Lettera di Risposta" style="padding: 4px 6px; color:var(--primary)" aria-label="Genera Lettera" onclick="stampaLetteraRispostaNC('${n.id}')"><i class="fa-solid fa-envelope-open-text"></i></button><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('nonConformita', '${n.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
         };
 
         window.renderCustomerSat = () => {
             const tbody = document.getElementById('customersat-corpo'); if(!tbody) return; tbody.innerHTML = '';
             customerSat.forEach(c => {
-                tbody.innerHTML += `<tr><td>${c.data}</td><td><strong>${c.compilatore}</strong></td><td>${c.voto_globale || 5}/5</td><td>-</td><td>-</td><td><span class="badge" style="background:var(--success);color:white">${c.consiglia || 'Sì'}</span></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem('customerSat', '${c.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                tbody.innerHTML += `<tr><td>${c.data}</td><td><strong>${c.compilatore}</strong></td><td>${c.voto_globale || 5}/5</td><td><span class="badge" style="background:var(--success);color:white">${c.consiglia || 'Sì'}</span></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('customerSat', '${c.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
         };
-
-        window.renderVerbali = () => {}; 
         
         window.renderFornitori = () => {
             const tbody = document.getElementById('fornitori-corpo'); if(!tbody) return; tbody.innerHTML = '';
             fornitori.forEach(f => {
+                let validazioneScadenza = checkScadenza(f.scadenza);
                 let badgeBg = f.valutazione === 'Positiva' ? 'var(--success)' : (f.valutazione === 'Negativa' ? 'var(--alert-red)' : 'var(--warning)');
-                tbody.innerHTML += `<tr><td><strong>${f.ragione}</strong></td><td>${f.categoria}</td><td>${f.scadenza || '-'}</td><td><span class="badge" style="background:${badgeBg}; color:white">${f.valutazione}</span></td><td><small>${f.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem('fornitori', '${f.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                tbody.innerHTML += `<tr><td><strong>${f.ragione}</strong></td><td>${f.categoria}</td><td>${validazioneScadenza.html}</td><td><span class="badge" style="background:${badgeBg}; color:white">${f.valutazione}</span></td><td><small>${f.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('fornitori', '${f.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
         };
 
         window.renderElettromedicali = () => {
             const tbody = document.getElementById('elettromedicali-corpo'); if(!tbody) return; tbody.innerHTML = '';
             elettromedicali.forEach(e => {
-                tbody.innerHTML += `<tr><td><strong>${e.tipo}</strong><br><small>${e.modello}</small></td><td>${e.matricola}</td><td>${e.assegnazione}</td><td>${e['scad-manutenzione']}</td><td>${e['scad-consumabili'] || '-'}</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem('elettromedicali', '${e.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                let valManu = checkScadenza(e['scad-manutenzione']);
+                let valCons = checkScadenza(e['scad-consumabili']);
+                tbody.innerHTML += `<tr><td><strong>${e.tipo}</strong><br><small>${e.modello}</small></td><td>${e.matricola}</td><td>${e.assegnazione}</td><td>${valManu.html}</td><td>${valCons.html}</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('elettromedicali', '${e.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
         };
 
         window.renderSanificazioni = () => {
             const tbody = document.getElementById('sanificazioni-corpo'); if(!tbody) return; tbody.innerHTML = '';
             sanificazioni.forEach(s => {
-                tbody.innerHTML += `<tr><td>${s.data}</td><td><strong>${s.mezzo}</strong></td><td>${s.tipo}</td><td>${s.operatore}</td><td><small>${s.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem('sanificazioni', '${s.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                tbody.innerHTML += `<tr><td>${s.data}</td><td><strong>${s.mezzo}</strong></td><td>${s.tipo}</td><td>${s.operatore}</td><td><small>${s.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('sanificazioni', '${s.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
+        };
+
+        window.editItem = function(lista, id) {
+            const arr = getListByName(lista); const item = arr.find(function(x) { return String(x.id) === String(id); }); if(!item) return;
+            let prefix, modalId;
+            
+            if(lista === 'formazionePersonale') { prefix = 'form-'; modalId = 'modalFormazione'; }
+            else if(lista === 'turniReperibilita') { prefix = 'turn-'; modalId = 'modalTurno'; }
+            else if(lista === 'verificheQualitaDati') { prefix = 'vd-'; modalId = 'modalVerificaDato'; }
+            else if(lista === 'nonConformita') { prefix = 'nc-'; modalId = 'modalNC'; }
+            else if(lista === 'fornitori') { prefix = 'forn-'; modalId = 'modalFornitore'; }
+            else if(lista === 'elettromedicali') { prefix = 'el-'; modalId = 'modalElettromedicale'; }
+            else if(lista === 'sanificazioni') { prefix = 'san-'; modalId = 'modalSanificazione'; }
+            else if(lista === 'customerSat') { prefix = 'cs-'; modalId = 'modalCustomerSat'; }
+            else if(lista === 'continuitaServizio') { prefix = 'cont-'; modalId = 'modalContinuita'; }
+
+            if(prefix) {
+                const formEl = document.querySelector('#' + modalId + ' form'); if(formEl) formEl.reset();
+                document.getElementById(prefix + 'editId').value = item.id;
+                Object.keys(item).forEach(function(k) { const el = document.getElementById(prefix + k); if(el) { if(el.type === 'checkbox') el.checked = item[k]; else el.value = item[k]; } });
+                document.getElementById(modalId).classList.add('active');
+            }
         };
 
         window.switchMainTab = (tabId) => {
@@ -804,12 +864,45 @@
             document.getElementById('tab-title').innerText = titles[tabId] || 'Pannello Qualità';
         };
 
-        // =========================================================================
-        // FUNZIONI DI STAMPA PDF UFFICIALI (ASL & ISO 9001)
-        // =========================================================================
+        window.stampaLetteraRispostaNC = (idNC) => {
+            const reclamo = nonConformita.find(n => String(n.id) === String(idNC));
+            if(!reclamo) return;
+
+            const { jsPDF } = window.jspdf; 
+            const doc = new jsPDF('p', 'mm', 'a4'); 
+            const dataOggi = new Date().toLocaleDateString('it-IT');
+
+            doc.setFontSize(14); 
+            doc.setTextColor(139, 92, 246); 
+            doc.text("Associazione Cuore d'Argento ODV - Servizio Qualità", 14, 20);
+            doc.line(14, 25, 196, 25);
+
+            doc.setFontSize(11); 
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Terni, ${dataOggi}`, 14, 35);
+            doc.text(`Spett.le ${reclamo.rilevatore || 'Utente'}`, 14, 45); 
+            
+            doc.setFont(undefined, 'bold');
+            doc.text(`Oggetto: Riscontro alla Sua segnalazione del ${reclamo.data}`, 14, 60);
+            doc.setFont(undefined, 'normal');
+
+            const testo = `Gentile ${reclamo.rilevatore || 'Utente'},\n\nFacendo seguito alla Sua segnalazione classificata come "${reclamo.tipo}" in merito all'evento "${reclamo.descrizione}", desideriamo informarLa che la Direzione ha preso immediatamente in carico la questione.\n\nLa qualità del trasporto e la sicurezza dei nostri assistiti sono la priorità assoluta per la nostra associazione. A seguito delle nostre verifiche interne, abbiamo intrapreso la seguente azione correttiva:\n"${reclamo.azione || 'Valutazione interna in corso / Nessuna azione definita'}".\n\nRinnovando le nostre scuse per l'eventuale disagio arrecato, restiamo a Sua completa disposizione per qualsiasi ulteriore chiarimento.\n\nCordiali saluti.`;
+
+            const lineeTesto = doc.splitTextToSize(testo, 180);
+            doc.text(lineeTesto, 14, 75);
+
+            doc.text("Il Responsabile Qualità", 14, 150);
+            doc.text("________________________", 14, 160);
+
+            let nomeFile = `Lettera_Risposta_NC_${(reclamo.rilevatore || 'Anonimo').replace(/\s+/g, '_')}.pdf`;
+            doc.save(nomeFile);
+
+            toast("Lettera scaricata con successo.");
+        };
+
         window.stampaRegistroTurniAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV - Terni", 14, 18);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO TURNI E REPERIBILITA' PERSONALE", 14, 25); doc.line(14, 28, 196, 28);
             let bodyData = turniReperibilita.map(t => [t.data, t.turno, t.nome, t.qualifica, t.reperibile, t.sostituto, t.note || '-']);
             doc.autoTable({ startY: 35, head: [['Data', 'Turno', 'Operatore', 'Qualifica', 'Reperibile', 'Sostituto', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
@@ -821,43 +914,40 @@
 
         window.stampaRegistroContinuitaAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV - Terni", 14, 18);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO CONTINUITA' DEL SERVIZIO E GESTIONE EMERGENZE", 14, 25); doc.line(14, 28, 196, 28);
-            let bodyData = continuitaServizio.map(c => [c.data, c.evento, c.coinvolto, c.azione, c.esito, c.note || '-']);
-            doc.autoTable({ startY: 35, head: [['Data', 'Evento', 'Coinvolto', 'Azione Correttiva', 'Esito', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
+            let bodyData = continuitaServizio.map(c => [c.data, c.evento, c.segnalante || 'Centrale', c.coinvolto, c.azione || '-', c.esito, c.note || '-']);
+            doc.autoTable({ startY: 35, head: [['Data', 'Evento', 'Segnalante', 'Coinvolto', 'Azione Correttiva', 'Esito', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] }, styles: { fontSize: 8 } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Qualità (RQ): ______________________", 14, finalY);
-            doc.text("Firma Direttore Sanitario / ASL: ______________________", 110, finalY);
             doc.save(`Registro_Continuita_Servizio_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro Continuità Esportato!");
         };
 
         window.stampaRegistroFormazioneAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV - Terni", 14, 18);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO FORMAZIONE E AGGIORNAMENTO PERSONALE (P-FP01)", 14, 25); doc.line(14, 28, 196, 28);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
+            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO FORMAZIONE E AGGIORNAMENTO PERSONALE", 14, 25); doc.line(14, 28, 196, 28);
             let bodyData = formazionePersonale.map(f => [f.nome, f.qualifica, f.corso, f.datacorso, f.datascadenza, f.stato]);
             doc.autoTable({ startY: 35, head: [['Operatore', 'Qualifica', 'Corso', 'Data Corso', 'Scadenza', 'Stato']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Formazione (RF): ______________________", 14, finalY);
-            doc.text("Firma Presidente: ______________________", 110, finalY);
             doc.save(`Registro_Formazione_Personale_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro Formazione Esportato!");
         };
 
         window.stampaRegistroVerificheDatiAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV - Terni", 14, 18);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO VERIFICA QUALITA' DEI DATI (ISO 9001)", 14, 25); doc.line(14, 28, 196, 28);
             let bodyData = verificheQualitaDati.map(v => [v.data, v.dato, v.acc, v.comp, v.riprod, v.temp, v.esito, v.resp]);
             doc.autoTable({ startY: 35, head: [['Data', 'Dato', 'Acc.', 'Comp.', 'Riprod.', 'Temp.', 'Esito', 'Resp']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Sistema Informativo (RSI): ______________________", 14, finalY);
-            doc.text("Firma Responsabile Qualità: ______________________", 110, finalY);
             doc.save(`Registro_Verifiche_Qualita_Dati_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro Verifiche Dati Esportato!");
         };
 
         window.stampaRegistroNCAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV - Terni", 14, 18);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO NON CONFORMITA' E RECLAMI (RRP)", 14, 25); doc.line(14, 28, 196, 28);
             let bodyData = nonConformita.length > 0 ? nonConformita.map(n => [n.data, n.tipo, n.rilevatore, n.descrizione, n.azione, n.stato]) : [["-", "Nessuna NC registrata", "-", "-", "-", "-"]];
             doc.autoTable({ startY: 35, head: [['Data', 'Tipologia', 'Segnalante', 'Descrizione', 'Azione Correttiva', 'Stato']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
@@ -868,7 +958,7 @@
 
         window.stampaRegistroSanificazioniAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV - Terni", 14, 18);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO SANIFICAZIONI MEZZI", 14, 25); doc.line(14, 28, 196, 28);
             let bodyData = sanificazioni.length > 0 ? sanificazioni.map(s => [s.data, s.mezzo, s.tipo, s.operatore, s.note || '-']) : [["-", "Nessuna sanificazione", "-", "-", "-"]];
             doc.autoTable({ startY: 35, head: [['Data', 'Mezzo', 'Tipo Intervento', 'Operatore', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
@@ -879,7 +969,7 @@
 
         window.stampaRegistroElettromedicaliAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV - Terni", 14, 18);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("INVENTARIO APPARECCHIATURE ELETTROMEDICALI", 14, 25); doc.line(14, 28, 196, 28);
             let bodyData = elettromedicali.length > 0 ? elettromedicali.map(e => [e.tipo + ' - ' + e.modello, e.matricola, e.assegnazione, e['scad-manutenzione'], e['scad-consumabili'] || '-']) : [["Nessun elettromedicale", "-", "-", "-", "-"]];
             doc.autoTable({ startY: 35, head: [['Tipo e Modello', 'Matricola', 'Assegnazione', 'Scad. Manutenzione', 'Scad. Consumabili']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
@@ -892,14 +982,49 @@
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
             doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 20);
             doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.text("QUESTIONARIO DI SODDISFAZIONE UTENTI", 14, 28); doc.line(14, 32, 196, 32);
+            doc.setFontSize(10);
+            doc.text("Gentile utente, la preghiamo di valutare il servizio ricevuto (1 = Scarso, 5 = Ottimo):", 14, 42);
+            doc.autoTable({
+                startY: 50,
+                head: [['Domanda', '1', '2', '3', '4', '5']],
+                body: [
+                    ['Cortesia e professionalità del personale', '', '', '', '', ''],
+                    ['Puntualità del servizio', '', '', '', '', ''],
+                    ['Comfort e pulizia del mezzo', '', '', '', '', ''],
+                    ['Valutazione globale del servizio', '', '', '', '', '']
+                ],
+                theme: 'grid', headStyles: { fillColor: [139, 92, 246] }
+            });
+            let finalY = doc.lastAutoTable.finalY + 15;
+            doc.text("Consiglierebbe il nostro servizio ad altre persone?   [  ] SI    [  ] NO", 14, finalY);
+            doc.text("Eventuali suggerimenti o note:", 14, finalY + 15);
+            doc.line(14, finalY + 25, 196, finalY + 25);
+            doc.line(14, finalY + 35, 196, finalY + 35);
             doc.save("Questionario_Soddisfazione.pdf"); toast("Questionario Stampato!");
         };
 
         window.stampaVerbaleRiesame = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(16); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento OdV", 14, 20); 
+            doc.setFontSize(16); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 20); 
             doc.setFontSize(14); doc.setTextColor(0, 0, 0); doc.text("VERBALE DI RIESAME DELLA DIREZIONE", 14, 30); doc.line(14, 35, 196, 35);
-            doc.save(`Verbale_Riesame_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Verbale Riesame Generato!");
+            doc.setFontSize(11);
+            doc.text("Data della riunione: " + dataOggi, 14, 45);
+            doc.text("Oggetto: Valutazione KPI ISO 9001 e andamento sistema qualità.", 14, 52);
+            doc.autoTable({
+                startY: 60,
+                head: [['Indicatore', 'Valore Attuale', 'Stato']],
+                body: [
+                    ['Servizi Erogati Totali', trasporti.length.toString(), 'Monitorato'],
+                    ['Non Conformità Aperte', nonConformita.filter(n => n.stato !== 'Chiusa').length.toString(), 'Monitorato'],
+                    ['Fornitori Registrati', fornitori.length.toString(), 'Monitorato']
+                ],
+                theme: 'grid', headStyles: { fillColor: [139, 92, 246] }
+            });
+            let finalY = doc.lastAutoTable.finalY + 20;
+            doc.text("Firma Direzione: ______________________", 14, finalY);
+            doc.text("Firma Responsabile Qualità: ______________________", 110, finalY);
+            doc.save(`Verbale_Riesame_${dataOggi.replace(/\//g, '-')}.pdf`); 
+            toast("Verbale Riesame Generato!");
         };
     </script>
 </body>
