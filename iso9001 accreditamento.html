@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuore d'Argento - Sistema Qualità Integrato ISO 9001 & ASL</title>
+    <title>Cuore d'Argento - Sistema Qualità Integrato ISO 9001 & Accreditamento Umbria</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -31,7 +31,7 @@
 
         .topbar { height: 60px; background: white; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); z-index: 10; }
         .topbar-left { display: flex; align-items: center; gap: 15px; }
-        .topbar-center { font-size: 0.85rem; color: var(--text-main); font-weight: 600; background: #f1f5f9; padding: 6px 15px; border-radius: 20px;}
+        .topbar-center { font-size: 0.82rem; color: var(--text-main); font-weight: 600; background: #f1f5f9; padding: 6px 15px; border-radius: 20px;}
         .topbar-right { display: flex; align-items: center; gap: 15px; }
         
         .brand-logo { display: flex; align-items: center; gap: 8px; background: var(--primary); padding: 5px 12px; border-radius: 6px; color: white; box-shadow: 0 2px 5px rgba(139, 92, 246, 0.3); }
@@ -41,7 +41,7 @@
         .brand-text span:last-child { font-size: 0.65rem; font-weight: 500; opacity: 0.9; }
 
         .main-container { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 290px; background: #ffffff; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; z-index: 5; }
+        .sidebar { width: 300px; background: #ffffff; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; z-index: 5; }
         .sidebar-title { background: linear-gradient(to right, var(--secondary), #334155); color: white; padding: 12px 15px; font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between;}
         .tree-menu { list-style: none; padding: 10px; }
         .tree-item { padding: 8px 12px; font-size: 0.85rem; color: var(--text-main); cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 10px; font-weight: 600; margin-bottom: 4px; transition: 0.2s;}
@@ -62,7 +62,7 @@
         .stat-icon { font-size: 2.5rem; color: #f1f5f9; }
 
         .table-container { border-radius: var(--radius); overflow-x: auto; background: white; }
-        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1000px;}
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1050px;}
         th { padding: 12px 15px; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-main); background: #f8fafc; border-bottom: 2px solid var(--border); }
         td { padding: 12px 15px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.85rem; color: var(--text-main); }
         tr:hover td { background: #f8fafc; }
@@ -76,7 +76,7 @@
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 1rem; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal { background: var(--bg-panel); width: 100%; max-width: 800px; max-height: 95vh; overflow-y: auto; border-radius: 12px; padding: 2rem; transform: scale(0.95); transition: 0.2s; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .modal { background: var(--bg-panel); width: 100%; max-width: 850px; max-height: 95vh; overflow-y: auto; border-radius: 12px; padding: 2rem; transform: scale(0.95); transition: 0.2s; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
         .modal-overlay.active .modal { transform: scale(1); }
         
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; }
@@ -101,24 +101,40 @@
     </style>
 
     <script>
+        const URL_QUESTIONARIO_CS = "https://docs.google.com/forms/d/e/1FAIpQLSerxr5ggAvhPCAPKwkPGKkm5tbjsDYWIiPlguYWskejUX7g-w/viewform?usp=sharing&ouid=117117615506418942572";
+
+        const societaInfo = {
+            nome: "Associazione di Volontariato Cuore d'Argento ODV",
+            sede: "Via della Stazione n. 51 – 05035 Narni Scalo (TR)",
+            cfPiva: "C.F. / P.IVA: 01725470551",
+            runts: "RUNTS Det. n. 870/2025 Regione Umbria",
+            autorizzazione: "Aut. Esercizio n. 8642 del 19/08/2025 (Reg. Umbria)",
+            direttoreSanitario: "Dott. Medico Chirurgo Responsabile (Iscr. Ordine Medici TR n. 0000)"
+        };
+
         var trasporti = [], volontari = [], mezzi = [], sanificazioni = [], elettromedicali = [], nonConformita = [], fornitori = [], customerSat = [], verbali = [], checklists = [];
-        
         var turniReperibilita = [];
         var continuitaServizio = [];
         var formazionePersonale = [];
         var verificheQualitaDati = [];
+        var presenze = [];
 
         var utenteLoggato = localStorage.getItem("nome_utente_gestionale") || "Resp. Qualità ISO 9001";
         const todayStr = new Date().toISOString().split('T')[0];
+        let dbRootPath = 'cuore_argento_db';
         
-        function toast(msg, type="success") {
-            const container = document.getElementById('toast-container'); if(!container) return;
-            const el = document.createElement('div'); el.className = 'toast';
-            el.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${msg}`;
-            container.appendChild(el); setTimeout(() => el.remove(), 3000);
+        function toast(msg, type) {
+            const container = document.getElementById('toast-container'); 
+            if(!container) return;
+            const el = document.createElement('div'); 
+            el.className = 'toast';
+            el.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + msg;
+            container.appendChild(el); 
+            setTimeout(() => el.remove(), 3000);
         }
 
-        function estraiDati(nodo, defaultArr = []) {
+        function estraiDati(nodo, defaultArr) {
+            if (!defaultArr) defaultArr = [];
             if (!nodo) return defaultArr;
             const res = (Array.isArray(nodo) ? nodo : Object.values(nodo)).filter(item => item !== null && typeof item === 'object');
             return res.length > 0 ? res : defaultArr;
@@ -127,19 +143,47 @@
         function checkScadenza(dataScadenza) {
             if(!dataScadenza || dataScadenza === "" || dataScadenza === "-") return { stato: 'ok', html: '-' };
             const dataElemento = new Date(dataScadenza);
-            if (isNaN(dataElemento.getTime())) return { stato: 'ok', html: dataScadenza }; 
+            if (isNaN(dataElemento.getTime())) return { stato: 'ok', html: dataScadenza };
             
             const diff = Math.ceil((dataElemento - new Date()) / (1000 * 60 * 60 * 24));
             const formatData = dataElemento.toLocaleDateString('it-IT');
             
-            if (diff < 0) return { stato: 'scaduto', html: `<span class="badge" style="background:#fee2e2; color:var(--danger)">Scaduto (${formatData})</span>` };
-            if (diff <= 30) return { stato: 'allarme', html: `<span class="badge" style="background:#fef3c7; color:var(--warning)">In scadenza (${diff}gg)</span>` };
+            if (diff < 0) return { stato: 'scaduto', html: '<span class="badge" style="background:#fee2e2; color:var(--danger)">Scaduto (' + formatData + ')</span>' };
+            if (diff <= 30) return { stato: 'allarme', html: '<span class="badge" style="background:#fef3c7; color:var(--warning)">In scadenza (' + diff + 'gg)</span>' };
             return { stato: 'ok', html: formatData };
         }
 
-        window.chiudiModali = () => { 
-            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); 
+        window.chiudiModali = () => {
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
             document.querySelectorAll('form').forEach(f => f.reset());
+        };
+
+        window.mostraQRCustomerSat = () => {
+            const qrContainer = document.getElementById("qrcode");
+            if (qrContainer) {
+                qrContainer.innerHTML = "";
+                try {
+                    new QRCode(qrContainer, {
+                        text: URL_QUESTIONARIO_CS,
+                        width: 180,
+                        height: 180,
+                        colorDark: "#1e293b",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } catch(err) {
+                    console.error("Errore generazione QR:", err);
+                }
+            }
+            document.getElementById('modalQRCustomerSat').classList.add('active');
+        };
+
+        window.copiaLinkCS = () => {
+            navigator.clipboard.writeText(URL_QUESTIONARIO_CS).then(() => {
+                toast("Link questionario copiato!");
+            }).catch(() => {
+                prompt("Copia il link del questionario:", URL_QUESTIONARIO_CS);
+            });
         };
     </script>
 </head>
@@ -151,13 +195,13 @@
                 <i class="fa-solid fa-medal"></i>
                 <div class="brand-text">
                     <span>CUORE D'ARGENTO</span>
-                    <span>Sistema Qualità Integrato ISO 9001 & ASL</span>
+                    <span>Accreditamento Sanitario Regione Umbria & ISO 9001</span>
                 </div>
             </div>
         </div>
         <div class="topbar-center">
-            <i class="fa-solid fa-user-shield" style="color: var(--primary);"></i> 
-            <span style="letter-spacing: 0.5px;">Accesso: <strong id="topbar-user-name">Responsabile Qualità</strong></span>
+            <i class="fa-solid fa-user-doctor" style="color: var(--primary);"></i> 
+            <span style="letter-spacing: 0.5px;">Presidio Sanitario: <strong>Reg. Reg. 6/2024 Umbria</strong></span>
         </div>
         <div class="topbar-right">
             <span id="date-display" style="font-size:0.85rem; font-weight:600; color:var(--text-main);"></span>
@@ -166,7 +210,7 @@
 
     <div class="main-container">
         <aside class="sidebar">
-            <div class="sidebar-title">Moduli Certificati ASL & ISO <i class="fa-solid fa-clipboard-check"></i></div>
+            <div class="sidebar-title">Moduli Accreditamento Umbria <i class="fa-solid fa-clipboard-check"></i></div>
             <ul class="tree-menu" style="flex-direction: column; display: flex;">
                 <li class="tree-item active" id="nav-statistiche" onclick="switchMainTab('statistiche')"><i class="fa-solid fa-chart-pie"></i> KPI & Riesame Direzione</li>
                 <li class="tree-item" id="nav-stampe-asl" onclick="switchMainTab('stampe-asl')"><i class="fa-solid fa-print"></i> Centro Stampe & Registri ASL</li>
@@ -177,8 +221,8 @@
                 <li class="tree-item" id="nav-customersat" onclick="switchMainTab('customersat')"><i class="fa-solid fa-star"></i> Customer Satisfaction</li>
                 <li class="tree-item" id="nav-nc" onclick="switchMainTab('nc')"><i class="fa-solid fa-triangle-exclamation"></i> Gestione Reclami & Workflow</li>
                 <li class="tree-item" id="nav-fornitori" onclick="switchMainTab('fornitori')"><i class="fa-solid fa-handshake"></i> Albo Fornitori Qualificati</li>
-                <li class="tree-item" id="nav-elettromedicali" onclick="switchMainTab('elettromedicali')"><i class="fa-solid fa-heart-pulse"></i> Manutenzione Elettromedicali</li>
-                <li class="tree-item" id="nav-sanificazioni" onclick="switchMainTab('sanificazioni')"><i class="fa-solid fa-spray-can-sparkles"></i> Registro Sanificazioni</li>
+                <li class="tree-item" id="nav-elettromedicali" onclick="switchMainTab('elettromedicali')"><i class="fa-solid fa-heart-pulse"></i> Elettromedicali & Lotti O2</li>
+                <li class="tree-item" id="nav-sanificazioni" onclick="switchMainTab('sanificazioni')"><i class="fa-solid fa-spray-can-sparkles"></i> Protocollo Sanificazioni PMC</li>
             </ul>
         </aside>
 
@@ -190,7 +234,7 @@
             <div id="tab-statistiche" class="tab-content active">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <p style="color: var(--text-light); font-size: 0.9rem;">Indicatori aggregati in tempo reale (Sola Lettura da Operativo)</p>
-                    <button class="btn btn-primary" onclick="stampaVerbaleRiesame()"><i class="fa-solid fa-file-pdf"></i> Genera Verbale Riesame (ISO 9001)</button>
+                    <button class="btn btn-primary" onclick="stampaVerbaleRiesame()"><i class="fa-solid fa-file-pdf"></i> Genera Verbale Riesame (ISO 9001 & DS)</button>
                 </div>
                 
                 <div class="stats-row" style="margin-bottom: 20px;">
@@ -211,9 +255,9 @@
 
             <div id="tab-stampe-asl" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="color: var(--primary);"><i class="fa-solid fa-print"></i> Centro Stampe e Registri Ufficiali (Conformità ASL / ISO 9001)</h3>
+                    <h3 style="color: var(--primary);"><i class="fa-solid fa-print"></i> Centro Stampe e Registri Ufficiali (Reg. Umbria 6/2024 & ISO 9001)</h3>
                 </div>
-                <p style="font-size:0.85rem; color:var(--text-light);">Esporta tutti i registri obbligatori per le verifiche ispettive regionali in formato PDF conforme:</p>
+                <p style="font-size:0.85rem; color:var(--text-light);">Tutti i documenti includono la validazione della Direzione Sanitaria e dell'Ente:</p>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; margin-top: 10px;">
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
@@ -233,7 +277,7 @@
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
                             <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-graduation-cap"></i> Registro Formazione Personale</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Stato formativo, corsi BLSD, aggiornamenti e conformità del personale operativo.</p>
+                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Stato formativo, corsi BLSD, aggiornamenti e conformità del personale operativo con timbro DS.</p>
                         </div>
                         <button class="btn btn-primary" onclick="stampaRegistroFormazioneAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Formazione (PDF)</button>
                     </div>
@@ -247,18 +291,18 @@
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
                             <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-book"></i> Registro Non Conformità (RRP)</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Elenco reclami e segnalazioni con relative azioni correttive e stati di chiusura.</p>
+                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Elenco reclami e segnalazioni con relative azioni correttive e chiusura formale.</p>
                         </div>
                         <button class="btn btn-primary" onclick="stampaRegistroNCAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Registro NC (PDF)</button>
                     </div>
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
-                            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-spray-can-sparkles"></i> Sanificazioni & Elettromedicali</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Storico pulizia ambulanze e scadenze revisione dispositivi biomedici a bordo.</p>
+                            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-spray-can-sparkles"></i> Sanificazioni & Gas Medicali</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Log disinfezione con PMC e tracciabilità lotti/scadenze collaudo bombole O2.</p>
                         </div>
                         <div style="display:flex; gap:8px;">
-                            <button class="btn btn-ghost" style="flex:1; font-size:0.75rem;" onclick="stampaRegistroSanificazioniAsl()">Sanificazioni</button>
-                            <button class="btn btn-ghost" style="flex:1; font-size:0.75rem;" onclick="stampaRegistroElettromedicaliAsl()">Elettromedicali</button>
+                            <button class="btn btn-ghost" style="flex:1; font-size:0.75rem;" onclick="stampaRegistroSanificazioniAsl()">Sanificazioni PMC</button>
+                            <button class="btn btn-ghost" style="flex:1; font-size:0.75rem;" onclick="stampaRegistroElettromedicaliAsl()">Elettromedicali & O2</button>
                         </div>
                     </div>
                 </div>
@@ -290,7 +334,7 @@
                 </div>
                 <div class="glass-panel table-container">
                     <table>
-                        <thead><tr><th>Data</th><th>Evento (es. Guasto Mezzo)</th><th>Segnalante</th><th>Coinvolto</th><th>Azione Correttiva</th><th>Esito</th><th>Note</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <thead><tr><th>Data</th><th>Evento</th><th>Segnalante</th><th>Coinvolto</th><th>Azione Correttiva</th><th>Esito</th><th>Note</th><th style="text-align:right;">Azioni</th></tr></thead>
                         <tbody id="continuita-corpo"></tbody>
                     </table>
                 </div>
@@ -330,10 +374,10 @@
 
             <div id="tab-customersat" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <h3 style="color: var(--primary);"><i class="fa-solid fa-star"></i> Registro Soddisfazione Utenti</h3>
+                    <h3 style="color: var(--primary);"><i class="fa-solid fa-star"></i> Registro Soddisfazione Utenti (ISO 9001)</h3>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button class="btn btn-ghost" onclick="stampaQuestionarioCartaceo()" style="border-color: var(--secondary); color: var(--secondary);"><i class="fa-solid fa-file-lines"></i> Stampa Questionario</button>
-                        <button class="btn btn-ghost" onclick="document.getElementById('modalQRCustomerSat').classList.add('active')" style="border-color: #ec4899; color: #ec4899;"><i class="fa-solid fa-qrcode"></i> QR Esterno</button>
+                        <button class="btn btn-ghost" onclick="mostraQRCustomerSat()" style="border-color: #ec4899; color: #ec4899;"><i class="fa-solid fa-qrcode"></i> QR Code Pazienti</button>
                         <button class="btn btn-primary" onclick="apriModale('modalCustomerSat', 'formCustomerSat', 'cs-')"><i class="fa-solid fa-plus"></i> Inserisci Esito</button>
                     </div>
                 </div>
@@ -373,12 +417,22 @@
 
             <div id="tab-elettromedicali" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="color: var(--primary);"><i class="fa-solid fa-heart-pulse"></i> Inventario Elettromedicali (DAE, O2)</h3>
-                    <button class="btn btn-primary" onclick="apriModale('modalElettromedicale', 'formElettromedicale', 'el-')"><i class="fa-solid fa-plus"></i> Inserisci Apparecchio</button>
+                    <h3 style="color: var(--primary);"><i class="fa-solid fa-heart-pulse"></i> Inventario Elettromedicali & Farmaco Ossigeno</h3>
+                    <button class="btn btn-primary" onclick="apriModale('modalElettromedicale', 'formElettromedicale', 'el-')"><i class="fa-solid fa-plus"></i> Inserisci Presidio / Bombola</button>
                 </div>
                 <div class="glass-panel table-container">
                     <table>
-                        <thead><tr><th>Tipo e Modello</th><th>Matricola</th><th>Assegnazione</th><th>Scad. Manutenzione</th><th>Scad. Consumabili</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Tipo e Modello</th>
+                                <th>Matricola</th>
+                                <th>Lotto AIC / Scad. Farmaco (O2)</th>
+                                <th>Assegnazione Mezzo</th>
+                                <th>Scad. Manutenzione / Collaudo</th>
+                                <th>Scad. Consumabili</th>
+                                <th style="text-align:right;">Azioni</th>
+                            </tr>
+                        </thead>
                         <tbody id="elettromedicali-corpo"></tbody>
                     </table>
                 </div>
@@ -386,12 +440,22 @@
 
             <div id="tab-sanificazioni" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="color: var(--primary);"><i class="fa-solid fa-spray-can-sparkles"></i> Registro Sanificazioni</h3>
-                    <button class="btn btn-primary" onclick="apriModale('modalSanificazione', 'formSanificazione', 'san-')"><i class="fa-solid fa-plus"></i> Registra Operazione</button>
+                    <h3 style="color: var(--primary);"><i class="fa-solid fa-spray-can-sparkles"></i> Registro Sanificazioni & Disinfezioni (Protocollo PMC)</h3>
+                    <button class="btn btn-primary" onclick="apriModale('modalSanificazione', 'formSanificazione', 'san-')"><i class="fa-solid fa-plus"></i> Registra Sanificazione</button>
                 </div>
                 <div class="glass-panel table-container">
                     <table>
-                        <thead><tr><th>Data</th><th>Mezzo</th><th>Tipo Intervento</th><th>Operatore</th><th>Note</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Mezzo</th>
+                                <th>Tipo Intervento</th>
+                                <th>Principio Attivo / Disinfettante PMC</th>
+                                <th>Operatore</th>
+                                <th>Note / Tempo Contatto</th>
+                                <th style="text-align:right;">Azioni</th>
+                            </tr>
+                        </thead>
                         <tbody id="sanificazioni-corpo"></tbody>
                     </table>
                 </div>
@@ -399,7 +463,7 @@
         </main>
     </div>
 
-    <!-- Modali -->
+    <!-- Modali Form -->
     <div class="modal-overlay" id="modalTurno">
         <div class="modal" style="max-width: 550px;">
             <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-calendar-days"></i> Gestione Turno e Reperibilità <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
@@ -428,7 +492,7 @@
                     <div class="input-group"><label>Data Evento</label><input type="date" id="cont-data" required></div>
                     <div class="input-group"><label>Tipo Evento</label><select id="cont-evento"><option value="Guasto Mezzo">Guasto Mezzo</option><option value="Assenza Operatore">Assenza Operatore</option><option value="Emergenza Straordinaria">Emergenza Straordinaria</option></select></div>
                     <div class="input-group"><label>Segnalato Da</label><input type="text" id="cont-segnalante" value="Centrale Operativa" required></div>
-                    <div class="input-group"><label>Mezzo o Operatore Coinvolto</label><input type="text" id="cont-coinvolto" required placeholder="Es. Ambulanza DG347YP"></div>
+                    <div class="input-group"><label>Mezzo o Operatore Coinvolto</label><input type="text" id="cont-coinvolto" required placeholder="Es. Ambulanza 1"></div>
                     <div class="input-group full-width"><label>Azione Correttiva (es. Mezzo sostitutivo)</label><textarea id="cont-azione" required rows="2"></textarea></div>
                     <div class="input-group"><label>Esito</label><select id="cont-esito"><option value="In Gestione">In Gestione</option><option value="Risolto">Risolto</option></select></div>
                     <div class="input-group full-width"><label>Note</label><input type="text" id="cont-note"></div>
@@ -438,7 +502,6 @@
         </div>
     </div>
 
-    <!-- MODIFICATA: Select Nome Operatore per la Formazione Personale -->
     <div class="modal-overlay" id="modalFormazione">
         <div class="modal" style="max-width: 550px;">
             <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-graduation-cap"></i> Scheda Formazione Personale <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
@@ -504,7 +567,7 @@
                 <input type="hidden" id="forn-editId">
                 <div class="form-grid">
                     <div class="input-group full-width"><label>Ragione Sociale / P.IVA</label><input type="text" id="forn-ragione" required></div>
-                    <div class="input-group"><label>Categoria</label><input type="text" id="forn-categoria" required placeholder="Es. Materiale Sanitario"></div>
+                    <div class="input-group"><label>Categoria</label><input type="text" id="forn-categoria" required placeholder="Es. Gas Medicali, Materiale Sanitario"></div>
                     <div class="input-group"><label>Scadenza Contratto</label><input type="date" id="forn-scadenza" required></div>
                     <div class="input-group"><label>Valutazione Annuale</label><select id="forn-valutazione"><option value="Positiva">Positiva</option><option value="Sufficiente">Sufficiente</option><option value="Negativa">Negativa</option><option value="Da Valutare">Da Valutare</option></select></div>
                     <div class="input-group full-width"><label>Note</label><input type="text" id="forn-note"></div>
@@ -514,37 +577,42 @@
         </div>
     </div>
 
+    <!-- MODALE ELETTROMEDICALI & O2 -->
     <div class="modal-overlay" id="modalElettromedicale">
-        <div class="modal" style="max-width: 600px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-heart-pulse"></i> Inserisci Apparecchio <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="modal" style="max-width: 650px;">
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-heart-pulse"></i> Inserisci Presidio / Bombola O2 <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
             <form id="formElettromedicale">
                 <input type="hidden" id="el-editId">
                 <div class="form-grid">
-                    <div class="input-group"><label>Tipo (es. DAE, Aspiratore)</label><input type="text" id="el-tipo" required></div>
-                    <div class="input-group"><label>Modello</label><input type="text" id="el-modello" required></div>
-                    <div class="input-group"><label>Matricola</label><input type="text" id="el-matricola" required></div>
-                    <div class="input-group"><label>Assegnazione (Mezzo/Sede)</label><input type="text" id="el-assegnazione" required></div>
-                    <div class="input-group"><label>Scadenza Manutenzione</label><input type="date" id="el-scad-manutenzione" required></div>
-                    <div class="input-group"><label>Scadenza Consumabili (Piastre/Batterie)</label><input type="date" id="el-scad-consumabili"></div>
+                    <div class="input-group"><label>Tipo Dispositivo</label><select id="el-tipo" required><option value="DAE (Defibrillatore)">DAE (Defibrillatore)</option><option value="Bombola O2 Medicinale">Bombola O2 Medicinale</option><option value="Aspiratore Tascabile">Aspiratore Tascabile</option><option value="Pulsossimetro">Pulsossimetro</option><option value="Altro">Altro</option></select></div>
+                    <div class="input-group"><label>Modello / Produttore</label><input type="text" id="el-modello" required placeholder="Es. Saver One, Sapio Life"></div>
+                    <div class="input-group"><label>Matricola Apparecchio / Matricola Bombola</label><input type="text" id="el-matricola" required></div>
+                    <div class="input-group"><label>Assegnazione Mezzo</label><input type="text" id="el-assegnazione" required placeholder="Es. Ambulanza 1"></div>
+                    <div class="input-group"><label>Lotto AIC Farmaco (Solo per O2)</label><input type="text" id="el-lotto" placeholder="Es. LT102456"></div>
+                    <div class="input-group"><label>Scadenza Farmaco O2</label><input type="date" id="el-scad-farmaco"></div>
+                    <div class="input-group"><label>Scadenza Manutenzione Elettrica / Collaudo Bombola</label><input type="date" id="el-scad-manutenzione" required></div>
+                    <div class="input-group"><label>Scadenza Consumabili (Piastre/Batterie/Filtri)</label><input type="date" id="el-scad-consumabili"></div>
                 </div>
-                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Apparecchio</button></div>
+                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Dispositivo</button></div>
             </form>
         </div>
     </div>
 
+    <!-- MODALE SANIFICAZIONI PMC -->
     <div class="modal-overlay" id="modalSanificazione">
-        <div class="modal" style="max-width: 600px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-spray-can-sparkles"></i> Registra Operazione <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="modal" style="max-width: 650px;">
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-spray-can-sparkles"></i> Registra Sanificazione & Disinfezione (PMC) <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
             <form id="formSanificazione">
                 <input type="hidden" id="san-editId">
                 <div class="form-grid">
-                    <div class="input-group"><label>Data</label><input type="date" id="san-data" required></div>
-                    <div class="input-group"><label>Mezzo</label><input type="text" id="san-mezzo" required placeholder="Es. Ambulanza 1"></div>
-                    <div class="input-group"><label>Tipo Intervento</label><select id="san-tipo" required><option value="Ordinaria">Ordinaria</option><option value="Straordinaria">Straordinaria (es. post infettivo)</option><option value="Ozono">Trattamento Ozono</option></select></div>
-                    <div class="input-group"><label>Operatore</label><select id="san-operatore" required><option value="Membro Equipaggio">Membro Equipaggio</option><option value="Ditta Esterna">Ditta Esterna</option></select></div>
-                    <div class="input-group full-width"><label>Note</label><input type="text" id="san-note"></div>
+                    <div class="input-group"><label>Data Intervento</label><input type="date" id="san-data" required></div>
+                    <div class="input-group"><label>Mezzo Sanificato</label><input type="text" id="san-mezzo" required placeholder="Es. Ambulanza 1"></div>
+                    <div class="input-group"><label>Tipo Intervento</label><select id="san-tipo" required><option value="Ordinaria (Fine Turno)">Ordinaria (Fine Turno)</option><option value="Straordinaria (Rischio Infettivo)">Straordinaria (Rischio Infettivo)</option><option value="Trattamento Ozono / Nebulizzazione">Trattamento Ozono / Nebulizzazione</option></select></div>
+                    <div class="input-group"><label>Disinfettante / Presidio Medico Chirurgico (PMC)</label><input type="text" id="san-pmc" required placeholder="Es. Clorossidante PMC n.18245, Alcool 70%"></div>
+                    <div class="input-group"><label>Operatore Esecutore</label><select id="san-operatore" required><option value="Membro Equipaggio">Membro Equipaggio</option></select></div>
+                    <div class="input-group full-width"><label>Note / Tempo di Contatto (minuti)</label><input type="text" id="san-note" placeholder="Es. Contatto 15 min, areazione eseguita"></div>
                 </div>
-                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Sanificazione</button></div>
+                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva nel Registro</button></div>
             </form>
         </div>
     </div>
@@ -565,13 +633,25 @@
         </div>
     </div>
 
+    <!-- MODALE QR CODE CUSTOMER SATISFACTION -->
     <div class="modal-overlay" id="modalQRCustomerSat">
-        <div class="modal" style="max-width: 400px; text-align:center;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-qrcode"></i> Scansione QR Paziente <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
-            <div style="padding: 20px; background: white; border-radius: 8px; display: inline-flex; justify-content: center; align-items: center; margin-top: 10px;">
-                <div id="qrcode"></div>
+        <div class="modal" style="max-width: 440px; text-align:center;">
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;">
+                <span><i class="fa-solid fa-star" style="color:#ec4899"></i> Questionario Pazienti (ISO 9001)</span> 
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p style="margin-top: 15px; font-size: 0.85rem; color: var(--text-light);">Fai inquadrare questo codice ai pazienti a fine trasporto per la compilazione del questionario online sul loro smartphone.</p>
+            
+            <div style="padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); display: inline-flex; justify-content: center; align-items: center; margin: 10px 0;">
+                <div id="qrcode" style="display:flex; justify-content:center; align-items:center; min-height: 180px; min-width: 180px;"></div>
+            </div>
+
+            <p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-main); font-weight: 600;">Inquadra con la fotocamera dello smartphone per compilare il questionario di qualità.</p>
+            <p style="margin-top: 4px; font-size: 0.75rem; color: var(--text-light);">I dati confluiscono direttamente nel modulo di Customer Satisfaction ai fini dell'Accreditamento Regionale.</p>
+            
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button type="button" class="btn btn-ghost" onclick="copiaLinkCS()" style="flex:1; border-color:var(--border); font-size:0.8rem;"><i class="fa-regular fa-copy"></i> Copia Link</button>
+                <button type="button" class="btn btn-primary" onclick="window.open(URL_QUESTIONARIO_CS, '_blank')" style="flex:1; background:#ec4899; font-size:0.8rem;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Apri Modulo</button>
+            </div>
         </div>
     </div>
 
@@ -595,14 +675,20 @@
         }
 
         var database;
+
+        function getDbRef(subPath) {
+            let cleanSub = subPath ? subPath.replace(/^\/+/, '') : '';
+            return database.ref(dbRootPath + '/' + cleanSub);
+        }
+
         window.salvaNodo = (nomeNodo, dati) => {
             if(!database) {
-                alert("Database non connesso. Aprire da server o Netlify, non in file:// locale.");
+                alert("Database non connesso. Verificare la configurazione Firebase.");
                 return;
             }
-            database.ref('cuore_argento_db/' + nomeNodo).set(dati)
-            .then(() => { toast("Salvataggio su Firebase completato!"); })
-            .catch((err) => { alert("Errore Cloud: " + err.message); });
+            getDbRef(nomeNodo).set(dati)
+                .then(() => { toast("Salvataggio su Firebase completato!"); })
+                .catch((err) => { alert("Errore Cloud: " + err.message); });
         };
 
         try {
@@ -619,9 +705,24 @@
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             database = firebase.database();
             
-            database.ref('cuore_argento_db').on('value', (snapshot) => {
-                const data = snapshot.val() || {};
+            // ASCOLTO FIREBASE ROOT COMPATIBILE CON GESTIONALE E TABLET
+            database.ref().on('value', (snapshot) => {
+                const rawData = snapshot.val() || {};
+                let data = rawData;
                 
+                if (rawData.cuore_argento_db && typeof rawData.cuore_argento_db === 'object') {
+                    data = rawData.cuore_argento_db;
+                    dbRootPath = 'cuore_argento_db';
+                } else {
+                    let altKey = Object.keys(rawData).find(k => rawData[k] && typeof rawData[k] === 'object' && (rawData[k].volontari || rawData[k].trasporti || rawData[k].mezzi));
+                    if (altKey) {
+                        data = rawData[altKey];
+                        dbRootPath = altKey;
+                    } else {
+                        dbRootPath = 'cuore_argento_db';
+                    }
+                }
+
                 trasporti = estraiDati(data.trasporti); volontari = estraiDati(data.volontari); mezzi = estraiDati(data.mezzi); 
                 checklists = estraiDati(data.checklists); sanificazioni = estraiDati(data.sanificazioni); 
                 elettromedicali = estraiDati(data.elettromedicali); nonConformita = estraiDati(data.nonConformita); 
@@ -641,7 +742,6 @@
             alert("Connessione al database fallita.");
         }
 
-        // MODIFICATA: Popolamento della tendina Nome Operatore nella Formazione
         function popolaTendine() {
             let vOptsNC = '<option value="Utente Esterno">Utente Esterno</option>';
             let vOptsPuri = '<option value="">-- Seleziona Operatore --</option>';
@@ -671,6 +771,11 @@
             else if(listaName === 'continuitaServizio') continuitaServizio = arr;
             else if(listaName === 'formazionePersonale') formazionePersonale = arr;
             else if(listaName === 'verificheQualitaDati') verificheQualitaDati = arr;
+            else if(listaName === 'customerSat') customerSat = arr;
+            else if(listaName === 'fornitori') fornitori = arr;
+            else if(listaName === 'elettromedicali') elettromedicali = arr;
+            else if(listaName === 'sanificazioni') sanificazioni = arr;
+            else if(listaName === 'nonConformita') nonConformita = arr;
             salvaNodo(listaName, arr);
         };
 
@@ -705,11 +810,10 @@
             collegaForm('formVerificaDato', 'verificheQualitaDati', 'vd-', ['data', 'dato', 'acc', 'comp', 'riprod', 'temp', 'esito', 'resp', 'azioni']);
             collegaForm('formNC', 'nonConformita', 'nc-', ['data', 'rilevatore', 'tipo', 'descrizione', 'azione', 'stato']);
             collegaForm('formFornitore', 'fornitori', 'forn-', ['ragione', 'categoria', 'scadenza', 'valutazione', 'note']);
-            collegaForm('formElettromedicale', 'elettromedicali', 'el-', ['tipo', 'modello', 'matricola', 'assegnazione', 'scad-manutenzione', 'scad-consumabili']);
-            collegaForm('formSanificazione', 'sanificazioni', 'san-', ['data', 'mezzo', 'tipo', 'operatore', 'note']);
+            collegaForm('formElettromedicale', 'elettromedicali', 'el-', ['tipo', 'modello', 'matricola', 'assegnazione', 'lotto', 'scad-farmaco', 'scad-manutenzione', 'scad-consumabili']);
+            collegaForm('formSanificazione', 'sanificazioni', 'san-', ['data', 'mezzo', 'tipo', 'pmc', 'operatore', 'note']);
             collegaForm('formCustomerSat', 'customerSat', 'cs-', ['data', 'compilatore', 'voto_globale', 'consiglia']);
             
-            // MODIFICATA: Event listener per auto-compilazione Qualifica in Formazione
             const formNomeEl = document.getElementById('form-nome');
             if(formNomeEl) {
                 formNomeEl.addEventListener('change', (e) => {
@@ -719,14 +823,8 @@
                     }
                 });
             }
-            
-            const qrContainer = document.getElementById("qrcode");
-            if(qrContainer) {
-                new QRCode(qrContainer, { text: "https://docs.google.com/forms/d/e/1FAIpQLSerxr5ggAvhPCAPKwkPGKkm5tbjsDYWIiPlguYWskejUX7g-w/viewform?usp=sharing&ouid=117117615506418942572", width: 160, height: 160 });
-            }
         });
 
-        // MODIFICATA: Ottimizzazione KPI e sicurezza riferimenti DOM
         window.renderStatistiche = () => {
             const kpiServizi = document.getElementById('kpi-servizi');
             const kpiNc = document.getElementById('kpi-nc');
@@ -822,14 +920,15 @@
             elettromedicali.forEach(e => {
                 let valManu = checkScadenza(e['scad-manutenzione']);
                 let valCons = checkScadenza(e['scad-consumabili']);
-                tbody.innerHTML += `<tr><td><strong>${e.tipo}</strong><br><small>${e.modello}</small></td><td>${e.matricola}</td><td>${e.assegnazione}</td><td>${valManu.html}</td><td>${valCons.html}</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('elettromedicali', '${e.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                let lottoInfo = e.lotto ? `Lotto: <strong>${e.lotto}</strong><br><small>Scad. Gas: ${e['scad-farmaco'] ? new Date(e['scad-farmaco']).toLocaleDateString('it-IT') : '-'}</small>` : '-';
+                tbody.innerHTML += `<tr><td><strong>${e.tipo}</strong><br><small>${e.modello}</small></td><td>${e.matricola}</td><td>${lottoInfo}</td><td>${e.assegnazione}</td><td>${valManu.html}</td><td>${valCons.html}</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('elettromedicali', '${e.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
         };
 
         window.renderSanificazioni = () => {
             const tbody = document.getElementById('sanificazioni-corpo'); if(!tbody) return; tbody.innerHTML = '';
             sanificazioni.forEach(s => {
-                tbody.innerHTML += `<tr><td>${s.data}</td><td><strong>${s.mezzo}</strong></td><td>${s.tipo}</td><td>${s.operatore}</td><td><small>${s.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('sanificazioni', '${s.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                tbody.innerHTML += `<tr><td>${s.data}</td><td><strong>${s.mezzo}</strong></td><td>${s.tipo}</td><td><strong style="color:var(--primary);">${s.pmc || 'PMC Standard'}</strong></td><td>${s.operatore}</td><td><small>${s.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('sanificazioni', '${s.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
         };
 
@@ -860,7 +959,7 @@
             if(document.getElementById('nav-' + tabId)) document.getElementById('nav-' + tabId).classList.add('active');
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             if(document.getElementById(`tab-${tabId}`)) document.getElementById(`tab-${tabId}`).classList.add('active');
-            const titles = { 'statistiche': 'Cruscotto Direzionale ISO 9001', 'stampe-asl': 'Centro Stampe e Registri ASL', 'turni': 'Registro Turni e Reperibilità', 'continuita': 'Registro Continuità del Servizio', 'formazione': 'Registro Formazione Personale', 'verifichedati': 'Registro Verifica Qualità Dati', 'customersat': 'Customer Satisfaction', 'nc': 'Gestione Reclami & Workflow' };
+            const titles = { 'statistiche': 'Cruscotto Direzionale ISO 9001', 'stampe-asl': 'Centro Stampe e Registri ASL', 'turni': 'Registro Turni e Reperibilità', 'continuita': 'Registro Continuità del Servizio', 'formazione': 'Registro Formazione Personale', 'verifichedati': 'Registro Verifica Qualità Dati', 'customersat': 'Customer Satisfaction', 'nc': 'Gestione Reclami & Workflow', 'fornitori': 'Albo Fornitori Qualificati', 'elettromedicali': 'Inventario Elettromedicali & O2', 'sanificazioni': 'Registro Sanificazioni PMC' };
             document.getElementById('tab-title').innerText = titles[tabId] || 'Pannello Qualità';
         };
 
@@ -874,8 +973,11 @@
 
             doc.setFontSize(14); 
             doc.setTextColor(139, 92, 246); 
-            doc.text("Associazione Cuore d'Argento ODV - Servizio Qualità", 14, 20);
-            doc.line(14, 25, 196, 25);
+            doc.text(`${societaInfo.nome} - Servizio Qualità`, 14, 20);
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 24);
+            doc.line(14, 26, 196, 26);
 
             doc.setFontSize(11); 
             doc.setTextColor(0, 0, 0);
@@ -894,6 +996,9 @@
             doc.text("Il Responsabile Qualità", 14, 150);
             doc.text("________________________", 14, 160);
 
+            doc.text("Visto del Direttore Sanitario:", 110, 150);
+            doc.text("________________________", 110, 160);
+
             let nomeFile = `Lettera_Risposta_NC_${(reclamo.rilevatore || 'Anonimo').replace(/\s+/g, '_')}.pdf`;
             doc.save(nomeFile);
 
@@ -902,44 +1007,50 @@
 
         window.stampaRegistroTurniAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO TURNI E REPERIBILITA' PERSONALE", 14, 25); doc.line(14, 28, 196, 28);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO TURNI E REPERIBILITA' PERSONALE (L.R. 11/2015)", 14, 29); doc.line(14, 32, 196, 32);
             let bodyData = turniReperibilita.map(t => [t.data, t.turno, t.nome, t.qualifica, t.reperibile, t.sostituto, t.note || '-']);
-            doc.autoTable({ startY: 35, head: [['Data', 'Turno', 'Operatore', 'Qualifica', 'Reperibile', 'Sostituto', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
+            doc.autoTable({ startY: 37, head: [['Data', 'Turno', 'Operatore', 'Qualifica', 'Reperibile', 'Sostituto', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Responsabile Operativo (RO): ______________________", 14, finalY);
-            doc.text("Firma Presidente: ______________________", 110, finalY);
+            doc.text("Firma Responsabile Operativo: ______________________", 14, finalY);
+            doc.text("Firma Presidente / DS: ______________________", 110, finalY);
             doc.save(`Registro_Turni_Reperibilita_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro Turni Esportato!");
         };
 
         window.stampaRegistroContinuitaAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO CONTINUITA' DEL SERVIZIO E GESTIONE EMERGENZE", 14, 25); doc.line(14, 28, 196, 28);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO CONTINUITA' DEL SERVIZIO E GESTIONE EMERGENZE", 14, 29); doc.line(14, 32, 196, 32);
             let bodyData = continuitaServizio.map(c => [c.data, c.evento, c.segnalante || 'Centrale', c.coinvolto, c.azione || '-', c.esito, c.note || '-']);
-            doc.autoTable({ startY: 35, head: [['Data', 'Evento', 'Segnalante', 'Coinvolto', 'Azione Correttiva', 'Esito', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] }, styles: { fontSize: 8 } });
+            doc.autoTable({ startY: 37, head: [['Data', 'Evento', 'Segnalante', 'Coinvolto', 'Azione Correttiva', 'Esito', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] }, styles: { fontSize: 8 } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Qualità (RQ): ______________________", 14, finalY);
+            doc.text("Visto Direttore Sanitario: ______________________", 110, finalY);
             doc.save(`Registro_Continuita_Servizio_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro Continuità Esportato!");
         };
 
         window.stampaRegistroFormazioneAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO FORMAZIONE E AGGIORNAMENTO PERSONALE", 14, 25); doc.line(14, 28, 196, 28);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO FORMAZIONE, AGGIORNAMENTO BLSD E IDONEITA'", 14, 29); doc.line(14, 32, 196, 32);
             let bodyData = formazionePersonale.map(f => [f.nome, f.qualifica, f.corso, f.datacorso, f.datascadenza, f.stato]);
-            doc.autoTable({ startY: 35, head: [['Operatore', 'Qualifica', 'Corso', 'Data Corso', 'Scadenza', 'Stato']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
+            doc.autoTable({ startY: 37, head: [['Operatore', 'Qualifica', 'Corso', 'Data Corso', 'Scadenza', 'Stato']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Responsabile Formazione (RF): ______________________", 14, finalY);
+            doc.text("Firma Responsabile Formazione: ______________________", 14, finalY);
+            doc.text("Approvazione Direttore Sanitario: ______________________", 110, finalY);
             doc.save(`Registro_Formazione_Personale_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro Formazione Esportato!");
         };
 
         window.stampaRegistroVerificheDatiAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO VERIFICA QUALITA' DEI DATI (ISO 9001)", 14, 25); doc.line(14, 28, 196, 28);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO VERIFICA QUALITA' DEI DATI (ISO 9001)", 14, 29); doc.line(14, 32, 196, 32);
             let bodyData = verificheQualitaDati.map(v => [v.data, v.dato, v.acc, v.comp, v.riprod, v.temp, v.esito, v.resp]);
-            doc.autoTable({ startY: 35, head: [['Data', 'Dato', 'Acc.', 'Comp.', 'Riprod.', 'Temp.', 'Esito', 'Resp']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
+            doc.autoTable({ startY: 37, head: [['Data', 'Dato', 'Acc.', 'Comp.', 'Riprod.', 'Temp.', 'Esito', 'Resp']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Sistema Informativo (RSI): ______________________", 14, finalY);
             doc.save(`Registro_Verifiche_Qualita_Dati_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro Verifiche Dati Esportato!");
@@ -947,83 +1058,104 @@
 
         window.stampaRegistroNCAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO NON CONFORMITA' E RECLAMI (RRP)", 14, 25); doc.line(14, 28, 196, 28);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO NON CONFORMITA' E RECLAMI (RRP)", 14, 29); doc.line(14, 32, 196, 32);
             let bodyData = nonConformita.length > 0 ? nonConformita.map(n => [n.data, n.tipo, n.rilevatore, n.descrizione, n.azione, n.stato]) : [["-", "Nessuna NC registrata", "-", "-", "-", "-"]];
-            doc.autoTable({ startY: 35, head: [['Data', 'Tipologia', 'Segnalante', 'Descrizione', 'Azione Correttiva', 'Stato']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
+            doc.autoTable({ startY: 37, head: [['Data', 'Tipologia', 'Segnalante', 'Descrizione', 'Azione Correttiva', 'Stato']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Qualità (RQ): ______________________", 14, finalY);
+            doc.text("Visto Direttore Sanitario: ______________________", 110, finalY);
             doc.save(`Registro_NC_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro NC Esportato!");
         };
 
         window.stampaRegistroSanificazioniAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO SANIFICAZIONI MEZZI", 14, 25); doc.line(14, 28, 196, 28);
-            let bodyData = sanificazioni.length > 0 ? sanificazioni.map(s => [s.data, s.mezzo, s.tipo, s.operatore, s.note || '-']) : [["-", "Nessuna sanificazione", "-", "-", "-"]];
-            doc.autoTable({ startY: 35, head: [['Data', 'Mezzo', 'Tipo Intervento', 'Operatore', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO SANIFICAZIONI MEZZI E DISINFEZIONE CON PROTOCOLLO PMC", 14, 29); doc.line(14, 32, 196, 32);
+            let bodyData = sanificazioni.length > 0 ? sanificazioni.map(s => [s.data, s.mezzo, s.tipo, s.pmc || 'PMC Cloroattivo', s.operatore, s.note || '-']) : [["-", "Nessuna sanificazione", "-", "-", "-", "-"]];
+            doc.autoTable({ startY: 37, head: [['Data', 'Mezzo', 'Tipo Intervento', 'Presidio Medico Chirurgico', 'Operatore', 'Note/Tempo']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Autoparco: ______________________", 14, finalY);
-            doc.save(`Registro_Sanificazioni_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Sanificazioni Esportate!");
+            doc.text("Validazione Direttore Sanitario: ______________________", 110, finalY);
+            doc.save(`Registro_Sanificazioni_PMC_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Sanificazioni Esportate!");
         };
 
         window.stampaRegistroElettromedicaliAsl = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 18);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("INVENTARIO APPARECCHIATURE ELETTROMEDICALI", 14, 25); doc.line(14, 28, 196, 28);
-            let bodyData = elettromedicali.length > 0 ? elettromedicali.map(e => [e.tipo + ' - ' + e.modello, e.matricola, e.assegnazione, e['scad-manutenzione'], e['scad-consumabili'] || '-']) : [["Nessun elettromedicale", "-", "-", "-", "-"]];
-            doc.autoTable({ startY: 35, head: [['Tipo e Modello', 'Matricola', 'Assegnazione', 'Scad. Manutenzione', 'Scad. Consumabili']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("INVENTARIO APPARECCHIATURE ELETTROMEDICALI E LOTTI OSSIGENO FARMACO", 14, 29); doc.line(14, 32, 196, 32);
+            let bodyData = elettromedicali.length > 0 ? elettromedicali.map(e => [e.tipo + ' - ' + e.modello, e.matricola, e.lotto ? `Lotto: ${e.lotto} (Scad: ${e['scad-farmaco']||'-'})` : '-', e.assegnazione, e['scad-manutenzione'], e['scad-consumabili'] || '-']) : [["Nessun dispositivo registrato", "-", "-", "-", "-", "-"]];
+            doc.autoTable({ startY: 37, head: [['Tipo e Modello', 'Matricola', 'Lotto AIC / Scad. Farmaco (O2)', 'Assegnazione', 'Scad. Verifica / Collaudo', 'Consumabili']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] }, styles: { fontSize: 8 } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Apparecchiature: ______________________", 14, finalY);
-            doc.save(`Inventario_Elettromedicali_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Elettromedicali Esportati!");
+            doc.text("Validazione Direttore Sanitario: ______________________", 110, finalY);
+            doc.save(`Inventario_Elettromedicali_O2_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Elettromedicali Esportati!");
         };
 
         window.stampaQuestionarioCartaceo = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 20);
-            doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.text("QUESTIONARIO DI SODDISFAZIONE UTENTI", 14, 28); doc.line(14, 32, 196, 32);
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+            doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.text("QUESTIONARIO DI SODDISFAZIONE UTENTI (ISO 9001 & ASL UMBRIA)", 14, 29); doc.line(14, 32, 196, 32);
             doc.setFontSize(10);
             doc.text("Gentile utente, la preghiamo di valutare il servizio ricevuto (1 = Scarso, 5 = Ottimo):", 14, 42);
             doc.autoTable({
-                startY: 50,
-                head: [['Domanda', '1', '2', '3', '4', '5']],
+                startY: 48,
+                head: [['Aspetto Valutato', '1 (Scarso)', '2', '3 (Sufficiente)', '4', '5 (Eccellente)']],
                 body: [
-                    ['Cortesia e professionalità del personale', '', '', '', '', ''],
-                    ['Puntualità del servizio', '', '', '', '', ''],
-                    ['Comfort e pulizia del mezzo', '', '', '', '', ''],
-                    ['Valutazione globale del servizio', '', '', '', '', '']
+                    ['Cortesia e disponibilità del personale soccorritore', '', '', '', '', ''],
+                    ['Puntualità rispetto all\'orario concordato', '', '', '', '', ''],
+                    ['Pulizia, comfort e climatizzazione dell\'ambulanza', '', '', '', '', ''],
+                    ['Facilità di prenotazione e risposta della centrale', '', '', '', '', ''],
+                    ['Valutazione globale complessiva del servizio', '', '', '', '', '']
                 ],
-                theme: 'grid', headStyles: { fillColor: [139, 92, 246] }
+                theme: 'grid', headStyles: { fillColor: [139, 92, 246] }, styles: { minCellHeight: 10 }
             });
             let finalY = doc.lastAutoTable.finalY + 15;
-            doc.text("Consiglierebbe il nostro servizio ad altre persone?   [  ] SI    [  ] NO", 14, finalY);
-            doc.text("Eventuali suggerimenti o note:", 14, finalY + 15);
-            doc.line(14, finalY + 25, 196, finalY + 25);
-            doc.line(14, finalY + 35, 196, finalY + 35);
-            doc.save("Questionario_Soddisfazione.pdf"); toast("Questionario Stampato!");
+            doc.text("Consiglierebbe il nostro servizio di trasporto sanitario ad altre persone?   [  ] SI    [  ] NO", 14, finalY);
+            doc.text("Eventuali suggerimenti o osservazioni per migliorare il nostro servizio:", 14, finalY + 12);
+            doc.setDrawColor(200, 200, 200);
+            doc.line(14, finalY + 22, 196, finalY + 22);
+            doc.line(14, finalY + 32, 196, finalY + 32);
+            doc.save("Questionario_Soddisfazione_Pazienti.pdf"); toast("Questionario Stampato!");
         };
 
         window.stampaVerbaleRiesame = () => {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(16); doc.setTextColor(139, 92, 246); doc.text("Associazione Cuore d'Argento ODV", 14, 20); 
-            doc.setFontSize(14); doc.setTextColor(0, 0, 0); doc.text("VERBALE DI RIESAME DELLA DIREZIONE", 14, 30); doc.line(14, 35, 196, 35);
-            doc.setFontSize(11);
-            doc.text("Data della riunione: " + dataOggi, 14, 45);
-            doc.text("Oggetto: Valutazione KPI ISO 9001 e andamento sistema qualità.", 14, 52);
+            doc.setFontSize(16); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18); 
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+            doc.setFontSize(13); doc.setTextColor(0, 0, 0); doc.text("VERBALE DI RIESAME DELLA DIREZIONE - NORMA ISO 9001:2015 & ACCREDITAMENTO", 14, 29); doc.line(14, 32, 196, 32);
+            doc.setFontSize(10);
+            doc.text("Data della riunione: " + dataOggi, 14, 40);
+            doc.text("Partecipanti: Legale Rappresentante, Direttore Sanitario, Responsabile Qualità (RQ).", 14, 46);
+            doc.text("Oggetto: Valutazione KPI di qualità, efficacia del servizio ed idoneità igienico-sanitaria.", 14, 52);
+            
+            let csMedia = "N/D";
+            if (customerSat.length > 0) {
+                let sum = customerSat.reduce((acc, c) => acc + (parseFloat(c.voto_globale || 5)), 0);
+                csMedia = (sum / customerSat.length).toFixed(1) + " / 5";
+            }
+
             doc.autoTable({
-                startY: 60,
-                head: [['Indicatore', 'Valore Attuale', 'Stato']],
+                startY: 58,
+                head: [['Indicatore di Qualità / Processo', 'Valore Rilevato', 'Esito']],
                 body: [
-                    ['Servizi Erogati Totali', trasporti.length.toString(), 'Monitorato'],
-                    ['Non Conformità Aperte', nonConformita.filter(n => n.stato !== 'Chiusa').length.toString(), 'Monitorato'],
-                    ['Fornitori Registrati', fornitori.length.toString(), 'Monitorato']
+                    ['Totale Servizi di Trasporto Erogati', trasporti.length.toString(), 'Conforme agli Obiettivi'],
+                    ['Punteggio Medio Customer Satisfaction', csMedia, 'Soddisfacente'],
+                    ['Non Conformità e Reclami Aperti', nonConformita.filter(n => n.stato !== 'Chiusa').length.toString(), 'Sotto Controllo'],
+                    ['Fornitori Qualificati Registrati', fornitori.length.toString(), 'Albo Aggiornato'],
+                    ['Mezzi Sanificati con Protocollo PMC', sanificazioni.length.toString(), 'Procedure Rispettate'],
+                    ['Apparecchiature Elettromedicali & O2', elettromedicali.length.toString(), 'Verifiche Periodiche e Lotti OK']
                 ],
                 theme: 'grid', headStyles: { fillColor: [139, 92, 246] }
             });
             let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Direzione: ______________________", 14, finalY);
-            doc.text("Firma Responsabile Qualità: ______________________", 110, finalY);
-            doc.save(`Verbale_Riesame_${dataOggi.replace(/\//g, '-')}.pdf`); 
+            doc.text("Firma Legale Rappresentante: ______________________", 14, finalY);
+            doc.text("Firma Direttore Sanitario: ______________________", 110, finalY);
+            doc.save(`Verbale_Riesame_Direzione_${dataOggi.replace(/\//g, '-')}.pdf`); 
             toast("Verbale Riesame Generato!");
         };
     </script>
