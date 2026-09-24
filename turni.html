@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Turni & Equipaggi - Cuore d'Argento ODV</title>
     
-    <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- jsPDF per la stampa del tabellone turni -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
-    <!-- FIREBASE SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -42,6 +39,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
 
+        /* --- CLASSI SICUREZZA SOLA LETTURA --- */
+        body.readonly-mode .admin-only { display: none !important; }
+        body.readonly-mode .matrix-td-interactive { pointer-events: none !important; }
+        body.readonly-mode .matrix-cell-tag { cursor: default; }
+
         header { background: linear-gradient(135deg, var(--secondary), #0f172a); color: white; padding: 16px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; z-index: 100; position: sticky; top: 0; }
         .brand { display: flex; align-items: center; gap: 14px; }
         .brand-icon { width: 44px; height: 44px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: white; box-shadow: 0 4px 12px rgba(198, 40, 40, 0.4); }
@@ -55,7 +57,6 @@
         .btn-ghost { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
         .btn-ghost:hover { background: rgba(255,255,255,0.2); }
 
-        /* BANNER EMERGENZA / TIMBRATURE DA CONVALIDARE */
         .pending-bar { max-width: 1400px; margin: 15px auto 0 auto; width: 100%; padding: 0 24px; display: none; }
         .pending-box { background: #fffbeb; border: 1px solid var(--warning); border-left: 6px solid var(--warning); border-radius: var(--radius); padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .pending-title { font-weight: 800; font-size: 0.9rem; color: #92400e; display: flex; align-items: center; gap: 8px; }
@@ -179,7 +180,7 @@
         #toast.show { transform: translateY(0); opacity: 1; }
     </style>
 </head>
-<body onclick="chiudiPopover(event)">
+<body class="readonly-mode" onclick="chiudiPopover(event)">
 
     <header>
         <div class="brand">
@@ -193,12 +194,12 @@
             <button class="btn btn-ghost" onclick="apriGestionalePrincipale()"><i class="fa-solid fa-arrow-left"></i> Gestionale</button>
             <button class="btn btn-ghost" onclick="esportaCSVMatrice()"><i class="fa-solid fa-file-excel"></i> Esporta Excel CSV</button>
             <button class="btn btn-ghost" onclick="stampaTabellonePDF()"><i class="fa-solid fa-file-pdf"></i> Stampa A4</button>
-            <button class="btn btn-primary" onclick="apriModaleTurno()"><i class="fa-solid fa-plus"></i> Nuovo Turno</button>
+            <button class="btn btn-primary admin-only" onclick="apriModaleTurno()"><i class="fa-solid fa-plus"></i> Nuovo Turno</button>
+            <button class="btn btn-ghost" id="btn-unlock" onclick="sbloccaAdmin()" style="border-color:var(--warning); color:var(--warning);"><i class="fa-solid fa-lock"></i> Sblocca Modifiche</button>
         </div>
     </header>
 
-    <!-- BOX ALLERTA TIMBRATURE STRAORDINARIE / EMERGENZA DA CONVALIDARE -->
-    <div class="pending-bar" id="pending-container">
+    <div class="pending-bar admin-only" id="pending-container">
         <div class="pending-box">
             <div class="pending-title">
                 <i class="fa-solid fa-triangle-exclamation fa-beat"></i>
@@ -263,7 +264,7 @@
         <div class="filter-group">
             <button class="filter-btn active" id="btn-view-board" onclick="cambiaVista('board')"><i class="fa-solid fa-table-columns"></i> Kanban</button>
             <button class="filter-btn" id="btn-view-matrix" onclick="cambiaVista('matrix')"><i class="fa-solid fa-table-cells"></i> Matrice Excel (Click & Salva)</button>
-            <button class="filter-btn" id="btn-view-table" onclick="cambiaVista('table')"><i class="fa-solid fa-list-ul"></i> Tabella con Inserimento Rapido</button>
+            <button class="filter-btn" id="btn-view-table" onclick="cambiaVista('table')"><i class="fa-solid fa-list-ul"></i> Tabella</button>
         </div>
 
         <div class="filter-group">
@@ -289,8 +290,8 @@
         <div class="matrix-view-card" id="matrix-view">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
                 <div>
-                    <h3 style="font-size:1.05rem; font-weight:800; color:var(--text-main);"><i class="fa-solid fa-file-excel" style="color:#10b981;"></i> Griglia Presenze Mensile (Inserimento Diretto da Cella)</h3>
-                    <span style="font-size:0.8rem; color:var(--text-muted);">Clicca su una casella per assegnare o modificare il turno. Il pallino verde indica il volontario attualmente in servizio.</span>
+                    <h3 style="font-size:1.05rem; font-weight:800; color:var(--text-main);"><i class="fa-solid fa-file-excel" style="color:#10b981;"></i> Griglia Presenze Mensile <span class="admin-only">(Inserimento Diretto)</span></h3>
+                    <span style="font-size:0.8rem; color:var(--text-muted);">Il pallino verde indica il volontario attualmente in servizio. <span class="admin-only">Clicca su una casella per modificare.</span></span>
                 </div>
                 <button class="btn btn-ghost" onclick="esportaCSVMatrice()" style="color:var(--text-main); border-color:var(--border);"><i class="fa-solid fa-download"></i> Scarica Foglio CSV</button>
             </div>
@@ -307,9 +308,9 @@
                         <th style="width:150px;">Autista</th>
                         <th style="width:150px;">Soccorritore</th>
                         <th style="width:160px;">Note</th>
-                        <th style="text-align:right; width:110px;">Azione Rapida</th>
+                        <th class="admin-only" style="text-align:right; width:110px;">Azione Rapida</th>
                     </tr>
-                    <tr class="quick-add-row">
+                    <tr class="quick-add-row admin-only">
                         <td><input type="date" id="q-data" class="quick-input" required></td>
                         <td>
                             <select id="q-fascia" class="quick-input">
@@ -466,6 +467,7 @@
         let vistaAttiva = 'board';
         let filtroPeriodo = 'settimana';
         let popoverTarget = null;
+        let isAdminUnlocked = false;
 
         const getLocalISODate = function(d) {
             const tzoffset = d.getTimezoneOffset() * 60000;
@@ -481,7 +483,6 @@
             return database.ref(dbRootPath + '/' + cleanSub);
         }
 
-        // ASCOLTO FIREBASE REALTIME SICURO
         database.ref(dbRootPath).on('value', function(snapshot) {
             const data = snapshot.val() || {};
 
@@ -519,6 +520,29 @@
             return [];
         }
 
+        window.sbloccaAdmin = function() {
+            if (isAdminUnlocked) {
+                isAdminUnlocked = false;
+                document.body.classList.add('readonly-mode');
+                document.getElementById('btn-unlock').innerHTML = '<i class="fa-solid fa-lock"></i> Sblocca Modifiche';
+                document.getElementById('btn-unlock').style.color = 'var(--warning)';
+                document.getElementById('btn-unlock').style.borderColor = 'var(--warning)';
+                showToast("Modalità Sola Lettura attivata.");
+            } else {
+                let p = prompt("Inserisci PIN Centrale Operativa (es. 0000):");
+                if (p === "0000" || p === "1234") {
+                    isAdminUnlocked = true;
+                    document.body.classList.remove('readonly-mode');
+                    document.getElementById('btn-unlock').innerHTML = '<i class="fa-solid fa-lock-open"></i> Blocca Sistema';
+                    document.getElementById('btn-unlock').style.color = 'var(--text-main)';
+                    document.getElementById('btn-unlock').style.borderColor = 'var(--border)';
+                    showToast("Accesso Admin Sbloccato!");
+                } else if (p !== null) {
+                    alert("PIN Errato!");
+                }
+            }
+        };
+
         function isVolontarioInServizioOra(nome) {
             if (!nome) return false;
             let mie = presenze.filter(function(p) { return p.volontario === nome && p.data === todayStr; }).sort(function(a,b) { return a.timestamp - b.timestamp; });
@@ -544,7 +568,7 @@
             nonConfermati.forEach(function(p) {
                 list.innerHTML += '<div class="pending-tag">' +
                     '<span><strong>' + p.volontario + '</strong> (Entrato alle ' + p.ora + ')</span>' +
-                    '<button onclick="convalidaStraordinario(\'' + p.id + '\')" style="background:var(--success); color:white; border:none; padding:3px 8px; border-radius:4px; font-weight:700; cursor:pointer;"><i class="fa-solid fa-check"></i> Convalida</button>' +
+                    '<button class="admin-only" onclick="convalidaStraordinario(\'' + p.id + '\')" style="background:var(--success); color:white; border:none; padding:3px 8px; border-radius:4px; font-weight:700; cursor:pointer;"><i class="fa-solid fa-check"></i> Convalida</button>' +
                 '</div>';
             });
         }
@@ -760,7 +784,7 @@
                     '</div>' +
                     (t.note ? '<div class="shift-note"><i class="fa-solid fa-circle-info"></i> ' + t.note + '</div>' : '') +
                     (conflictMsg ? '<div class="conflict-alert"><i class="fa-solid fa-triangle-exclamation"></i> ' + conflictMsg + '</div>' : '') +
-                    '<div class="shift-actions">' +
+                    '<div class="shift-actions admin-only">' +
                         '<button class="btn-icon" onclick="inviaWhatsAppTurno(\'' + t.id + '\')" title="Condividi Equipaggio su WhatsApp" style="color:var(--wa-green);"><i class="fa-brands fa-whatsapp"></i></button>' +
                         '<button class="btn-icon" onclick="modificaTurno(\'' + t.id + '\')" title="Modifica Turno"><i class="fa-solid fa-pen"></i></button>' +
                         '<button class="btn-icon" onclick="eliminaTurno(\'' + t.id + '\')" title="Elimina Turno" style="color:var(--danger);"><i class="fa-solid fa-trash"></i></button>' +
@@ -842,6 +866,7 @@
         }
 
         window.apriPopoverMatrice = function(e, nome, dataStr, turnoId) {
+            if(!isAdminUnlocked) return;
             e.stopPropagation();
             popoverTarget = { nome: nome, dataStr: dataStr, turnoId: turnoId };
             
@@ -868,7 +893,7 @@
         };
 
         window.applicaSiglaDaPopover = function(fasciaCompleta) {
-            if (!popoverTarget) return;
+            if (!popoverTarget || !isAdminUnlocked) return;
             const nome = popoverTarget.nome;
             const dataStr = popoverTarget.dataStr;
             const turnoId = popoverTarget.turnoId;
@@ -894,7 +919,7 @@
         };
 
         window.rimuoviTurnoDaPopover = function() {
-            if (!popoverTarget || !popoverTarget.turnoId) {
+            if (!popoverTarget || !popoverTarget.turnoId || !isAdminUnlocked) {
                 document.getElementById('matrix-popover').style.display = 'none';
                 return;
             }
@@ -933,16 +958,19 @@
                     '<td style="' + (!t.autista ? 'color:var(--danger); font-weight:700;' : '') + '">' + autistaLive + (t.autista || 'MANCANTE') + '</td>' +
                     '<td style="' + (!t.soccorritore ? 'color:var(--danger); font-weight:700;' : '') + '">' + soccLive + (t.soccorritore || 'MANCANTE') + '</td>' +
                     '<td><small>' + (t.note || '-') + '</small></td>' +
-                    '<td style="text-align:right;">' +
-                        '<button class="btn-icon" onclick="inviaWhatsAppTurno(\'' + t.id + '\')" title="Invia su WhatsApp" style="display:inline-flex; color:var(--wa-green);"><i class="fa-brands fa-whatsapp"></i></button>' +
-                        '<button class="btn-icon" onclick="modificaTurno(\'' + t.id + '\')" style="display:inline-flex;"><i class="fa-solid fa-pen"></i></button>' +
-                        '<button class="btn-icon" onclick="eliminaTurno(\'' + t.id + '\')" style="display:inline-flex; color:var(--danger);"><i class="fa-solid fa-trash"></i></button>' +
+                    '<td class="admin-only" style="text-align:right;">' +
+                        '<div class="admin-only" style="display:inline-block;">' +
+                            '<button class="btn-icon" onclick="inviaWhatsAppTurno(\'' + t.id + '\')" title="Invia su WhatsApp" style="display:inline-flex; color:var(--wa-green);"><i class="fa-brands fa-whatsapp"></i></button>' +
+                            '<button class="btn-icon" onclick="modificaTurno(\'' + t.id + '\')" style="display:inline-flex;"><i class="fa-solid fa-pen"></i></button>' +
+                            '<button class="btn-icon" onclick="eliminaTurno(\'' + t.id + '\')" style="display:inline-flex; color:var(--danger);"><i class="fa-solid fa-trash"></i></button>' +
+                        '</div>' +
                     '</td>' +
                 '</tr>';
             });
         }
 
         window.inserisciTurnoInline = function() {
+            if(!isAdminUnlocked) return;
             const dataS = document.getElementById('q-data').value;
             const fascia = document.getElementById('q-fascia').value;
             const mezzo = document.getElementById('q-mezzo').value;
@@ -1060,6 +1088,7 @@
         };
 
         window.apriModaleTurno = function() {
+            if(!isAdminUnlocked) return;
             document.getElementById('formTurno').reset();
             document.getElementById('t-editId').value = '';
             document.getElementById('t-data').value = todayStr;
@@ -1069,6 +1098,7 @@
         };
 
         window.modificaTurno = function(id) {
+            if(!isAdminUnlocked) return;
             const t = turni.find(function(x) { return String(x.id) === String(id); });
             if (!t) return;
             document.getElementById('t-editId').value = t.id;
@@ -1165,6 +1195,7 @@
         };
 
         window.eliminaTurno = function(id) {
+            if(!isAdminUnlocked) return;
             if (confirm("Sei sicuro di voler rimuovere questo turno dal tabellone?")) {
                 getDbRef('turni/' + id).remove()
                     .then(function() { showToast("Turno rimosso!"); })
