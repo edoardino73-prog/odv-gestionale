@@ -37,7 +37,7 @@
         .brand-logo { display: flex; align-items: center; gap: 8px; background: var(--primary); padding: 5px 12px; border-radius: 6px; color: white; box-shadow: 0 2px 5px rgba(139, 92, 246, 0.3); }
         .brand-logo i { font-size: 1.3rem; }
         .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
-        .brand-text span:first-child { font-weight: 800; font-size: 0.85rem; letter-spacing: 0.5px; }
+        .brand-text span:first-child { font-weight: 800; font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase; }
         .brand-text span:last-child { font-size: 0.65rem; font-weight: 500; opacity: 0.9; }
 
         .main-container { display: flex; flex: 1; overflow: hidden; }
@@ -99,93 +99,6 @@
             .tree-item.active { border-left: none; border-bottom-color: var(--primary); background: transparent;}
         }
     </style>
-
-    <script>
-        const URL_QUESTIONARIO_CS = "https://docs.google.com/forms/d/e/1FAIpQLSerxr5ggAvhPCAPKwkPGKkm5tbjsDYWIiPlguYWskejUX7g-w/viewform?usp=sharing&ouid=117117615506418942572";
-
-        const societaInfo = {
-            nome: "Associazione di Volontariato Cuore d'Argento ODV",
-            sede: "Via della Stazione n. 51 – 05035 Narni Scalo (TR)",
-            cfPiva: "C.F. / P.IVA: 01725470551",
-            runts: "RUNTS Det. n. 870/2025 Regione Umbria",
-            autorizzazione: "Aut. Esercizio n. 8642 del 19/08/2025 (Reg. Umbria)",
-            direttoreSanitario: "Dott. Medico Chirurgo Responsabile (Iscr. Ordine Medici TR n. 0000)"
-        };
-
-        var trasporti = [], volontari = [], mezzi = [], sanificazioni = [], elettromedicali = [], nonConformita = [], fornitori = [], customerSat = [], verbali = [], checklists = [];
-        var turniReperibilita = [];
-        var continuitaServizio = [];
-        var formazionePersonale = [];
-        var verificheQualitaDati = [];
-        var presenze = [];
-
-        var utenteLoggato = localStorage.getItem("nome_utente_gestionale") || "Resp. Qualità ISO 9001";
-        const todayStr = new Date().toISOString().split('T')[0];
-        let dbRootPath = 'cuore_argento_db';
-        
-        function toast(msg, type) {
-            const container = document.getElementById('toast-container'); 
-            if(!container) return;
-            const el = document.createElement('div'); 
-            el.className = 'toast';
-            el.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + msg;
-            container.appendChild(el); 
-            setTimeout(() => el.remove(), 3000);
-        }
-
-        function estraiDati(nodo, defaultArr) {
-            if (!defaultArr) defaultArr = [];
-            if (!nodo) return defaultArr;
-            const res = (Array.isArray(nodo) ? nodo : Object.values(nodo)).filter(item => item !== null && typeof item === 'object');
-            return res.length > 0 ? res : defaultArr;
-        }
-
-        function checkScadenza(dataScadenza) {
-            if(!dataScadenza || dataScadenza === "" || dataScadenza === "-") return { stato: 'ok', html: '-' };
-            const dataElemento = new Date(dataScadenza);
-            if (isNaN(dataElemento.getTime())) return { stato: 'ok', html: dataScadenza };
-            
-            const diff = Math.ceil((dataElemento - new Date()) / (1000 * 60 * 60 * 24));
-            const formatData = dataElemento.toLocaleDateString('it-IT');
-            
-            if (diff < 0) return { stato: 'scaduto', html: '<span class="badge" style="background:#fee2e2; color:var(--danger)">Scaduto (' + formatData + ')</span>' };
-            if (diff <= 30) return { stato: 'allarme', html: '<span class="badge" style="background:#fef3c7; color:var(--warning)">In scadenza (' + diff + 'gg)</span>' };
-            return { stato: 'ok', html: formatData };
-        }
-
-        window.chiudiModali = () => {
-            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
-            document.querySelectorAll('form').forEach(f => f.reset());
-        };
-
-        window.mostraQRCustomerSat = () => {
-            const qrContainer = document.getElementById("qrcode");
-            if (qrContainer) {
-                qrContainer.innerHTML = "";
-                try {
-                    new QRCode(qrContainer, {
-                        text: URL_QUESTIONARIO_CS,
-                        width: 180,
-                        height: 180,
-                        colorDark: "#1e293b",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.M
-                    });
-                } catch(err) {
-                    console.error("Errore generazione QR:", err);
-                }
-            }
-            document.getElementById('modalQRCustomerSat').classList.add('active');
-        };
-
-        window.copiaLinkCS = () => {
-            navigator.clipboard.writeText(URL_QUESTIONARIO_CS).then(() => {
-                toast("Link questionario copiato!");
-            }).catch(() => {
-                prompt("Copia il link del questionario:", URL_QUESTIONARIO_CS);
-            });
-        };
-    </script>
 </head>
 <body>
 
@@ -194,7 +107,7 @@
             <div class="brand-logo">
                 <i class="fa-solid fa-medal"></i>
                 <div class="brand-text">
-                    <span>CUORE D'ARGENTO</span>
+                    <span id="logo-ente-nome">CUORE D'ARGENTO</span>
                     <span>Accreditamento Sanitario Regione Umbria & ISO 9001</span>
                 </div>
             </div>
@@ -231,9 +144,10 @@
                 <h3 id="tab-title" style="color:var(--text-main); font-size:1.2rem; font-weight:800;">Cruscotto KPI (Riesame)</h3>
             </div>
 
+            <!-- TAB RIESAME & KPI -->
             <div id="tab-statistiche" class="tab-content active">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <p style="color: var(--text-light); font-size: 0.9rem;">Indicatori aggregati in tempo reale (Sola Lettura da Operativo)</p>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">Indicatori aggregati in tempo reale dall'Ecosistema Operativo</p>
                     <button class="btn btn-primary" onclick="stampaVerbaleRiesame()"><i class="fa-solid fa-file-pdf"></i> Genera Verbale Riesame (ISO 9001 & DS)</button>
                 </div>
                 
@@ -251,8 +165,18 @@
                         <div class="stat-info"><h4>Fornitori Registrati</h4><div class="num" id="kpi-fornitori">0</div></div><i class="fa-solid fa-boxes-packing stat-icon"></i>
                     </div>
                 </div>
+                
+                <div class="stats-row">
+                    <div class="stat-card" style="border-left-color: #8b5cf6;">
+                        <div class="stat-info"><h4>Volontari a Registro</h4><div class="num" id="kpi-volontari">0</div></div><i class="fa-solid fa-users stat-icon"></i>
+                    </div>
+                    <div class="stat-card" style="border-left-color: #06b6d4;">
+                        <div class="stat-info"><h4>Mezzi in Flotta</h4><div class="num" id="kpi-mezzi">0</div></div><i class="fa-solid fa-truck stat-icon"></i>
+                    </div>
+                </div>
             </div>
 
+            <!-- TAB CENTRO STAMPE ASL -->
             <div id="tab-stampe-asl" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-print"></i> Centro Stampe e Registri Ufficiali (Reg. Umbria 6/2024 & ISO 9001)</h3>
@@ -263,7 +187,7 @@
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
                             <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-calendar-days"></i> Registro Turni & Reperibilità</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Stampa del piano turni e della lista di reperibilità del personale per la continuità H24.</p>
+                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Stampa del piano turni operativi e della lista di reperibilità notturna del personale.</p>
                         </div>
                         <button class="btn btn-primary" onclick="stampaRegistroTurniAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Turni (PDF)</button>
                     </div>
@@ -297,6 +221,16 @@
                     </div>
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
+                            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-clipboard-check"></i> Registro Checklist & Mezzi</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Log controlli pre-partenza da tablet e tracciabilità conformità flotta (Assicurazione/Revisione).</p>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-ghost" style="flex:1; font-size:0.75rem; border-color:var(--primary); color:var(--primary);" onclick="stampaRegistroChecklistAsl()">Checklist (Tablet)</button>
+                            <button class="btn btn-ghost" style="flex:1; font-size:0.75rem; border-color:var(--primary); color:var(--primary);" onclick="stampaRegistroMezziAsl()">Conformità Mezzi</button>
+                        </div>
+                    </div>
+                    <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
                             <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-spray-can-sparkles"></i> Sanificazioni & Gas Medicali</h4>
                             <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Log disinfezione con PMC e tracciabilità lotti/scadenze collaudo bombole O2.</p>
                         </div>
@@ -308,22 +242,24 @@
                 </div>
             </div>
 
+            <!-- TAB TURNI -->
             <div id="tab-turni" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-calendar-days"></i> Registro Turni e Reperibilità Personale</h3>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-primary" onclick="apriModale('modalTurno', 'formTurno', 'turn-')"><i class="fa-solid fa-plus"></i> Aggiungi Turno / Reperibilità</button>
+                        <button class="btn btn-primary" onclick="apriModale('modalTurno', 'formTurno', 'turn-')"><i class="fa-solid fa-plus"></i> Aggiungi Reperibilità Notturna</button>
                         <button class="btn btn-ghost" onclick="stampaRegistroTurniAsl()" style="border-color: var(--primary); color: var(--primary);"><i class="fa-solid fa-file-pdf"></i> Stampa Registro</button>
                     </div>
                 </div>
                 <div class="glass-panel table-container">
                     <table>
-                        <thead><tr><th>Data</th><th>Turno</th><th>Operatore</th><th>Qualifica</th><th>Reperibile</th><th>Sostituto</th><th>Note</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <thead><tr><th>Data</th><th>Turno / Fascia</th><th>Operatore</th><th>Qualifica</th><th>Reperibile</th><th>Sostituto</th><th>Note</th><th style="text-align:right;">Azioni / Sync</th></tr></thead>
                         <tbody id="turni-corpo"></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- TAB CONTINUITÀ -->
             <div id="tab-continuita" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-shield-heart"></i> Registro Continuità del Servizio & Emergenze</h3>
@@ -340,22 +276,24 @@
                 </div>
             </div>
 
+            <!-- TAB FORMAZIONE -->
             <div id="tab-formazione" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <h3 style="color: var(--primary);"><i class="fa-solid fa-graduation-cap"></i> Registro Formazione e Scadenze (BLSD)</h3>
+                    <h3 style="color: var(--primary);"><i class="fa-solid fa-graduation-cap"></i> Registro Formazione e Scadenze Operative</h3>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-primary" onclick="apriModale('modalFormazione', 'formFormazione', 'form-')"><i class="fa-solid fa-plus"></i> Registra Corso / Attestato</button>
+                        <button class="btn btn-primary" onclick="apriModale('modalFormazione', 'formFormazione', 'form-')"><i class="fa-solid fa-plus"></i> Registra Corso Extra</button>
                         <button class="btn btn-ghost" onclick="stampaRegistroFormazioneAsl()" style="border-color: var(--primary); color: var(--primary);"><i class="fa-solid fa-file-pdf"></i> Stampa Registro</button>
                     </div>
                 </div>
                 <div class="glass-panel table-container">
                     <table>
-                        <thead><tr><th>Operatore</th><th>Qualifica</th><th>Corso (BLSD, Base...)</th><th>Data Corso</th><th>Scadenza</th><th>Stato (Check Dati)</th><th>Note</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <thead><tr><th>Operatore</th><th>Qualifica</th><th>Corso / Idoneità</th><th>Scadenza</th><th>Stato</th><th style="text-align:right;">Azioni / Sync</th></tr></thead>
                         <tbody id="formazione-corpo"></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- TAB VERIFICHE DATI -->
             <div id="tab-verifichedati" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-square-check"></i> Registro Verifica Qualità Dati</h3>
@@ -372,6 +310,7 @@
                 </div>
             </div>
 
+            <!-- TAB CUSTOMER SATISFACTION -->
             <div id="tab-customersat" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-star"></i> Registro Soddisfazione Utenti (ISO 9001)</h3>
@@ -389,6 +328,7 @@
                 </div>
             </div>
 
+            <!-- TAB NON CONFORMITÀ -->
             <div id="tab-nc" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-triangle-exclamation"></i> Workflow Gestione Reclami & Non Conformità</h3>
@@ -402,6 +342,7 @@
                 </div>
             </div>
 
+            <!-- TAB FORNITORI -->
             <div id="tab-fornitori" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-handshake"></i> Albo Fornitori Qualificati</h3>
@@ -415,6 +356,7 @@
                 </div>
             </div>
 
+            <!-- TAB ELETTROMEDICALI & GAS MEDICALI -->
             <div id="tab-elettromedicali" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-heart-pulse"></i> Inventario Elettromedicali & Farmaco Ossigeno</h3>
@@ -438,6 +380,7 @@
                 </div>
             </div>
 
+            <!-- TAB SANIFICAZIONI -->
             <div id="tab-sanificazioni" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-spray-can-sparkles"></i> Registro Sanificazioni & Disinfezioni (Protocollo PMC)</h3>
@@ -466,19 +409,19 @@
     <!-- Modali Form -->
     <div class="modal-overlay" id="modalTurno">
         <div class="modal" style="max-width: 550px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-calendar-days"></i> Gestione Turno e Reperibilità <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-calendar-days"></i> Registra Reperibilità Notturna <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
             <form id="formTurno">
                 <input type="hidden" id="turn-editId">
                 <div class="form-grid">
                     <div class="input-group"><label>Data</label><input type="date" id="turn-data" required></div>
-                    <div class="input-group"><label>Turno</label><select id="turn-turno" required><option value="Mattina">Mattina</option><option value="Pomeriggio">Pomeriggio</option><option value="Notte">Notte</option><option value="H24">H24</option></select></div>
-                    <div class="input-group"><label>Nome Operatore / Volontario</label><input type="text" id="turn-nome" required></div>
+                    <div class="input-group"><label>Turno / Fascia</label><select id="turn-turno" required><option value="Notte (20:00 - 08:00)">Notte (20:00 - 08:00)</option><option value="Festivo">Festivo</option><option value="H24">H24</option></select></div>
+                    <div class="input-group"><label>Nome Operatore / Volontario</label><select id="turn-nome" required><option value="">-- Seleziona --</option></select></div>
                     <div class="input-group"><label>Qualifica</label><input type="text" id="turn-qualifica" value="Soccorritore"></div>
-                    <div class="input-group"><label>Reperibile (SI/NO)</label><select id="turn-reperibile"><option value="NO">NO</option><option value="SI">SI</option></select></div>
+                    <div class="input-group"><label>Reperibile (SI/NO)</label><select id="turn-reperibile"><option value="SI">SI</option><option value="NO">NO</option></select></div>
                     <div class="input-group"><label>Sostituto (se assente)</label><input type="text" id="turn-sostituto" value="-"></div>
                     <div class="input-group full-width"><label>Note</label><input type="text" id="turn-note"></div>
                 </div>
-                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Turno</button></div>
+                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva nel Registro</button></div>
             </form>
         </div>
     </div>
@@ -504,19 +447,18 @@
 
     <div class="modal-overlay" id="modalFormazione">
         <div class="modal" style="max-width: 550px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-graduation-cap"></i> Scheda Formazione Personale <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-graduation-cap"></i> Scheda Formazione Extra <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
             <form id="formFormazione">
                 <input type="hidden" id="form-editId">
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">Nota: BLSD, Visita Medica, L.81/08 e Patente vengono importati in automatico dall'Anagrafica Volontari.</p>
                 <div class="form-grid">
                     <div class="input-group"><label>Nome Operatore</label><select id="form-nome" required><option value="">-- Seleziona Operatore --</option></select></div>
                     <div class="input-group"><label>Qualifica</label><input type="text" id="form-qualifica" value="Soccorritore"></div>
-                    <div class="input-group"><label>Corso (BLSD, Base, ecc.)</label><input type="text" id="form-corso" required value="BLSD"></div>
-                    <div class="input-group"><label>Data Corso</label><input type="date" id="form-datacorso" required></div>
-                    <div class="input-group"><label>Data Scadenza (es. 24 mesi BLSD)</label><input type="date" id="form-datascadenza" required></div>
-                    <div class="input-group"><label>Stato Base</label><select id="form-stato"><option value="Regolare">Regolare</option><option value="In Scadenza">In Scadenza</option><option value="Scaduto">Scaduto</option></select></div>
+                    <div class="input-group"><label>Corso Extra (Es. Antincendio)</label><input type="text" id="form-corso" required placeholder="Nome corso"></div>
+                    <div class="input-group"><label>Data Scadenza</label><input type="date" id="form-datascadenza" required></div>
                     <div class="input-group full-width"><label>Note</label><input type="text" id="form-note"></div>
                 </div>
-                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Formazione</button></div>
+                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Formazione Extra</button></div>
             </form>
         </div>
     </div>
@@ -655,7 +597,97 @@
         </div>
     </div>
 
+    <div id="toast-container"></div>
+
     <script>
+        const URL_QUESTIONARIO_CS = "https://docs.google.com/forms/d/e/1FAIpQLSerxr5ggAvhPCAPKwkPGKkm5tbjsDYWIiPlguYWskejUX7g-w/viewform?usp=sharing&ouid=117117615506418942572";
+
+        const societaInfo = {
+            nome: "Associazione di Volontariato Cuore d'Argento ODV",
+            sede: "Via della Stazione n. 51 – 05035 Narni Scalo (TR)",
+            cfPiva: "C.F. / P.IVA: 01725470551",
+            runts: "RUNTS Det. n. 870/2025 Regione Umbria",
+            autorizzazione: "Aut. Esercizio n. 8642 del 19/08/2025 (Reg. Umbria)",
+            direttoreSanitario: "Dott. Medico Chirurgo Responsabile (Iscr. Ordine Medici TR n. 0000)"
+        };
+
+        var trasporti = [], volontari = [], mezzi = [], sanificazioni = [], elettromedicali = [], nonConformita = [], fornitori = [], customerSat = [], verbali = [], checklists = [];
+        var turniReperibilita = [];
+        var continuitaServizio = [];
+        var formazionePersonale = [];
+        var verificheQualitaDati = [];
+        var presenze = [];
+
+        var utenteLoggato = localStorage.getItem("nome_utente_gestionale") || "Resp. Qualità ISO 9001";
+        const todayStr = new Date().toISOString().split('T')[0];
+        let dbRootPath = 'cuore_argento_db';
+        let impostazioni = { nome: "CUORE D'ARGENTO ODV", piva: "01725470551", sdi: "", indirizzo: "Via della Stazione n. 51 – Narni Scalo (TR)", telefono: "", email: "", note: "" };
+        
+        function toast(msg, type) {
+            const container = document.getElementById('toast-container'); 
+            if(!container) return;
+            const el = document.createElement('div'); 
+            el.className = 'toast';
+            el.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + msg;
+            container.appendChild(el); 
+            setTimeout(function() { el.remove(); }, 3000);
+        }
+
+        function estraiDati(nodo, defaultArr) {
+            if (!defaultArr) defaultArr = [];
+            if (!nodo) return defaultArr;
+            const res = (Array.isArray(nodo) ? nodo : Object.values(nodo)).filter(function(item) { 
+                return item !== null && typeof item === 'object'; 
+            });
+            return res.length > 0 ? res : defaultArr;
+        }
+
+        function checkScadenza(dataScadenza) {
+            if(!dataScadenza || dataScadenza === "" || dataScadenza === "-") return { stato: 'ok', html: '-' };
+            const dataElemento = new Date(dataScadenza);
+            if (isNaN(dataElemento.getTime())) return { stato: 'ok', html: dataScadenza };
+            
+            const diff = Math.ceil((dataElemento - new Date()) / (1000 * 60 * 60 * 24));
+            const formatData = dataElemento.toLocaleDateString('it-IT');
+            
+            if (diff < 0) return { stato: 'scaduto', html: '<span class="badge" style="background:#fee2e2; color:var(--danger)">Scaduto (' + formatData + ')</span>' };
+            if (diff <= 30) return { stato: 'allarme', html: '<span class="badge" style="background:#fef3c7; color:var(--warning)">In scadenza (' + diff + 'gg)</span>' };
+            return { stato: 'ok', html: formatData };
+        }
+
+        window.chiudiModali = function() {
+            document.querySelectorAll('.modal-overlay').forEach(function(m) { m.classList.remove('active'); });
+            document.querySelectorAll('form').forEach(function(f) { f.reset(); });
+        };
+
+        window.mostraQRCustomerSat = function() {
+            const qrContainer = document.getElementById("qrcode");
+            if (qrContainer) {
+                qrContainer.innerHTML = "";
+                try {
+                    new QRCode(qrContainer, {
+                        text: URL_QUESTIONARIO_CS,
+                        width: 180,
+                        height: 180,
+                        colorDark: "#1e293b",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } catch(err) {
+                    console.error("Errore generazione QR:", err);
+                }
+            }
+            document.getElementById('modalQRCustomerSat').classList.add('active');
+        };
+
+        window.copiaLinkCS = function() {
+            navigator.clipboard.writeText(URL_QUESTIONARIO_CS).then(function() {
+                toast("Link questionario copiato!");
+            }).catch(function() {
+                prompt("Copia il link del questionario:", URL_QUESTIONARIO_CS);
+            });
+        };
+
         document.getElementById('date-display').innerText = new Date().toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
         function getListByName(name) {
@@ -681,14 +713,19 @@
             return database.ref(dbRootPath + '/' + cleanSub);
         }
 
-        window.salvaNodo = (nomeNodo, dati) => {
+        window.salvaNodo = function(nomeNodo, dati) {
             if(!database) {
                 alert("Database non connesso. Verificare la configurazione Firebase.");
                 return;
             }
-            getDbRef(nomeNodo).set(dati)
-                .then(() => { toast("Salvataggio su Firebase completato!"); })
-                .catch((err) => { alert("Errore Cloud: " + err.message); });
+            // Evita di salvare su Firebase i dati in sola lettura "syncati" dal gestionale
+            let datiDaSalvare = dati;
+            if(nomeNodo === 'turniReperibilita') datiDaSalvare = dati.filter(function(x) { return !x.readonly; });
+            if(nomeNodo === 'formazionePersonale') datiDaSalvare = dati.filter(function(x) { return !x.readonly; });
+            
+            getDbRef(nomeNodo).set(datiDaSalvare)
+                .then(function() { toast("Salvataggio su Firebase completato!"); })
+                .catch(function(err) { alert("Errore Cloud: " + err.message); });
         };
 
         try {
@@ -705,8 +742,8 @@
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             database = firebase.database();
             
-            // ASCOLTO FIREBASE ROOT COMPATIBILE CON GESTIONALE E TABLET
-            database.ref().on('value', (snapshot) => {
+            // ASCOLTO FIREBASE ROOT E FUSIONE DATI OPERATIVI -> ISO
+            database.ref().on('value', function(snapshot) {
                 const rawData = snapshot.val() || {};
                 let data = rawData;
                 
@@ -714,7 +751,9 @@
                     data = rawData.cuore_argento_db;
                     dbRootPath = 'cuore_argento_db';
                 } else {
-                    let altKey = Object.keys(rawData).find(k => rawData[k] && typeof rawData[k] === 'object' && (rawData[k].volontari || rawData[k].trasporti || rawData[k].mezzi));
+                    let altKey = Object.keys(rawData).find(function(k) {
+                        return rawData[k] && typeof rawData[k] === 'object' && (rawData[k].volontari || rawData[k].trasporti || rawData[k].mezzi);
+                    });
                     if (altKey) {
                         data = rawData[altKey];
                         dbRootPath = altKey;
@@ -723,17 +762,45 @@
                     }
                 }
 
-                trasporti = estraiDati(data.trasporti); volontari = estraiDati(data.volontari); mezzi = estraiDati(data.mezzi); 
-                checklists = estraiDati(data.checklists); sanificazioni = estraiDati(data.sanificazioni); 
-                elettromedicali = estraiDati(data.elettromedicali); nonConformita = estraiDati(data.nonConformita); 
+                impostazioni = data.impostazioni || impostazioni;
+                if (impostazioni.nome) { document.getElementById('logo-ente-nome').innerText = impostazioni.nome.toUpperCase(); }
+
+                trasporti = estraiDati(data.trasporti); volontari = estraiDati(data.volontari); mezzi = estraiDati(data.mezzi);
+                checklists = estraiDati(data.checklists); sanificazioni = estraiDati(data.sanificazioni);
+                elettromedicali = estraiDati(data.elettromedicali); nonConformita = estraiDati(data.nonConformita);
                 customerSat = estraiDati(data.customerSat); fornitori = estraiDati(data.fornitori); verbali = estraiDati(data.verbali);
                 
-                turniReperibilita = estraiDati(data.turniReperibilita, turniReperibilita);
                 continuitaServizio = estraiDati(data.continuitaServizio, continuitaServizio);
-                formazionePersonale = estraiDati(data.formazionePersonale, formazionePersonale);
                 verificheQualitaDati = estraiDati(data.verificheQualitaDati, verificheQualitaDati);
 
-                popolaTendine(); renderStatistiche(); renderTurni(); renderContinuita(); renderFormazione(); 
+                // --- 1. FUSIONE TURNI OPERATIVI (DA INDEX) E REPERIBILITÀ MANUALI (DA ISO) ---
+                let turniOperativi = estraiDati(data.turni);
+                let reperibilitaManuali = estraiDati(data.turniReperibilita);
+                let turniMappati = [];
+                
+                turniOperativi.forEach(function(t) {
+                    if(t.autista) {
+                        turniMappati.push({ id: t.id + '_A', data: t.data, turno: t.fascia || '-', nome: t.autista, qualifica: 'Autista', reperibile: 'NO', sostituto: '-', note: 'Turno Operativo', readonly: true });
+                    }
+                    if(t.soccorritore) {
+                        turniMappati.push({ id: t.id + '_S', data: t.data, turno: t.fascia || '-', nome: t.soccorritore, qualifica: 'Soccorritore', reperibile: 'NO', sostituto: '-', note: 'Turno Operativo', readonly: true });
+                    }
+                });
+                turniReperibilita = turniMappati.concat(reperibilitaManuali);
+
+                // --- 2. FUSIONE FORMAZIONE ANAGRAFICA (DA INDEX) E CORSI MANUALI (DA ISO) ---
+                let manualFormazione = estraiDati(data.formazionePersonale);
+                let autoFormazione = [];
+                
+                volontari.forEach(function(v) {
+                    if(v.blsd) autoFormazione.push({ id: 'b_'+v.id, nome: v.nome, qualifica: v.ruolo||'Soccorritore', corso: 'BLSD Sanitario', datacorso: '-', datascadenza: v.blsd, readonly: true });
+                    if(v.medico) autoFormazione.push({ id: 'm_'+v.id, nome: v.nome, qualifica: v.ruolo||'Soccorritore', corso: 'Visita Medica Idoneità', datacorso: '-', datascadenza: v.medico, readonly: true });
+                    if(v.sicurezza) autoFormazione.push({ id: 's_'+v.id, nome: v.nome, qualifica: v.ruolo||'Soccorritore', corso: 'Sicurezza D.Lgs. 81/08 (Rischio Alto)', datacorso: '-', datascadenza: v.sicurezza, readonly: true });
+                    if(v.patente) autoFormazione.push({ id: 'p_'+v.id, nome: v.nome, qualifica: v.ruolo||'Soccorritore', corso: 'Patente di Guida Ambulanze', datacorso: '-', datascadenza: v.patente, readonly: true });
+                });
+                formazionePersonale = autoFormazione.concat(manualFormazione);
+
+                popolaTendine(); renderStatistiche(); renderTurni(); renderContinuita(); renderFormazione();
                 renderVerificheDati(); renderNC(); renderCustomerSat(); renderFornitori(); renderElettromedicali(); renderSanificazioni();
             });
 
@@ -746,17 +813,18 @@
             let vOptsNC = '<option value="Utente Esterno">Utente Esterno</option>';
             let vOptsPuri = '<option value="">-- Seleziona Operatore --</option>';
             
-            volontari.forEach(v => { 
-                vOptsNC += `<option value="${v.nome}">${v.nome}</option>`; 
-                vOptsPuri += `<option value="${v.nome}">${v.nome}</option>`;
+            volontari.forEach(function(v) { 
+                vOptsNC += '<option value="' + v.nome + '">' + v.nome + '</option>'; 
+                vOptsPuri += '<option value="' + v.nome + '">' + v.nome + '</option>';
             });
             
             if(document.getElementById('nc-rilevatore')) document.getElementById('nc-rilevatore').innerHTML = vOptsNC;
             if(document.getElementById('san-operatore')) document.getElementById('san-operatore').innerHTML = vOptsPuri;
             if(document.getElementById('form-nome')) document.getElementById('form-nome').innerHTML = vOptsPuri;
+            if(document.getElementById('turn-nome')) document.getElementById('turn-nome').innerHTML = vOptsPuri;
         }
 
-        window.apriModale = (modalId, formId, prefix) => {
+        window.apriModale = function(modalId, formId, prefix) {
             const formEl = document.getElementById(formId); 
             if(formEl) formEl.reset(); 
             if(document.getElementById(prefix + 'editId')) document.getElementById(prefix + 'editId').value = '';
@@ -764,9 +832,9 @@
             document.getElementById(modalId).classList.add('active');
         };
 
-        window.eliminaItem = (listaName, id) => {
+        window.eliminaItem = function(listaName, id) {
             if(!confirm("Sicuro di voler eliminare questo elemento?")) return;
-            let arr = getListByName(listaName).filter(x => String(x.id) !== String(id));
+            let arr = getListByName(listaName).filter(function(x) { return String(x.id) !== String(id); });
             if(listaName === 'turniReperibilita') turniReperibilita = arr;
             else if(listaName === 'continuitaServizio') continuitaServizio = arr;
             else if(listaName === 'formazionePersonale') formazionePersonale = arr;
@@ -782,31 +850,32 @@
         function collegaForm(formId, arrayName, prefix, fields) {
             const form = document.getElementById(formId);
             if (!form) return;
-            form.addEventListener('submit', (e) => {
+            form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 let arr = getListByName(arrayName);
                 const editId = document.getElementById(prefix + 'editId').value;
                 let obj = {};
-                fields.forEach(f => {
+                fields.forEach(function(f) {
                     const el = document.getElementById(prefix + f);
                     if (el) obj[f] = el.type === 'checkbox' ? el.checked : el.value;
                 });
                 obj.utente_modifica = utenteLoggato;
                 if (editId) {
-                    const idx = arr.findIndex(x => String(x.id) === String(editId));
-                    if (idx > -1) arr[idx] = { ...arr[idx], ...obj };
+                    const idx = arr.findIndex(function(x) { return String(x.id) === String(editId); });
+                    if (idx > -1) arr[idx] = Object.assign({}, arr[idx], obj);
                 } else {
-                    arr.push({ id: Date.now(), ...obj });
+                    obj.id = Date.now().toString();
+                    arr.push(obj);
                 }
                 salvaNodo(arrayName, arr);
                 chiudiModali();
             });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             collegaForm('formTurno', 'turniReperibilita', 'turn-', ['data', 'turno', 'nome', 'qualifica', 'reperibile', 'sostituto', 'note']);
             collegaForm('formContinuita', 'continuitaServizio', 'cont-', ['data', 'evento', 'segnalante', 'coinvolto', 'azione', 'esito', 'note']);
-            collegaForm('formFormazione', 'formazionePersonale', 'form-', ['nome', 'qualifica', 'corso', 'datacorso', 'datascadenza', 'stato', 'note']);
+            collegaForm('formFormazione', 'formazionePersonale', 'form-', ['nome', 'qualifica', 'corso', 'datacorso', 'datascadenza', 'note']);
             collegaForm('formVerificaDato', 'verificheQualitaDati', 'vd-', ['data', 'dato', 'acc', 'comp', 'riprod', 'temp', 'esito', 'resp', 'azioni']);
             collegaForm('formNC', 'nonConformita', 'nc-', ['data', 'rilevatore', 'tipo', 'descrizione', 'azione', 'stato']);
             collegaForm('formFornitore', 'fornitori', 'forn-', ['ragione', 'categoria', 'scadenza', 'valutazione', 'note']);
@@ -816,28 +885,42 @@
             
             const formNomeEl = document.getElementById('form-nome');
             if(formNomeEl) {
-                formNomeEl.addEventListener('change', (e) => {
-                    const selVol = volontari.find(v => v.nome === e.target.value);
+                formNomeEl.addEventListener('change', function(e) {
+                    const selVol = volontari.find(function(v) { return v.nome === e.target.value; });
                     if(selVol && document.getElementById('form-qualifica')) {
                         document.getElementById('form-qualifica').value = selVol.ruolo || selVol.qualifica || 'Soccorritore';
                     }
                 });
             }
+
+            const turnNomeEl = document.getElementById('turn-nome');
+            if(turnNomeEl) {
+                turnNomeEl.addEventListener('change', function(e) {
+                    const selVol = volontari.find(function(v) { return v.nome === e.target.value; });
+                    if(selVol && document.getElementById('turn-qualifica')) {
+                        document.getElementById('turn-qualifica').value = selVol.ruolo || selVol.qualifica || 'Soccorritore';
+                    }
+                });
+            }
         });
 
-        window.renderStatistiche = () => {
+        window.renderStatistiche = function() {
             const kpiServizi = document.getElementById('kpi-servizi');
             const kpiNc = document.getElementById('kpi-nc');
             const kpiFornitori = document.getElementById('kpi-fornitori');
             const kpiCs = document.getElementById('kpi-cs');
+            const kpiVol = document.getElementById('kpi-volontari');
+            const kpiMezzi = document.getElementById('kpi-mezzi');
 
             if (kpiServizi) kpiServizi.innerText = trasporti.length;
-            if (kpiNc) kpiNc.innerText = nonConformita.filter(n => n.stato !== 'Chiusa').length;
+            if (kpiNc) kpiNc.innerText = nonConformita.filter(function(n) { return n.stato !== 'Chiusa'; }).length;
             if (kpiFornitori) kpiFornitori.innerText = fornitori.length;
+            if (kpiVol) kpiVol.innerText = volontari.length;
+            if (kpiMezzi) kpiMezzi.innerText = mezzi.length;
             
             if (kpiCs) {
                 if (customerSat.length > 0) {
-                    const sum = customerSat.reduce((acc, c) => acc + (parseFloat(c.voto_globale || c['voto-globale']) || 5), 0);
+                    const sum = customerSat.reduce(function(acc, c) { return acc + (parseFloat(c.voto_globale || c['voto-globale']) || 5); }, 0);
                     kpiCs.innerText = (sum / customerSat.length).toFixed(1) + " / 5";
                 } else {
                     kpiCs.innerText = "N/D";
@@ -845,41 +928,51 @@
             }
         };
 
-        window.renderTurni = () => {
+        window.renderTurni = function() {
             const tbody = document.getElementById('turni-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            turniReperibilita.forEach(t => {
+            
+            turniReperibilita.sort(function(a,b) { return new Date(b.data || 0) - new Date(a.data || 0); }).forEach(function(t) {
                 let repBg = t.reperibile === 'SI' ? 'var(--warning)' : 'var(--text-light)';
-                tbody.innerHTML += `<tr><td>${t.data}</td><td><strong>${t.turno}</strong></td><td>${t.nome}</td><td>${t.qualifica}</td><td><span class="badge" style="background:${repBg}; color:white">${t.reperibile}</span></td><td>${t.sostituto}</td><td><small>${t.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('turniReperibilita', '${t.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                let btnAzione = t.readonly 
+                    ? '<span style="font-size:0.75rem; color:var(--success); font-weight:700;"><i class="fa-solid fa-link"></i> Sync</span>'
+                    : '<button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'turniReperibilita\', \'' + t.id + '\')"><i class="fa-solid fa-trash"></i></button>';
+
+                tbody.innerHTML += '<tr><td>' + (t.data ? new Date(t.data).toLocaleDateString('it-IT') : '-') + '</td><td><strong>' + t.turno + '</strong></td><td>' + t.nome + '</td><td>' + t.qualifica + '</td><td><span class="badge" style="background:' + repBg + '; color:white">' + t.reperibile + '</span></td><td>' + (t.sostituto || '-') + '</td><td><small>' + (t.note || '-') + '</small></td><td style="text-align:right;">' + btnAzione + '</td></tr>';
             });
         };
 
-        window.renderContinuita = () => {
+        window.renderContinuita = function() {
             const tbody = document.getElementById('continuita-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            continuitaServizio.forEach(c => {
+            continuitaServizio.forEach(function(c) {
                 let badgeColor = c.esito === 'Risolto' ? 'var(--success)' : 'var(--warning)';
-                tbody.innerHTML += `<tr><td>${c.data}</td><td><strong>${c.evento}</strong></td><td>${c.segnalante || 'Centrale'}</td><td>${c.coinvolto}</td><td><small>${c.azione || '-'}</small></td><td><span class="badge" style="background:${badgeColor}; color:white">${c.esito}</span></td><td><small>${c.note || '-'}</small></td><td style="text-align:right;"><button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--info)" aria-label="Modifica" onclick="editItem('continuitaServizio', '${c.id}')"><i class="fa-solid fa-pen"></i></button> <button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('continuitaServizio', '${c.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                tbody.innerHTML += '<tr><td>' + c.data + '</td><td><strong>' + c.evento + '</strong></td><td>' + (c.segnalante || 'Centrale') + '</td><td>' + c.coinvolto + '</td><td><small>' + (c.azione || '-') + '</small></td><td><span class="badge" style="background:' + badgeColor + '; color:white">' + c.esito + '</span></td><td><small>' + (c.note || '-') + '</small></td><td style="text-align:right;"><button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--info)" aria-label="Modifica" onclick="editItem(\'continuitaServizio\', \'' + c.id + '\')"><i class="fa-solid fa-pen"></i></button> <button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'continuitaServizio\', \'' + c.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
             });
         };
 
-        window.renderFormazione = () => {
+        window.renderFormazione = function() {
             const tbody = document.getElementById('formazione-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            formazionePersonale.forEach(f => {
+            formazionePersonale.forEach(function(f) {
                 let validazioneScadenza = checkScadenza(f.datascadenza);
-                tbody.innerHTML += `<tr><td><strong>${f.nome}</strong></td><td>${f.qualifica}</td><td>${f.corso}</td><td>${f.datacorso}</td><td>${f.datascadenza}</td><td>${validazioneScadenza.html}</td><td><small>${f.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--info)" aria-label="Modifica" onclick="editItem('formazionePersonale', '${f.id}')"><i class="fa-solid fa-pen"></i></button> <button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('formazionePersonale', '${f.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                
+                let btnAzione = f.readonly 
+                    ? '<span style="font-size:0.75rem; color:var(--success); font-weight:700;"><i class="fa-solid fa-link"></i> Sync Anagrafica</span>'
+                    : '<button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'formazionePersonale\', \'' + f.id + '\')"><i class="fa-solid fa-trash"></i></button>';
+
+                tbody.innerHTML += '<tr><td><strong>' + f.nome + '</strong></td><td>' + f.qualifica + '</td><td>' + f.corso + '</td><td>' + f.datascadenza + '</td><td>' + validazioneScadenza.html + '</td><td style="text-align:right;">' + btnAzione + '</td></tr>';
             });
         };
 
-        window.renderVerificheDati = () => {
+        window.renderVerificheDati = function() {
             const tbody = document.getElementById('verifichedati-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            verificheQualitaDati.forEach(v => {
+            verificheQualitaDati.forEach(function(v) {
                 let esBg = v.esito === 'Conforme' ? 'var(--success)' : 'var(--alert-red)';
-                tbody.innerHTML += `<tr><td>${v.data}</td><td><strong>${v.dato}</strong></td><td>${v.acc}</td><td>${v.comp}</td><td>${v.riprod}</td><td>${v.temp}</td><td><span class="badge" style="background:${esBg}; color:white">${v.esito}</span></td><td><small>${v.azioni || '-'}</small></td><td>${v.resp}</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('verificheQualitaDati', '${v.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                tbody.innerHTML += '<tr><td>' + v.data + '</td><td><strong>' + v.dato + '</strong></td><td>' + v.acc + '</td><td>' + v.comp + '</td><td>' + v.riprod + '</td><td>' + v.temp + '</td><td><span class="badge" style="background:' + esBg + '; color:white">' + v.esito + '</span></td><td><small>' + (v.azioni || '-') + '</small></td><td>' + v.resp + '</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'verificheQualitaDati\', \'' + v.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
             });
         };
 
-        window.chiudiNC = (idNC) => {
+        window.chiudiNC = function(idNC) {
             if(!confirm("Confermi di voler chiudere definitivamente questa pratica?")) return;
-            const reclamo = nonConformita.find(n => String(n.id) === String(idNC));
+            const reclamo = nonConformita.find(function(n) { return String(n.id) === String(idNC); });
             if(reclamo && reclamo.stato !== "Chiusa") {
                 reclamo.stato = "Chiusa";
                 reclamo.utente_modifica = utenteLoggato; 
@@ -889,46 +982,46 @@
             }
         };
 
-        window.renderNC = () => {
+        window.renderNC = function() {
             const tbody = document.getElementById('nc-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            nonConformita.forEach(n => {
+            nonConformita.forEach(function(n) {
                 let bg = n.stato === 'Aperta' ? 'var(--alert-red)' : (n.stato === 'In Gestione' ? 'var(--warning)' : 'var(--success)');
-                let btnChiudi = n.stato !== 'Chiusa' ? `<button class="btn btn-ghost" title="Chiudi Pratica Manualmente" style="padding: 4px 6px; color:var(--success)" aria-label="Chiudi Pratica" onclick="chiudiNC('${n.id}')"><i class="fa-solid fa-check"></i></button>` : '';
+                let btnChiudi = n.stato !== 'Chiusa' ? '<button class="btn btn-ghost" title="Chiudi Pratica Manualmente" style="padding: 4px 6px; color:var(--success)" aria-label="Chiudi Pratica" onclick="chiudiNC(\'' + n.id + '\')"><i class="fa-solid fa-check"></i></button>' : '';
 
-                tbody.innerHTML += `<tr><td>${n.data}</td><td>${n.tipo}</td><td>${n.rilevatore}</td><td><small>${n.descrizione}</small></td><td><small>${n.azione || '-'}</small></td><td><span class="badge" style="background:${bg};color:white">${n.stato}</span></td><td style="text-align:right;">${btnChiudi}<button class="btn btn-ghost" title="Genera Lettera di Risposta" style="padding: 4px 6px; color:var(--primary)" aria-label="Genera Lettera" onclick="stampaLetteraRispostaNC('${n.id}')"><i class="fa-solid fa-envelope-open-text"></i></button><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('nonConformita', '${n.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                tbody.innerHTML += '<tr><td>' + n.data + '</td><td>' + n.tipo + '</td><td>' + n.rilevatore + '</td><td><small>' + n.descrizione + '</small></td><td><small>' + (n.azione || '-') + '</small></td><td><span class="badge" style="background:' + bg + ';color:white">' + n.stato + '</span></td><td style="text-align:right;">' + btnChiudi + '<button class="btn btn-ghost" title="Genera Lettera di Risposta" style="padding: 4px 6px; color:var(--primary)" aria-label="Genera Lettera" onclick="stampaLetteraRispostaNC(\'' + n.id + '\')"><i class="fa-solid fa-envelope-open-text"></i></button><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'nonConformita\', \'' + n.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
             });
         };
 
-        window.renderCustomerSat = () => {
+        window.renderCustomerSat = function() {
             const tbody = document.getElementById('customersat-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            customerSat.forEach(c => {
-                tbody.innerHTML += `<tr><td>${c.data}</td><td><strong>${c.compilatore}</strong></td><td>${c.voto_globale || 5}/5</td><td><span class="badge" style="background:var(--success);color:white">${c.consiglia || 'Sì'}</span></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('customerSat', '${c.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            customerSat.forEach(function(c) {
+                tbody.innerHTML += '<tr><td>' + c.data + '</td><td><strong>' + c.compilatore + '</strong></td><td>' + (c.voto_globale || 5) + '/5</td><td><span class="badge" style="background:var(--success);color:white">' + (c.consiglia || 'Sì') + '</span></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'customerSat\', \'' + c.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
             });
         };
         
-        window.renderFornitori = () => {
+        window.renderFornitori = function() {
             const tbody = document.getElementById('fornitori-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            fornitori.forEach(f => {
+            fornitori.forEach(function(f) {
                 let validazioneScadenza = checkScadenza(f.scadenza);
                 let badgeBg = f.valutazione === 'Positiva' ? 'var(--success)' : (f.valutazione === 'Negativa' ? 'var(--alert-red)' : 'var(--warning)');
-                tbody.innerHTML += `<tr><td><strong>${f.ragione}</strong></td><td>${f.categoria}</td><td>${validazioneScadenza.html}</td><td><span class="badge" style="background:${badgeBg}; color:white">${f.valutazione}</span></td><td><small>${f.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('fornitori', '${f.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                tbody.innerHTML += '<tr><td><strong>' + f.ragione + '</strong></td><td>' + f.categoria + '</td><td>' + validazioneScadenza.html + '</td><td><span class="badge" style="background:' + badgeBg + '; color:white">' + f.valutazione + '</span></td><td><small>' + (f.note || '-') + '</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'fornitori\', \'' + f.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
             });
         };
 
-        window.renderElettromedicali = () => {
+        window.renderElettromedicali = function() {
             const tbody = document.getElementById('elettromedicali-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            elettromedicali.forEach(e => {
+            elettromedicali.forEach(function(e) {
                 let valManu = checkScadenza(e['scad-manutenzione']);
                 let valCons = checkScadenza(e['scad-consumabili']);
-                let lottoInfo = e.lotto ? `Lotto: <strong>${e.lotto}</strong><br><small>Scad. Gas: ${e['scad-farmaco'] ? new Date(e['scad-farmaco']).toLocaleDateString('it-IT') : '-'}</small>` : '-';
-                tbody.innerHTML += `<tr><td><strong>${e.tipo}</strong><br><small>${e.modello}</small></td><td>${e.matricola}</td><td>${lottoInfo}</td><td>${e.assegnazione}</td><td>${valManu.html}</td><td>${valCons.html}</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('elettromedicali', '${e.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+                let lottoInfo = e.lotto ? 'Lotto: <strong>' + e.lotto + '</strong><br><small>Scad. Gas: ' + (e['scad-farmaco'] ? new Date(e['scad-farmaco']).toLocaleDateString('it-IT') : '-') + '</small>' : '-';
+                tbody.innerHTML += '<tr><td><strong>' + e.tipo + '</strong><br><small>' + e.modello + '</small></td><td>' + e.matricola + '</td><td>' + lottoInfo + '</td><td>' + e.assegnazione + '</td><td>' + valManu.html + '</td><td>' + valCons.html + '</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'elettromedicali\', \'' + e.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
             });
         };
 
-        window.renderSanificazioni = () => {
+        window.renderSanificazioni = function() {
             const tbody = document.getElementById('sanificazioni-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            sanificazioni.forEach(s => {
-                tbody.innerHTML += `<tr><td>${s.data}</td><td><strong>${s.mezzo}</strong></td><td>${s.tipo}</td><td><strong style="color:var(--primary);">${s.pmc || 'PMC Standard'}</strong></td><td>${s.operatore}</td><td><small>${s.note || '-'}</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem('sanificazioni', '${s.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            sanificazioni.forEach(function(s) {
+                tbody.innerHTML += '<tr><td>' + s.data + '</td><td><strong>' + s.mezzo + '</strong></td><td>' + s.tipo + '</td><td><strong style="color:var(--primary);">' + (s.pmc || 'PMC Standard') + '</strong></td><td>' + s.operatore + '</td><td><small>' + (s.note || '-') + '</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'sanificazioni\', \'' + s.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
             });
         };
 
@@ -954,41 +1047,41 @@
             }
         };
 
-        window.switchMainTab = (tabId) => {
-            document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+        window.switchMainTab = function(tabId) {
+            document.querySelectorAll('.tree-item').forEach(function(el) { el.classList.remove('active'); });
             if(document.getElementById('nav-' + tabId)) document.getElementById('nav-' + tabId).classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            if(document.getElementById(`tab-${tabId}`)) document.getElementById(`tab-${tabId}`).classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+            if(document.getElementById('tab-' + tabId)) document.getElementById('tab-' + tabId).classList.add('active');
             const titles = { 'statistiche': 'Cruscotto Direzionale ISO 9001', 'stampe-asl': 'Centro Stampe e Registri ASL', 'turni': 'Registro Turni e Reperibilità', 'continuita': 'Registro Continuità del Servizio', 'formazione': 'Registro Formazione Personale', 'verifichedati': 'Registro Verifica Qualità Dati', 'customersat': 'Customer Satisfaction', 'nc': 'Gestione Reclami & Workflow', 'fornitori': 'Albo Fornitori Qualificati', 'elettromedicali': 'Inventario Elettromedicali & O2', 'sanificazioni': 'Registro Sanificazioni PMC' };
             document.getElementById('tab-title').innerText = titles[tabId] || 'Pannello Qualità';
         };
 
-        window.stampaLetteraRispostaNC = (idNC) => {
-            const reclamo = nonConformita.find(n => String(n.id) === String(idNC));
+        window.stampaLetteraRispostaNC = function(idNC) {
+            const reclamo = nonConformita.find(function(n) { return String(n.id) === String(idNC); });
             if(!reclamo) return;
 
-            const { jsPDF } = window.jspdf; 
+            const jsPDF = window.jspdf.jsPDF; 
             const doc = new jsPDF('p', 'mm', 'a4'); 
             const dataOggi = new Date().toLocaleDateString('it-IT');
 
             doc.setFontSize(14); 
             doc.setTextColor(139, 92, 246); 
-            doc.text(`${societaInfo.nome} - Servizio Qualità`, 14, 20);
+            doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV" + ' - Servizio Qualità', 14, 20);
             doc.setFontSize(8);
             doc.setTextColor(100, 100, 100);
-            doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 24);
+            doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 24);
             doc.line(14, 26, 196, 26);
 
             doc.setFontSize(11); 
             doc.setTextColor(0, 0, 0);
-            doc.text(`Terni, ${dataOggi}`, 14, 35);
-            doc.text(`Spett.le ${reclamo.rilevatore || 'Utente'}`, 14, 45); 
+            doc.text('Terni, ' + dataOggi, 14, 35);
+            doc.text('Spett.le ' + (reclamo.rilevatore || 'Utente'), 14, 45); 
             
             doc.setFont(undefined, 'bold');
-            doc.text(`Oggetto: Riscontro alla Sua segnalazione del ${reclamo.data}`, 14, 60);
+            doc.text('Oggetto: Riscontro alla Sua segnalazione del ' + reclamo.data, 14, 60);
             doc.setFont(undefined, 'normal');
 
-            const testo = `Gentile ${reclamo.rilevatore || 'Utente'},\n\nFacendo seguito alla Sua segnalazione classificata come "${reclamo.tipo}" in merito all'evento "${reclamo.descrizione}", desideriamo informarLa che la Direzione ha preso immediatamente in carico la questione.\n\nLa qualità del trasporto e la sicurezza dei nostri assistiti sono la priorità assoluta per la nostra associazione. A seguito delle nostre verifiche interne, abbiamo intrapreso la seguente azione correttiva:\n"${reclamo.azione || 'Valutazione interna in corso / Nessuna azione definita'}".\n\nRinnovando le nostre scuse per l'eventuale disagio arrecato, restiamo a Sua completa disposizione per qualsiasi ulteriore chiarimento.\n\nCordiali saluti.`;
+            const testo = 'Gentile ' + (reclamo.rilevatore || 'Utente') + ',\n\nFacendo seguito alla Sua segnalazione classificata come "' + reclamo.tipo + '" in merito all\'evento "' + reclamo.descrizione + '", desideriamo informarLa che la Direzione ha preso immediatamente in carico la questione.\n\nLa qualità del trasporto e la sicurezza dei nostri assistiti sono la priorità assoluta per la nostra associazione. A seguito delle nostre verifiche interne, abbiamo intrapreso la seguente azione correttiva:\n"' + (reclamo.azione || 'Valutazione interna in corso / Nessuna azione definita') + '".\n\nRinnovando le nostre scuse per l\'eventuale disagio arrecato, restiamo a Sua completa disposizione per qualsiasi ulteriore chiarimento.\n\nCordiali saluti.';
 
             const lineeTesto = doc.splitTextToSize(testo, 180);
             doc.text(lineeTesto, 14, 75);
@@ -999,106 +1092,152 @@
             doc.text("Visto del Direttore Sanitario:", 110, 150);
             doc.text("________________________", 110, 160);
 
-            let nomeFile = `Lettera_Risposta_NC_${(reclamo.rilevatore || 'Anonimo').replace(/\s+/g, '_')}.pdf`;
+            let nomeFile = 'Lettera_Risposta_NC_' + (reclamo.rilevatore || 'Anonimo').replace(/\s+/g, '_') + '.pdf';
             doc.save(nomeFile);
 
             toast("Lettera scaricata con successo.");
         };
 
-        window.stampaRegistroTurniAsl = () => {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+        window.stampaRegistroTurniAsl = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO TURNI E REPERIBILITA' PERSONALE (L.R. 11/2015)", 14, 29); doc.line(14, 32, 196, 32);
-            let bodyData = turniReperibilita.map(t => [t.data, t.turno, t.nome, t.qualifica, t.reperibile, t.sostituto, t.note || '-']);
+            
+            let turniOrdinati = [].concat(turniReperibilita).sort(function(a,b) { return new Date(a.data || 0) - new Date(b.data || 0); });
+            let bodyData = turniOrdinati.map(function(t) { return [t.data ? new Date(t.data).toLocaleDateString('it-IT') : '-', t.turno, t.nome, t.qualifica, t.reperibile, t.sostituto, t.note || '-']; });
+            
             doc.autoTable({ startY: 37, head: [['Data', 'Turno', 'Operatore', 'Qualifica', 'Reperibile', 'Sostituto', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Operativo: ______________________", 14, finalY);
             doc.text("Firma Presidente / DS: ______________________", 110, finalY);
-            doc.save(`Registro_Turni_Reperibilita_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro Turni Esportato!");
+            doc.save('Registro_Turni_Reperibilita_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro Turni Esportato!");
         };
 
-        window.stampaRegistroContinuitaAsl = () => {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+        window.stampaRegistroContinuitaAsl = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO CONTINUITA' DEL SERVIZIO E GESTIONE EMERGENZE", 14, 29); doc.line(14, 32, 196, 32);
-            let bodyData = continuitaServizio.map(c => [c.data, c.evento, c.segnalante || 'Centrale', c.coinvolto, c.azione || '-', c.esito, c.note || '-']);
+            let bodyData = continuitaServizio.map(function(c) { return [c.data, c.evento, c.segnalante || 'Centrale', c.coinvolto, c.azione || '-', c.esito, c.note || '-']; });
             doc.autoTable({ startY: 37, head: [['Data', 'Evento', 'Segnalante', 'Coinvolto', 'Azione Correttiva', 'Esito', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] }, styles: { fontSize: 8 } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Qualità (RQ): ______________________", 14, finalY);
             doc.text("Visto Direttore Sanitario: ______________________", 110, finalY);
-            doc.save(`Registro_Continuita_Servizio_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro Continuità Esportato!");
+            doc.save('Registro_Continuita_Servizio_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro Continuità Esportato!");
         };
 
-        window.stampaRegistroFormazioneAsl = () => {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+        window.stampaRegistroFormazioneAsl = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO FORMAZIONE, AGGIORNAMENTO BLSD E IDONEITA'", 14, 29); doc.line(14, 32, 196, 32);
-            let bodyData = formazionePersonale.map(f => [f.nome, f.qualifica, f.corso, f.datacorso, f.datascadenza, f.stato]);
-            doc.autoTable({ startY: 37, head: [['Operatore', 'Qualifica', 'Corso', 'Data Corso', 'Scadenza', 'Stato']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
+            
+            let formOrdinati = [].concat(formazionePersonale).sort(function(a,b) { return a.nome.localeCompare(b.nome); });
+            let bodyData = formOrdinati.map(function(f) { return [f.nome, f.qualifica, f.corso, f.datascadenza]; });
+            
+            doc.autoTable({ startY: 37, head: [['Operatore', 'Qualifica', 'Corso / Idoneità', 'Scadenza']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Formazione: ______________________", 14, finalY);
             doc.text("Approvazione Direttore Sanitario: ______________________", 110, finalY);
-            doc.save(`Registro_Formazione_Personale_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro Formazione Esportato!");
+            doc.save('Registro_Formazione_Personale_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro Formazione Esportato!");
         };
 
-        window.stampaRegistroVerificheDatiAsl = () => {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+        window.stampaRegistroVerificheDatiAsl = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO VERIFICA QUALITA' DEI DATI (ISO 9001)", 14, 29); doc.line(14, 32, 196, 32);
-            let bodyData = verificheQualitaDati.map(v => [v.data, v.dato, v.acc, v.comp, v.riprod, v.temp, v.esito, v.resp]);
+            let bodyData = verificheQualitaDati.map(function(v) { return [v.data, v.dato, v.acc, v.comp, v.riprod, v.temp, v.esito, v.resp]; });
             doc.autoTable({ startY: 37, head: [['Data', 'Dato', 'Acc.', 'Comp.', 'Riprod.', 'Temp.', 'Esito', 'Resp']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Sistema Informativo (RSI): ______________________", 14, finalY);
-            doc.save(`Registro_Verifiche_Qualita_Dati_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro Verifiche Dati Esportato!");
+            doc.save('Registro_Verifiche_Qualita_Dati_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro Verifiche Dati Esportato!");
         };
 
-        window.stampaRegistroNCAsl = () => {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+        window.stampaRegistroNCAsl = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO NON CONFORMITA' E RECLAMI (RRP)", 14, 29); doc.line(14, 32, 196, 32);
-            let bodyData = nonConformita.length > 0 ? nonConformita.map(n => [n.data, n.tipo, n.rilevatore, n.descrizione, n.azione, n.stato]) : [["-", "Nessuna NC registrata", "-", "-", "-", "-"]];
+            let bodyData = nonConformita.length > 0 ? nonConformita.map(function(n) { return [n.data, n.tipo, n.rilevatore, n.descrizione, n.azione, n.stato]; }) : [["-", "Nessuna NC registrata", "-", "-", "-", "-"]];
             doc.autoTable({ startY: 37, head: [['Data', 'Tipologia', 'Segnalante', 'Descrizione', 'Azione Correttiva', 'Stato']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Qualità (RQ): ______________________", 14, finalY);
             doc.text("Visto Direttore Sanitario: ______________________", 110, finalY);
-            doc.save(`Registro_NC_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Registro NC Esportato!");
+            doc.save('Registro_NC_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro NC Esportato!");
         };
 
-        window.stampaRegistroSanificazioniAsl = () => {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+        window.stampaRegistroSanificazioniAsl = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO SANIFICAZIONI MEZZI E DISINFEZIONE CON PROTOCOLLO PMC", 14, 29); doc.line(14, 32, 196, 32);
-            let bodyData = sanificazioni.length > 0 ? sanificazioni.map(s => [s.data, s.mezzo, s.tipo, s.pmc || 'PMC Cloroattivo', s.operatore, s.note || '-']) : [["-", "Nessuna sanificazione", "-", "-", "-", "-"]];
+            let bodyData = sanificazioni.length > 0 ? sanificazioni.map(function(s) { return [s.data, s.mezzo, s.tipo, s.pmc || 'PMC Cloroattivo', s.operatore, s.note || '-']; }) : [["-", "Nessuna sanificazione", "-", "-", "-", "-"]];
             doc.autoTable({ startY: 37, head: [['Data', 'Mezzo', 'Tipo Intervento', 'Presidio Medico Chirurgico', 'Operatore', 'Note/Tempo']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Autoparco: ______________________", 14, finalY);
             doc.text("Validazione Direttore Sanitario: ______________________", 110, finalY);
-            doc.save(`Registro_Sanificazioni_PMC_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Sanificazioni Esportate!");
+            doc.save('Registro_Sanificazioni_PMC_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Sanificazioni Esportate!");
         };
 
-        window.stampaRegistroElettromedicaliAsl = () => {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+        window.stampaRegistroElettromedicaliAsl = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
             doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("INVENTARIO APPARECCHIATURE ELETTROMEDICALI E LOTTI OSSIGENO FARMACO", 14, 29); doc.line(14, 32, 196, 32);
-            let bodyData = elettromedicali.length > 0 ? elettromedicali.map(e => [e.tipo + ' - ' + e.modello, e.matricola, e.lotto ? `Lotto: ${e.lotto} (Scad: ${e['scad-farmaco']||'-'})` : '-', e.assegnazione, e['scad-manutenzione'], e['scad-consumabili'] || '-']) : [["Nessun dispositivo registrato", "-", "-", "-", "-", "-"]];
+            let bodyData = elettromedicali.length > 0 ? elettromedicali.map(function(e) { return [e.tipo + ' - ' + e.modello, e.matricola, e.lotto ? 'Lotto: ' + e.lotto + ' (Scad: ' + (e['scad-farmaco']||'-') + ')' : '-', e.assegnazione, e['scad-manutenzione'], e['scad-consumabili'] || '-']; }) : [["Nessun dispositivo registrato", "-", "-", "-", "-", "-"]];
             doc.autoTable({ startY: 37, head: [['Tipo e Modello', 'Matricola', 'Lotto AIC / Scad. Farmaco (O2)', 'Assegnazione', 'Scad. Verifica / Collaudo', 'Consumabili']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] }, styles: { fontSize: 8 } });
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Responsabile Apparecchiature: ______________________", 14, finalY);
             doc.text("Validazione Direttore Sanitario: ______________________", 110, finalY);
-            doc.save(`Inventario_Elettromedicali_O2_${dataOggi.replace(/\//g, '-')}.pdf`); toast("Elettromedicali Esportati!");
+            doc.save('Inventario_Elettromedicali_O2_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Elettromedicali Esportati!");
         };
 
-        window.stampaQuestionarioCartaceo = () => {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+        window.stampaRegistroChecklistAsl = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
+            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO CONTROLLI E CHECKLIST MEZZI PRE-PARTENZA", 14, 29); doc.line(14, 32, 196, 32);
+            
+            let chkOrdinati = [].concat(checklists).sort(function(a,b) { return new Date(b.data || 0) - new Date(a.data || 0); });
+            let bodyData = chkOrdinati.length > 0 ? chkOrdinati.map(function(c) { 
+                return [
+                    c.data ? new Date(c.data).toLocaleString('it-IT') : '-', 
+                    c.mezzo || '-', 
+                    c.autista || '-', 
+                    "DAE: " + (c.dae || '-') + "\nO2: " + (c.o2 || '-') + "\nZaino: " + (c.zaino || '-'), 
+                    c.note || '-'
+                ]; 
+            }) : [["-", "Nessuna checklist registrata", "-", "-", "-"]];
+            
+            doc.autoTable({ startY: 37, head: [['Data Compilazione', 'Mezzo', 'Operatore', 'Stato Dotazioni (DAE/O2/Zaino)', 'Note/Anomalie']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
+            let finalY = doc.lastAutoTable.finalY + 20;
+            doc.text("Firma Responsabile Autoparco: ______________________", 14, finalY);
+            doc.save('Registro_Checklist_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro Checklist Esportato!");
+        };
+
+        window.stampaRegistroMezziAsl = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
+            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO CONFORMITA' PARCO MEZZI E VEICOLI DI SOCCORSO", 14, 29); doc.line(14, 32, 196, 32);
+            
+            let bodyData = mezzi.length > 0 ? mezzi.map(function(m) { 
+                return [m.nome, m.targa, m.aut, m.assicurazione ? new Date(m.assicurazione).toLocaleDateString('it-IT') : '-', m.revisione ? new Date(m.revisione).toLocaleDateString('it-IT') : '-']; 
+            }) : [["-", "Nessun mezzo registrato", "-", "-", "-"]];
+            
+            doc.autoTable({ startY: 37, head: [['Descrizione Mezzo', 'Targa', 'N. Autorizzazione', 'Scadenza Assicurazione', 'Scadenza Revisione']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
+            let finalY = doc.lastAutoTable.finalY + 20;
+            doc.text("Firma Responsabile Autoparco: ______________________", 14, finalY);
+            doc.text("Firma Direttore Sanitario: ______________________", 110, finalY);
+            doc.save('Registro_Conformita_Mezzi_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro Mezzi Esportato!");
+        };
+
+        window.stampaQuestionarioCartaceo = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4');
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
             doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.text("QUESTIONARIO DI SODDISFAZIONE UTENTI (ISO 9001 & ASL UMBRIA)", 14, 29); doc.line(14, 32, 196, 32);
             doc.setFontSize(10);
             doc.text("Gentile utente, la preghiamo di valutare il servizio ricevuto (1 = Scarso, 5 = Ottimo):", 14, 42);
@@ -1123,10 +1262,10 @@
             doc.save("Questionario_Soddisfazione_Pazienti.pdf"); toast("Questionario Stampato!");
         };
 
-        window.stampaVerbaleRiesame = () => {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(16); doc.setTextColor(139, 92, 246); doc.text(societaInfo.nome, 14, 18); 
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva} | ${societaInfo.autorizzazione}`, 14, 22);
+        window.stampaVerbaleRiesame = function() {
+            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
+            doc.setFontSize(16); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18); 
+            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
             doc.setFontSize(13); doc.setTextColor(0, 0, 0); doc.text("VERBALE DI RIESAME DELLA DIREZIONE - NORMA ISO 9001:2015 & ACCREDITAMENTO", 14, 29); doc.line(14, 32, 196, 32);
             doc.setFontSize(10);
             doc.text("Data della riunione: " + dataOggi, 14, 40);
@@ -1135,7 +1274,7 @@
             
             let csMedia = "N/D";
             if (customerSat.length > 0) {
-                let sum = customerSat.reduce((acc, c) => acc + (parseFloat(c.voto_globale || 5)), 0);
+                let sum = customerSat.reduce(function(acc, c) { return acc + (parseFloat(c.voto_globale || 5)); }, 0);
                 csMedia = (sum / customerSat.length).toFixed(1) + " / 5";
             }
 
@@ -1145,7 +1284,7 @@
                 body: [
                     ['Totale Servizi di Trasporto Erogati', trasporti.length.toString(), 'Conforme agli Obiettivi'],
                     ['Punteggio Medio Customer Satisfaction', csMedia, 'Soddisfacente'],
-                    ['Non Conformità e Reclami Aperti', nonConformita.filter(n => n.stato !== 'Chiusa').length.toString(), 'Sotto Controllo'],
+                    ['Non Conformità e Reclami Aperti', nonConformita.filter(function(n) { return n.stato !== 'Chiusa'; }).length.toString(), 'Sotto Controllo'],
                     ['Fornitori Qualificati Registrati', fornitori.length.toString(), 'Albo Aggiornato'],
                     ['Mezzi Sanificati con Protocollo PMC', sanificazioni.length.toString(), 'Procedure Rispettate'],
                     ['Apparecchiature Elettromedicali & O2', elettromedicali.length.toString(), 'Verifiche Periodiche e Lotti OK']
@@ -1155,7 +1294,7 @@
             let finalY = doc.lastAutoTable.finalY + 20;
             doc.text("Firma Legale Rappresentante: ______________________", 14, finalY);
             doc.text("Firma Direttore Sanitario: ______________________", 110, finalY);
-            doc.save(`Verbale_Riesame_Direzione_${dataOggi.replace(/\//g, '-')}.pdf`); 
+            doc.save('Verbale_Riesame_Direzione_' + dataOggi.replace(/\//g, '-') + '.pdf'); 
             toast("Verbale Riesame Generato!");
         };
     </script>
