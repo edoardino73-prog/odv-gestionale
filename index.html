@@ -3,19 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuore d'Argento - Cloud Management</title>
+    <title>Cuore d'Argento - Cloud Management Centrale</title>
     
-    <!-- Librerie Font e Icone -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Librerie Funzionali PDF e QR Code -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <!-- Script pre-caricamento per Google Maps -->
     <script>
         window.initMapAutocomplete = function() {
             const campiIndirizzo = ['partenza', 'destinazione', 'd-partenza', 'd-arrivo'];
@@ -33,11 +29,8 @@
             });
         };
     </script>
-    
-    <!-- Google Maps Places API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBeHOqzhD1Z5fCV6oleFEVPj9Cs5XMNn60&libraries=places&callback=initMapAutocomplete" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBeHOqzhD1Z5fCV6oleFEVPj9Cs5XMNn60&libraries=places&callback=initMapAutocomplete&loading=async" async defer></script>
 
-    <!-- FIREBASE SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -53,20 +46,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent;}
         body { display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-body); overflow: hidden; }
 
-        /* --- OVERLAY DI LOGIN --- */
         #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--secondary), #0f172a); z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.4s; }
         .login-box { background: white; padding: 40px 30px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; }
         .login-box h2 { color: var(--primary); font-weight: 800; margin-bottom: 5px; font-size: 1.5rem;}
         .login-box p { color: var(--text-light); font-size: 0.85rem; margin-bottom: 25px; }
 
-        /* --- OVERLAY VERIFICA QR CODE ISPEDIZIONI ASL / NAS --- */
-        #verify-screen { position: fixed; inset: 0; background: var(--bg-body); z-index: 99999; display: none; align-items: center; justify-content: center; flex-direction: column; padding: 20px; overflow-y: auto;}
-        .verify-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 480px; text-align: center; border: 1px solid var(--border); }
-        .verify-header { background: var(--primary); padding: 25px 20px; color: white; }
-        .verify-body { padding: 0 20px 30px 20px; }
-        .verify-foto { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-top: -60px; background: white; }
-
-        /* --- TOP BAR --- */
         .topbar { height: 60px; background: linear-gradient(to bottom, #ffffff, #f1f5f9); border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 10; }
         .topbar-left { display: flex; align-items: center; gap: 15px; }
         .topbar-btn { background: transparent; border: 1px solid var(--border); padding: 6px 12px; border-radius: 4px; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
@@ -84,7 +68,6 @@
         .brand-text span:first-child { font-weight: 800; font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;}
         .brand-text span:last-child { font-size: 0.65rem; font-weight: 500; opacity: 0.9; }
 
-        /* --- SIDEBAR --- */
         .main-container { display: flex; flex: 1; overflow: hidden; }
         .sidebar { width: 280px; background: #ffffff; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; z-index: 5; }
         .sidebar-title { background: linear-gradient(to right, var(--secondary), #334155); color: white; padding: 12px 15px; font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between;}
@@ -103,7 +86,6 @@
         .side-tab { padding: 10px 15px; font-size: 0.85rem; font-weight: 600; color: var(--text-light); border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .side-tab.active { background: linear-gradient(to right, #fef2f2, #ffffff); color: var(--primary); border-left: 4px solid var(--primary); }
 
-        /* --- DASHBOARD AREA --- */
         .dashboard-area { flex: 1; position: relative; display: flex; flex-direction: column; overflow: hidden; cursor: default; }
         .dash-header { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: #f8fafc; }
         .tab-content { display: none; flex: 1; flex-direction: column; padding: 20px; overflow-y: auto; gap: 1.2rem; }
@@ -146,21 +128,6 @@
         .btn-ghost { background: transparent; color: var(--text-main); border-color: var(--border); }
         .btn-ghost:hover { background: #f1f5f9; }
 
-        .turni-board { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; align-items: stretch; min-height: 300px;}
-        .turni-board::-webkit-scrollbar { height: 8px; }
-        .turni-board::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .turno-day-col { flex: 0 0 280px; background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; }
-        .turno-day-header { padding: 12px 10px; background: var(--secondary); color: white; font-weight: 700; text-align: center; border-radius: var(--radius) var(--radius) 0 0; font-size: 0.9rem;}
-        .turno-day-header.today { background: var(--primary); }
-        .turno-cards { padding: 10px; display: flex; flex-direction: column; gap: 12px; flex: 1;}
-        .turno-card { background: white; border: 1px solid var(--border); border-left: 4px solid var(--text-light); border-radius: 6px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); position: relative;}
-        .turno-card.coperto { border-left-color: var(--success); }
-        .turno-card.parziale { border-left-color: var(--warning); }
-        .turno-card.scoperto { border-left-color: var(--alert-red); }
-        .turno-card-time { font-size: 0.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;}
-        .turno-card-role { font-size: 0.8rem; display: flex; justify-content: space-between; margin-top: 6px; align-items: center;}
-        .turno-card-actions { display: flex; gap: 6px; margin-top: 12px; justify-content: flex-end; border-top: 1px dashed var(--border); padding-top: 8px; }
-
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 1rem; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal { background: var(--bg-panel); width: 100%; max-width: 850px; max-height: 95vh; overflow-y: auto; border-radius: 12px; padding: 2rem; transform: scale(0.95); transition: 0.2s; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
@@ -178,7 +145,6 @@
         .toast { background: white; color: var(--text-main); border-left: 4px solid var(--success); padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); animation: slideIn 0.3s forwards; display: flex; align-items: center; gap: 8px; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* TESSERA ID CARD A NORMA ASL / NAS */
         .tessera-card { width: 330px; background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.25); text-align: center; position: relative; margin: 0 auto; border: 1px solid var(--border); }
         .tessera-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 14px 10px; color: white; }
         .tessera-body { padding: 15px; }
@@ -188,14 +154,6 @@
     </style>
 </head>
 <body>
-
-    <!-- OVERLAY VERIFICA TESSERA ELETTRONICA (Per Verbali e Ispezioni ASL / NAS) -->
-    <div id="verify-screen">
-        <div style="color:var(--text-main); font-weight:600; text-align:center;">
-            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color:var(--primary); margin-bottom:15px;"></i><br>
-            Connessione al database in corso per verifica ispettiva...
-        </div>
-    </div>
 
     <!-- OVERLAY LOGIN TRACCIABILITA' -->
     <div id="login-screen">
@@ -220,6 +178,10 @@
         </div>
     </div>
 
+    <!-- Schermata Verifica QR -->
+    <div id="verify-screen" style="display:none; position:fixed; inset:0; background:var(--bg-body); z-index:99999; flex-direction:column; align-items:center; padding:20px; overflow-y:auto;">
+    </div>
+
     <datalist id="destinazioni-asl">
         <option value="Ospedale S. Maria di Terni">
         <option value="Ospedale di Narni">
@@ -234,11 +196,11 @@
         <div class="topbar-left">
             <button class="topbar-btn home-btn" onclick="switchMainTab('desktop')"><i class="fa-solid fa-desktop"></i> Pannello Controllo</button>
             <button class="topbar-btn" onclick="salvaTutto()"><i class="fa-solid fa-cloud" style="color:var(--success)"></i> Sincronizza Cloud</button>
-            <button class="topbar-btn" onclick="window.open('turni.html', '_blank')" style="border-color: #10b981; color: #059669; font-weight: 700;" title="Apri Portale Turni ed Equipaggi">
+            <button class="topbar-btn" onclick="window.open('https://edoardino73-prog.github.io/odv-gestionale/turni.html', '_blank')" style="border-color: #10b981; color: #059669; font-weight: 700;" title="Apri Portale Turni ed Equipaggi">
                 <i class="fa-solid fa-user-clock"></i> Portale Turni
             </button>
-            <button class="topbar-btn" onclick="window.open('https://iso9001-odv-cuoredargento.netlify.app', '_blank')" style="border-color: #8b5cf6; color: #8b5cf6; font-weight: 700;" title="Portale ISO 9001">
-                <i class="fa-solid fa-medal"></i> Portale ISO 9001
+            <button class="topbar-btn" onclick="window.open('iso9001 accreditamento.html', '_blank')" style="border-color: #8b5cf6; color: #8b5cf6; font-weight: 700;" title="Portale ISO 9001">
+                <i class="fa-solid fa-medal"></i> Qualità (ISO 9001)
             </button>
         </div>
         <div class="topbar-center">
@@ -281,7 +243,7 @@
                 <li class="tree-folder open">
                     <div class="tree-header" onclick="toggleFolder(this)"><i class="fa-solid fa-chevron-right" style="font-size:0.7rem; transition:0.2s;"></i> <i class="fa-solid fa-folder folder-icon"></i> Trasporti & Servizi</div>
                     <ul class="tree-items">
-                        <li class="tree-item" id="nav-turni" onclick="window.open('turni.html', '_blank')"><i class="fa-solid fa-user-clock"></i> Gestione Turni Equipaggi <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem; margin-left:auto; opacity:0.6;"></i></li>
+                        <li class="tree-item" id="nav-turni" onclick="window.open('https://edoardino73-prog.github.io/odv-gestionale/turni.html', '_blank')"><i class="fa-solid fa-user-clock"></i> Gestione Turni Equipaggi <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem; margin-left:auto; opacity:0.6;"></i></li>
                         <li class="tree-item" id="nav-operativo" onclick="switchMainTab('operativo')"><i class="fa-solid fa-list-check"></i> Monitor Operativo Viaggi</li>
                         <li class="tree-item" id="nav-calendario" onclick="switchMainTab('calendario')"><i class="fa-solid fa-calendar-days"></i> Google Calendar Condiviso</li>
                         <li class="tree-item" onclick="apriModaleServizio()"><i class="fa-solid fa-plus-circle" style="color:var(--success)"></i> Inserisci Nuovo Servizio</li>
@@ -328,7 +290,7 @@
                         <div class="shortcut-label">Anagrafica, Formazione e GDPR</div>
                         <div id="badge-scadenze" class="badge-numero" style="display:none;">0</div>
                     </div>
-                    <div class="shortcut-btn" onclick="window.open('turni.html', '_blank')">
+                    <div class="shortcut-btn" onclick="window.open('https://edoardino73-prog.github.io/odv-gestionale/turni.html', '_blank')">
                         <i class="fa-solid fa-user-clock shortcut-icon" style="color: #10b981;"></i>
                         <div class="shortcut-label">Gestione Turni Equipaggi (Nuovo Portale)</div>
                     </div>
@@ -421,13 +383,13 @@
                 </div>
                 <div class="glass-panel table-container">
                     <table style="width: 100%;">
-                        <thead><tr><th>Data</th><th>Ora</th><th>Volontario</th><th>Evento</th><th>Stato Presenza</th></tr></thead>
+                        <thead><tr><th>Data</th><th>Ora</th><th>Volontario</th><th>Evento</th><th>Stato Presenza / Extra</th></tr></thead>
                         <tbody id="presenze-corpo"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- TAB TURNI EQUIPAGGI (CON LINK RAPIDO AL PORTALE TURNI.HTML) -->
+            <!-- TAB TURNI EQUIPAGGI -->
             <div id="tab-turni" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap:wrap; gap:10px;">
                     <div>
@@ -435,7 +397,7 @@
                         <p style="font-size:0.8rem; color:var(--text-light); margin-top:2px;">Visualizzazione rapida integrata. Per la matrice Excel e le notifiche WhatsApp usa il portale dedicato.</p>
                     </div>
                     <div style="display:flex; gap:10px;">
-                        <button class="btn btn-primary" onclick="window.open('turni.html', '_blank')" style="background:var(--success);"><i class="fa-solid fa-arrow-up-right-from-square"></i> Apri Portale Turni Completo</button>
+                        <button class="btn btn-primary" onclick="window.open('https://edoardino73-prog.github.io/odv-gestionale/turni.html', '_blank')" style="background:var(--success);"><i class="fa-solid fa-arrow-up-right-from-square"></i> Apri Portale Turni Completo</button>
                         <button class="btn btn-primary" onclick="apriModaleTurno()"><i class="fa-solid fa-plus"></i> Nuovo Turno</button>
                     </div>
                 </div>
@@ -604,7 +566,8 @@
                     <div style="font-size: 0.62rem; opacity: 0.85;">D.Lgs. 81/08 • L. 117/17 • Aut. Esercizio Sanitario ASL</div>
                 </div>
                 <div class="tessera-body">
-                    <img id="tessera-foto" src="https://via.placeholder.com/150" style="width: 105px; height: 105px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); margin-bottom: 8px; display:block; margin-left:auto; margin-right:auto;">
+                    <!-- SVG Sostitutivo via.placeholder -->
+                    <img id="tessera-foto" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%20viewBox%3D%220%200%20150%20150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23e2e8f0%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2218%22%20fill%3D%22%2394a3b8%22%20dy%3D%22.3em%22%20text-anchor%3D%22middle%22%3EFOTO%3C%2Ftext%3E%3C%2Fsvg%3E" style="width: 105px; height: 105px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); margin-bottom: 8px; display:block; margin-left:auto; margin-right:auto;">
                     <h2 id="tessera-nome" style="font-size: 1.25rem; color: var(--text-main); margin-bottom: 2px; font-weight:800;">Nome Cognome</h2>
                     <div id="tessera-ruolo" style="font-size: 0.85rem; color: var(--primary); font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">Ruolo</div>
                     
@@ -762,7 +725,7 @@
         </div>
     </div>
 
-    <!-- MODALE TURNO (CON LE 7 FASCE UFFICIALI DA EXCEL) -->
+    <!-- MODALE TURNO -->
     <div class="modal-overlay" id="modalTurno">
         <div class="modal" style="max-width: 550px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
@@ -831,7 +794,7 @@
                 <input type="hidden" id="v-editId">
                 <div class="input-group full-width" style="text-align: center; margin-bottom: 20px;">
                     <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
-                        <img id="v-foto-preview" src="https://via.placeholder.com/150" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--border);">
+                        <img id="v-foto-preview" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%20viewBox%3D%220%200%20150%20150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23e2e8f0%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2218%22%20fill%3D%22%2394a3b8%22%20dy%3D%22.3em%22%20text-anchor%3D%22middle%22%3EFOTO%3C%2Ftext%3E%3C%2Fsvg%3E" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--border);">
                         <label for="v-foto-upload" class="btn btn-ghost" style="cursor:pointer; padding: 5px 15px; font-size: 0.8rem;"><i class="fa-solid fa-camera"></i> Carica Foto</label>
                         <input type="file" id="v-foto-upload" accept="image/*" style="display:none;">
                     </div>
@@ -937,6 +900,16 @@
 
     <!-- LOGICA JAVASCRIPT PRINCIPALE -->
     <script>
+        window.showToast = function(msg) {
+            const container = document.getElementById('toast-container'); 
+            if(!container) return;
+            const el = document.createElement('div'); 
+            el.className = 'toast';
+            el.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--success)"></i> ' + msg;
+            container.appendChild(el); 
+            setTimeout(function() { el.remove(); }, 3000);
+        };
+
         document.addEventListener('DOMContentLoaded', function() {
             if (new URLSearchParams(window.location.search).has('verify')) {
                 document.getElementById('login-screen').style.display = 'none';
@@ -944,7 +917,7 @@
                 
                 setTimeout(function() {
                     if (!window.firebaseLoaded) {
-                        document.getElementById('verify-screen').innerHTML = '<div class="verify-card" style="padding:40px 20px;"><i class="fa-solid fa-wifi" style="font-size:4rem; color:var(--warning); margin-bottom:20px;"></i><h2 style="color:var(--text-main); font-weight:800;">Connessione Lenta</h2><p style="color:var(--text-light); margin-top:10px;">Il database sta impiegando troppo tempo a rispondere. Riprova la scansione.</p><button onclick="window.location.reload()" class="btn btn-primary" style="margin-top:20px; width:100%;">Ricarica Pagina</button></div>';
+                        document.getElementById('verify-screen').innerHTML = '<div style="background:white; padding:40px 20px; text-align:center; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.1);"><i class="fa-solid fa-wifi" style="font-size:4rem; color:var(--warning); margin-bottom:20px;"></i><h2 style="color:var(--text-main); font-weight:800;">Connessione Lenta</h2><p style="color:var(--text-light); margin-top:10px;">Il database sta impiegando troppo tempo a rispondere. Riprova la scansione.</p><button onclick="window.location.reload()" class="btn btn-primary" style="margin-top:20px; width:100%;">Ricarica Pagina</button></div>';
                     }
                 }, 8000);
             }
@@ -955,6 +928,7 @@
         var impostazioni = {};
         var filtroDataAttivo = 'oggi', vistaTurni = 'board', filtroTurniAttivo = 'tutti';
         var utenteLoggato = "Admin Direzione", fotoVolontarioBase64 = null, volontarioTesseraAttiva = null;
+        let dbRootPath = 'cuore_argento_db';
 
         const societaInfo = {
             nome: "Associazione di Volontariato Cuore d'Argento ODV",
@@ -969,6 +943,11 @@
             return new Date(dateObj.getTime() - tzoffset).toISOString().split('T')[0];
         };
         const todayStr = getLocalISODate(new Date());
+
+        function getDbRef(subPath) {
+            let cleanSub = subPath ? subPath.replace(/^\/+/, '') : '';
+            return database.ref(dbRootPath + '/' + cleanSub);
+        }
 
         window.switchMainTab = function(tabId) {
             document.querySelectorAll('.tree-item, .side-tab').forEach(function(el) { el.classList.remove('active'); });
@@ -1059,7 +1038,7 @@
             
             const fotoEl = document.getElementById('tessera-foto');
             if (fotoEl) {
-                fotoEl.src = v.foto || 'https://via.placeholder.com/150';
+                fotoEl.src = v.foto || 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%20viewBox%3D%220%200%20150%20150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23e2e8f0%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2218%22%20fill%3D%22%2394a3b8%22%20dy%3D%22.3em%22%20text-anchor%3D%22middle%22%3EFOTO%3C%2Ftext%3E%3C%2Fsvg%3E';
             }
             
             const qrContainer = document.getElementById('qrcode-container');
@@ -1082,13 +1061,6 @@
             }
             
             document.getElementById('modalTesseraQR').classList.add('active');
-        };
-
-        window.toast = function(msg, type="success") {
-            const container = document.getElementById('toast-container'); if(!container) return;
-            const el = document.createElement('div'); el.className = 'toast';
-            el.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + msg;
-            container.appendChild(el); setTimeout(function() { el.remove(); }, 3000);
         };
 
         window.estraiDati = function(nodo) {
@@ -1135,7 +1107,7 @@
             }
         };
 
-        window.apriModaleVolontario = function() { openModal('modalVolontario', 'formVolontario', 'v-'); fotoVolontarioBase64 = null; document.getElementById('v-foto-preview').src = 'https://via.placeholder.com/150'; };
+        window.apriModaleVolontario = function() { openModal('modalVolontario', 'formVolontario', 'v-'); fotoVolontarioBase64 = null; document.getElementById('v-foto-preview').src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%20viewBox%3D%220%200%20150%20150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23e2e8f0%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2218%22%20fill%3D%22%2394a3b8%22%20dy%3D%22.3em%22%20text-anchor%3D%22middle%22%3EFOTO%3C%2Ftext%3E%3C%2Fsvg%3E'; };
         window.apriModaleMezzo = function() { openModal('modalMezzo', 'formMezzo', 'm-'); };
         window.apriModaleFinanze = function() { openModal('modalFinanze', 'formFinanze', 'f-'); };
         window.apriModaleTurno = function() { openModal('modalTurno', 'formTurno', 't-'); };
@@ -1164,9 +1136,9 @@
                 appId: "1:271690439864:web:17b36ef2c5ab4263d3684d"
             };
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-            const database = firebase.database();
+            database = firebase.database();
             
-            database.ref('/').on('value', function(snapshot) {
+            database.ref().on('value', function(snapshot) {
                 window.firebaseLoaded = true;
                 
                 try {
@@ -1174,11 +1146,17 @@
                     let data = rawData;
                     if (rawData.cuore_argento_db && typeof rawData.cuore_argento_db === 'object') {
                         data = rawData.cuore_argento_db;
+                        dbRootPath = 'cuore_argento_db';
                     } else {
                         let altKey = Object.keys(rawData).find(function(k) {
                             return rawData[k] && typeof rawData[k] === 'object' && (rawData[k].volontari || rawData[k].trasporti || rawData[k].mezzi);
                         });
-                        if (altKey) data = rawData[altKey];
+                        if (altKey) {
+                            data = rawData[altKey];
+                            dbRootPath = altKey;
+                        } else {
+                            dbRootPath = 'cuore_argento_db';
+                        }
                     }
 
                     trasporti = estraiDati(data.trasporti); 
@@ -1191,7 +1169,6 @@
                     checklists = estraiDati(data.checklists);
                     impostazioni = data.impostazioni || { nome: "CUORE D'ARGENTO ODV", piva: "01725470551", sdi: "", indirizzo: "Via della Stazione n. 51 – Narni Scalo (TR)", telefono: "", email: "", note: "" };
 
-                    // SCHERMATA CONTROLLO ISPETTIVO ASL / NAS VIA QR CODE
                     const urlParams = new URLSearchParams(window.location.search);
                     if (urlParams.has('verify')) {
                         const verifyId = urlParams.get('verify');
@@ -1207,34 +1184,36 @@
                             let validitaBLSD = v.blsd ? new Date(v.blsd).toLocaleDateString('it-IT') : 'N/D';
                             let validitaMed = v.medico ? new Date(v.medico).toLocaleDateString('it-IT') : 'N/D';
                             let validitaL81 = v.sicurezza ? new Date(v.sicurezza).toLocaleDateString('it-IT') : 'N/D';
+                            let validitaPat = v.patente ? new Date(v.patente).toLocaleDateString('it-IT') : 'N/D';
                             
-                            screen.innerHTML = '<div class="verify-card">' +
-                                '<div class="verify-header">' +
-                                    '<i class="fa-solid fa-file-medical" style="font-size:2.2rem; margin-bottom:6px;"></i>' +
+                            screen.innerHTML = '<div style="background:white; border-radius:14px; box-shadow:0 15px 35px rgba(0,0,0,0.15); width:100%; max-width:400px; overflow:hidden;">' +
+                                '<div style="background:linear-gradient(135deg, var(--primary), var(--primary-dark)); padding:20px; color:white; text-align:center;">' +
+                                    '<i class="fa-solid fa-file-medical" style="font-size:2.5rem; margin-bottom:10px;"></i>' +
                                     '<h2 style="font-weight:800; letter-spacing:0.5px; font-size:1.3rem;">' + nomeEnteStampa.toUpperCase() + '</h2>' +
-                                    '<p style="font-size:0.75rem; opacity:0.9;">Attestazione di Idoneità Operativa per Controlli ASL / NAS</p>' +
+                                    '<p style="font-size:0.75rem; opacity:0.9; margin-top:4px;">Attestazione di Idoneità Operativa per Controlli ASL / NAS</p>' +
                                     '<p style="font-size:0.7rem; opacity:0.8; margin-top:2px;">' + societaInfo.runts + ' • ' + societaInfo.autorizzazione + '</p>' +
                                 '</div>' +
-                                '<div class="verify-body">' +
-                                    '<img src="' + (v.foto || 'https://via.placeholder.com/150') + '" class="verify-foto">' +
+                                '<div style="padding:25px 20px; text-align:center;">' +
+                                    '<img src="' + (v.foto || 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%20viewBox%3D%220%200%20150%20150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23e2e8f0%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2218%22%20fill%3D%22%2394a3b8%22%20dy%3D%22.3em%22%20text-anchor%3D%22middle%22%3EFOTO%3C%2Ftext%3E%3C%2Fsvg%3E') + '" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid var(--border); margin:0 auto 15px auto; display:block;">' +
                                     '<h2 style="margin-top:12px; color:var(--text-main); font-weight:800; font-size:1.5rem;">' + (v.nome || 'N/D') + '</h2>' +
-                                    '<div style="color:var(--primary); font-weight:800; text-transform:uppercase; margin-bottom:15px; font-size:0.95rem;">' + (v.ruolo || 'Volontario Soccorritore') + '</div>' +
+                                    '<div style="color:var(--primary); font-weight:800; text-transform:uppercase; margin-bottom:20px; font-size:0.95rem;">' + (v.ruolo || 'Volontario Soccorritore') + '</div>' +
                                     '<div style="text-align:left; background:#f8fafc; padding:15px; border-radius:12px; font-size:0.85rem; border:1px solid var(--border);">' +
                                         '<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;"><strong style="color:var(--text-light);">Matricola ID:</strong> <span style="font-weight:700;">' + v.id + '</span></div>' +
                                         '<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;"><strong style="color:var(--text-light);">Codice Fiscale:</strong> <span style="font-weight:700;">' + (v.cf || 'NON INSERITO') + '</span></div>' +
                                         '<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;"><strong style="color:var(--text-light);">Formazione BLSD:</strong> <span style="font-weight:700;">' + validitaBLSD + '</span></div>' +
                                         '<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;"><strong style="color:var(--text-light);">Sorveglianza Sanitaria (Med):</strong> <span style="font-weight:700;">' + validitaMed + '</span></div>' +
-                                        '<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;"><strong style="color:var(--text-light);">Formazione Sicurezza L.81/08:</strong> <span style="font-weight:700;">' + validitaL81 + '</span></div>' +
-                                        '<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;"><strong style="color:var(--text-light);">Copertura Assicurativa RCT/Inf.:</strong> <span style="font-weight:700; color:var(--success);">In Regola (Art. 18 CTS)</span></div>' +
+                                        '<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;"><strong style="color:var(--text-light);">Sicurezza L.81/08:</strong> <span style="font-weight:700;">' + validitaL81 + '</span></div>' +
+                                        '<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;"><strong style="color:var(--text-light);">Patente di Guida:</strong> <span style="font-weight:700;">' + validitaPat + '</span></div>' +
+                                        '<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;"><strong style="color:var(--text-light);">Copertura Assic. RCT/Inf.:</strong> <span style="font-weight:700; color:var(--success);">In Regola (Art. 18 CTS)</span></div>' +
                                         '<div style="display:flex; justify-content:space-between;"><strong style="color:var(--text-light);">Stato Associativo:</strong> <span style="font-weight:800; color:' + coloreQuota + '">' + testoQuota + '</span></div>' +
                                     '</div>' +
-                                    '<div style="margin-top:20px; color:var(--success); font-weight:800; font-size:1rem; display:flex; align-items:center; justify-content:center; gap:8px;">' +
-                                        '<i class="fa-solid fa-shield-check"></i> VOLONTARIO IDONEO E CONFORME' +
+                                    '<div style="margin-top:20px; color:var(--success); background:#d1fae5; padding:10px; border-radius:8px; font-weight:800; font-size:1rem; display:flex; align-items:center; justify-content:center; gap:8px;">' +
+                                        '<i class="fa-solid fa-shield-check"></i> VOLONTARIO IDONEO' +
                                     '</div>' +
                                 '</div>' +
                             '</div>';
                         } else {
-                            screen.innerHTML = '<div class="verify-card" style="padding:40px 20px;"><i class="fa-solid fa-triangle-exclamation" style="font-size:4rem; color:var(--alert-red); margin-bottom:20px;"></i><h2 style="color:var(--text-main); font-weight:800;">Operatore Non Riconosciuto</h2><p style="color:var(--text-light); margin-top:10px;">La scansione non corrisponde ad alcun operatore registrato nei libri sociali dell\'ente.</p></div>';
+                            screen.innerHTML = '<div style="background:white; border-radius:14px; padding:40px 20px; text-align:center; box-shadow:0 15px 35px rgba(0,0,0,0.15); width:100%; max-width:400px;"><i class="fa-solid fa-triangle-exclamation" style="font-size:4rem; color:var(--alert-red); margin-bottom:20px;"></i><h2 style="color:var(--text-main); font-weight:800;">Operatore Non Riconosciuto</h2><p style="color:var(--text-light); margin-top:10px;">La scansione non corrisponde ad alcun operatore registrato nei libri sociali dell\'ente.</p></div>';
                         }
                         return;
                     }
@@ -1248,9 +1227,9 @@
             });
 
             window.salvaTutto = function() {
-                database.ref('cuore_argento_db').update({ 
+                database.ref(dbRootPath).update({ 
                     trasporti: trasporti, volontari: volontari, mezzi: mezzi, finanze: finanze, turni: turni, presenze: presenze, sanificazioni: sanificazioni, checklists: checklists, impostazioni: impostazioni 
-                }).then(function() { toast("Sincronizzato sul Cloud!"); }).catch(function(err) { alert("Errore Cloud: " + err.message); });
+                }).then(function() { window.showToast("Sincronizzato sul Cloud!"); }).catch(function(err) { alert("Errore Cloud: " + err.message); });
             };
         } catch (error) { 
             console.error("Errore Firebase Globale:", error); 
@@ -1318,7 +1297,7 @@
                 let pinCorretto = "1234"; if (user === "Admin Direzione") { pinCorretto = "0000"; } else { const volontario = volontari.find(function(v) { return v.nome === user; }); if (volontario && volontario.pin) pinCorretto = String(volontario.pin); }
                 if(String(pin) !== String(pinCorretto)) { alert("PIN Errato. Riprova."); document.getElementById('login-pin').value = ''; return; }
                 utenteLoggato = user; document.getElementById('topbar-user-name').innerText = utenteLoggato;
-                const overlay = document.getElementById('login-screen'); overlay.style.opacity = '0'; setTimeout(function() { overlay.style.display = 'none'; }, 400); toast("Accesso completato: " + utenteLoggato);
+                const overlay = document.getElementById('login-screen'); overlay.style.opacity = '0'; setTimeout(function() { overlay.style.display = 'none'; }, 400); window.showToast("Accesso completato: " + utenteLoggato);
             } catch(err) { alert("Errore login: " + err.message); }
         };
 
@@ -1423,7 +1402,7 @@
             if(document.getElementById('runts-saldo')) document.getElementById('runts-saldo').innerText = '€ ' + (entrate - uscite).toFixed(2);
         };
 
-        // RENDER REGISTRO PRESENZE VOLONTARI (NUOVO MODULO D.LGS. 117/17)
+        // RENDER REGISTRO PRESENZE VOLONTARI (CON SUPPORTO STRAORDINARI/EMERGENZE)
         window.renderPresenze = function() {
             const tbody = document.getElementById('presenze-corpo'); if(!tbody) return; tbody.innerHTML = '';
             if (!presenze || presenze.length === 0) {
@@ -1434,12 +1413,24 @@
                 let isEntrata = p.tipo === 'ENTRATA';
                 let badgeColor = isEntrata ? 'var(--success)' : 'var(--alert-red)';
                 let icon = isEntrata ? 'fa-right-to-bracket' : 'fa-right-from-bracket';
+                
+                let statoExtra = '';
+                if (p.straordinario) {
+                    if (p.confermato === false) {
+                        statoExtra = '<span style="color:var(--warning); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> Straordinario (Da Convalidare)</span>';
+                    } else {
+                        statoExtra = '<span style="color:var(--info); font-weight:700;"><i class="fa-solid fa-check-double"></i> Straordinario Convalidato</span>';
+                    }
+                } else {
+                    statoExtra = isEntrata ? '<span style="color:var(--success); font-weight:700;">In Servizio Attivo (Turno)</span>' : '<span style="color:var(--text-light);">Turno Concluso</span>';
+                }
+
                 tbody.innerHTML += '<tr>' +
                     '<td><strong>' + (p.data ? new Date(p.data).toLocaleDateString('it-IT') : '-') + '</strong></td>' +
                     '<td>' + (p.ora || '-') + '</td>' +
                     '<td><strong>' + (p.volontario || '-') + '</strong></td>' +
                     '<td><span class="badge" style="background:' + badgeColor + '; color:white;"><i class="fa-solid ' + icon + '"></i> ' + p.tipo + '</span></td>' +
-                    '<td>' + (isEntrata ? '<span style="color:var(--success); font-weight:700;">In Servizio Attivo</span>' : '<span style="color:var(--text-light);">Turno Chiuso</span>') + '</td>' +
+                    '<td>' + statoExtra + '</td>' +
                 '</tr>';
             });
         };
@@ -1496,7 +1487,7 @@
                 let errBarella = c.barella && c.barella !== 'OK';
                 let errZaino = c.zaino && c.zaino !== 'OK';
                 let errDae = c.dae && c.dae !== 'OK';
-                let errO2 = c.o2 && c.o2 !== 'OK';
+                let errO2 = c.o2 && !c.o2.includes('OK');
                 let errCarb = c.carburante === 'Riserva';
 
                 let bDae = errDae ? 'var(--alert-red)' : 'var(--success)';
@@ -1551,13 +1542,13 @@
 
         window.chiudiServizio = function(id) {
             const t = trasporti.find(function(x) { return String(x.id) === String(id); }); if (!t) return;
-            if (t.statoServizio === 'Completato' || t.statoServizio === 'Da Rendicontare') { toast("Servizio già chiuso.", "warning"); return; }
+            if (t.statoServizio === 'Completato' || t.statoServizio === 'Da Rendicontare') { window.showToast("Servizio già chiuso.", true); return; }
             let kmCalcolati = Math.max(0, (parseFloat(t.kmArrivo) || 0) - (parseFloat(t.kmPartenza) || 0));
             let kmInseriti = prompt('CHIUSURA SERVIZIO: ' + t.paziente + '\nInserisci i KM TOTALI percorsi:', kmCalcolati > 0 ? kmCalcolati : "");
             if (kmInseriti === null) return; 
             t.kmPartenza = 0; t.kmArrivo = parseFloat(kmInseriti) || 0; t.oraChiusura = new Date().toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'});
             t.statoServizio = (t.regime.toLowerCase().includes('asl') || t.regime.toLowerCase().includes('dimissioni')) ? "Da Rendicontare" : "Completato";
-            t.utente_modifica = utenteLoggato; window.salvaTutto(); toast("Servizio chiuso.");
+            t.utente_modifica = utenteLoggato; window.salvaTutto(); window.showToast("Servizio chiuso.");
         };
 
         window.vediDettagliChiusura = function(id) {
@@ -1572,7 +1563,7 @@
         window.editItem = function(lista, id) {
             const arr = getListByName(lista); const item = arr.find(function(x) { return String(x.id) === String(id); }); if(!item) return;
             let prefix, modalId;
-            if(lista === 'volontari') { prefix = 'v-'; modalId = 'modalVolontario'; document.getElementById('v-foto-preview').src = item.foto || 'https://via.placeholder.com/150'; fotoVolontarioBase64 = null; }
+            if(lista === 'volontari') { prefix = 'v-'; modalId = 'modalVolontario'; document.getElementById('v-foto-preview').src = item.foto || 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%20viewBox%3D%220%200%20150%20150%22%3E%3Crect%20width%3D%22150%22%20height%3D%22150%22%20fill%3D%22%23e2e8f0%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2218%22%20fill%3D%22%2394a3b8%22%20dy%3D%22.3em%22%20text-anchor%3D%22middle%22%3EFOTO%3C%2Ftext%3E%3C%2Fsvg%3E'; fotoVolontarioBase64 = null; }
             else if(lista === 'mezzi') { prefix = 'm-'; modalId = 'modalMezzo'; }
             else if(lista === 'finanze') { prefix = 'f-'; modalId = 'modalFinanze'; }
             else if(lista === 'turni') { prefix = 't-'; modalId = 'modalTurno'; }
@@ -1615,7 +1606,7 @@
                         sdi: document.getElementById('imp-sdi').value, indirizzo: document.getElementById('imp-indirizzo').value,
                         telefono: document.getElementById('imp-telefono').value, email: document.getElementById('imp-email').value, note: document.getElementById('imp-note').value
                     };
-                    window.salvaTutto(); window.renderImpostazioni(); toast("Anagrafica Aziendale salvata con successo!");
+                    window.salvaTutto(); window.renderImpostazioni(); window.showToast("Anagrafica Aziendale salvata con successo!");
                 });
             }
 
@@ -1648,14 +1639,14 @@
                     obj.utente_modifica = utenteLoggato; obj.data_modifica = new Date().toLocaleString('it-IT');
                     if (editId) { const idx = arr.findIndex(function(x) { return String(x.id) === String(editId); }); if (idx > -1) arr[idx] = Object.assign({}, arr[idx], obj); } 
                     else { obj.id = Date.now(); arr.push(obj); }
-                    window.salvaTutto(); window.chiudiModali(); toast("Salvataggio completato!");
+                    window.salvaTutto(); window.chiudiModali(); window.showToast("Salvataggio completato!");
                 });
             }
 
             collegaFormStandard('formMezzo', 'mezzi', 'm-', ['nome', 'targa', 'aut', 'assicurazione', 'revisione']);
             collegaFormStandard('formFinanze', 'finanze', 'f-', ['tipo', 'data', 'categoria', 'controparte', 'descrizione', 'importo']);
             collegaFormStandard('formTurno', 'turni', 't-', ['data', 'fascia', 'mezzo', 'autista', 'soccorritore', 'note']);
-            collegaFormStandard('formSanificazione', 'sanificazioni', 'san-', ['data', 'mezzo', 'operatore', 'tipo', 'note']);
+            collegaFormStandard('formSanificazione', 'sanificazioni', 'san-', ['data', 'mezzo', 'tipo', 'pmc', 'operatore', 'note']);
 
             const formVol = document.getElementById('formVolontario');
             if(formVol) {
@@ -1673,7 +1664,7 @@
                         const idx = volontari.findIndex(function(x) { return String(x.id) === String(editId); }); 
                         if (idx > -1) { if(!fotoVolontarioBase64 && volontari[idx].foto) { obj.foto = volontari[idx].foto; } volontari[idx] = Object.assign({}, volontari[idx], obj); } 
                     } else { obj.id = Date.now(); volontari.push(obj); }
-                    window.salvaTutto(); window.chiudiModali(); toast("Anagrafica salvata!");
+                    window.salvaTutto(); window.chiudiModali(); window.showToast("Anagrafica salvata!");
                 });
             }
 
@@ -1693,7 +1684,7 @@
                     };
                     if (editId) { const idx = trasporti.findIndex(function(t) { return String(t.id) === String(editId); }); if (idx > -1) trasporti[idx] = Object.assign({}, trasporti[idx], obj); } 
                     else { obj.id = Date.now(); trasporti.push(obj); }
-                    window.salvaTutto(); window.chiudiModali(); toast(editId ? "Servizio aggiornato!" : "Nuovo servizio inserito!");
+                    window.salvaTutto(); window.chiudiModali(); window.showToast(editId ? "Servizio aggiornato!" : "Nuovo servizio inserito!");
                 });
             }
 
@@ -1704,7 +1695,9 @@
                     const p = document.getElementById('d-paziente').value, cf = document.getElementById('d-cf').value.toUpperCase(), mz = document.getElementById('d-mezzo').value, ptz = document.getElementById('d-partenza').value, tp = document.getElementById('d-tappa').value.trim(), arr = document.getElementById('d-arrivo').value;
                     const dIn = new Date(document.getElementById('d-inizio').value), dFi = new Date(document.getElementById('d-fine').value);
                     const giorniScelti = Array.from(document.querySelectorAll('input[name="d-giorni"]:checked')).map(function(cb) { return parseInt(cb.value); });
-                    if(dFi < dIn) return alert("Errore Date");
+                    if(dFi < dIn) return alert("Errore: Data fine precedente alla data inizio!");
+                    if(giorniScelti.length === 0) return alert("Seleziona almeno un giorno della settimana per il ciclo dialisi.");
+
                     let curr = new Date(dIn); let count = 0; let oA = document.getElementById('d-turno').value === 'mattina' ? "07:00" : "13:00"; let oR = document.getElementById('d-turno').value === 'mattina' ? "12:00" : "17:00";
                     while(curr <= dFi) {
                         if(giorniScelti.includes(curr.getDay())) {
@@ -1715,7 +1708,7 @@
                         }
                         curr.setDate(curr.getDate() + 1);
                     }
-                    window.salvaTutto(); window.chiudiModali(); toast("Generati " + count + " viaggi!");
+                    window.salvaTutto(); window.chiudiModali(); window.showToast("Generati " + count + " viaggi!");
                 });
             }
         });
@@ -1816,7 +1809,7 @@
                 doc.text("Tessera personale non cedibile. Mostrare su richiesta agli organi ispettivi.", 6, 107);
                 
                 doc.save('Tessera_Ispettiva_' + (volontarioTesseraAttiva.nome || 'ID' + volontarioTesseraAttiva.id).replace(/\s+/g, '_') + '.pdf');
-                toast("Tesserino ASL/NAS scaricato!");
+                window.showToast("Tesserino ASL/NAS scaricato!");
             } catch(e) {
                 alert("Errore generazione PDF: " + e.message);
                 console.error(e);
@@ -1836,23 +1829,27 @@
 
                 doc.setFontSize(8);
                 doc.setTextColor(100, 100, 100);
-                doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva}`, 14, 20);
-                doc.text(`${societaInfo.runts} | ${societaInfo.autorizzazione}`, 14, 24);
+                doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva, 14, 20);
+                doc.text(societaInfo.runts + ' | ' + societaInfo.autorizzazione, 14, 24);
 
                 doc.setFontSize(11);
                 doc.setTextColor(0, 0, 0);
-                doc.text(`REGISTRO GENERALE PRESENZE VOLONTARI - Data: ${new Date().toLocaleDateString('it-IT')}`, 14, 32);
+                doc.text('REGISTRO GENERALE PRESENZE VOLONTARI - Data: ' + new Date().toLocaleDateString('it-IT'), 14, 32);
                 doc.text("Ai sensi degli artt. 17 e 18 del D.Lgs. 117/2017 (Codice del Terzo Settore)", 14, 37);
                 doc.line(14, 40, 196, 40);
 
                 let presenzeOrdinati = [].concat(presenze).sort(function(a, b) { return (b.timestamp || 0) - (a.timestamp || 0); });
                 let bodyData = presenzeOrdinati.map(function(p) {
+                    let stato = p.tipo === 'ENTRATA' ? 'In Servizio' : 'Uscita Conclusa';
+                    if (p.straordinario) {
+                        stato = p.confermato ? 'Straordinario OK' : 'Straordinario (Da Conv.)';
+                    }
                     return [
                         p.data ? new Date(p.data).toLocaleDateString('it-IT') : '-',
                         p.ora || '-',
                         p.volontario || '-',
                         p.tipo || '-',
-                        p.tipo === 'ENTRATA' ? 'In Servizio' : 'Uscita Conclusa'
+                        stato
                     ];
                 });
 
@@ -1873,8 +1870,8 @@
                 doc.setFontSize(9);
                 doc.text("Firma del Presidente / Coordinatore: ______________________", 14, finalY);
 
-                doc.save(`Registro_Presenze_Volontari_${todayStr}.pdf`);
-                toast("Registro Presenze scaricato!");
+                doc.save('Registro_Presenze_Volontari_' + todayStr + '.pdf');
+                window.showToast("Registro Presenze scaricato!");
             } catch(e) {
                 alert("Errore generazione registro: " + e.message);
             }
@@ -1914,7 +1911,7 @@
             doc.setFontSize(14); doc.setTextColor(16, 185, 129); doc.text('TOTALE DA RENDICONTARE: Euro ' + importoTotale.toFixed(2), 14, finalY + 28);
             if (impostazioni.piva) { doc.setFontSize(9); doc.setTextColor(100, 100, 100); doc.text("P.IVA/CF: " + impostazioni.piva + (impostazioni.sdi ? " - SDI: " + impostazioni.sdi : ""), 14, finalY + 36); }
             
-            doc.save('Rendiconto_ASL_' + mese + '.pdf'); toast("Prospetto ASL Scaricato!");
+            doc.save('Rendiconto_ASL_' + mese + '.pdf'); window.showToast("Prospetto ASL Scaricato!");
         };
 
         window.stampaSchedaSingola = function(id) {
@@ -1925,7 +1922,7 @@
             doc.setFontSize(10); doc.setTextColor(0, 0, 0); doc.text('Data: ' + new Date(t.data).toLocaleDateString('it-IT') + ' - Ora: ' + t.ora, 10, 25); doc.text('Paziente: ' + t.paziente, 10, 32); doc.text('Cod. Fiscale: ' + (t.cf || '-'), 10, 39); doc.text('Regime: ' + t.regime, 10, 46); doc.text('NRE/Autorizzazione: ' + (t.nre || '-'), 10, 53);
             doc.line(10, 57, 138, 57); doc.text('Da: ' + t.partenza, 10, 65); doc.text('A: ' + t.destinazione, 10, 72); doc.text('Mezzo: ' + (t.mezzoSelezionato || '-'), 10, 79); doc.line(10, 83, 138, 83);
             doc.text("Firma Capo Equipaggio:", 10, 95); doc.text("_______________________", 55, 95); doc.text("Firma Medico/Struttura:", 10, 110); doc.text("_______________________", 55, 110);
-            doc.save('Foglio_' + t.paziente.replace(/\s+/g, '') + '.pdf'); toast("Stampato!");
+            doc.save('Foglio_' + t.paziente.replace(/\s+/g, '') + '.pdf'); window.showToast("Stampato!");
         };
 
         window.stampaRendicontoRUNTS = function() {
@@ -1940,7 +1937,7 @@
             let tE = 0, tU = 0; const body = fAnno.map(function(f) { if(f.tipo === 'Entrata') tE += parseFloat(f.importo)||0; else tU += parseFloat(f.importo)||0; return [new Date(f.data).toLocaleDateString('it-IT'), f.tipo, f.categoria, f.controparte, 'E. ' + (parseFloat(f.importo)||0).toFixed(2)]; });
             doc.autoTable({ startY: 35, head: [['Data', 'Tipo', 'Categoria RUNTS', 'Controparte/SDI', 'Importo']], body: body, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
             let fY = doc.lastAutoTable.finalY + 15; doc.setFontSize(11); doc.text('Tot. Entrate: Euro ' + tE.toFixed(2), 14, fY); doc.text('Tot. Uscite: Euro ' + tU.toFixed(2), 14, fY + 6); doc.setFontSize(13); doc.text('SALDO FINALE: Euro ' + (tE - tU).toFixed(2), 14, fY + 16);
-            doc.save('Modello_D_' + anno + '.pdf'); toast("Modello D RUNTS Generato!");
+            doc.save('Modello_D_' + anno + '.pdf'); window.showToast("Modello D RUNTS Generato!");
         };
 
         window.esportaExcelFinanze = function() {
@@ -1948,7 +1945,7 @@
             let csv = "data:text/csv;charset=utf-8,Data,Tipo,Categoria RUNTS,Controparte,Descrizione,Importo\n";
             fAnno.forEach(function(f) { csv += f.data + ',' + f.tipo + ',' + f.categoria + ',"' + f.controparte + '","' + f.descrizione + '",' + f.importo + '\n'; });
             const l = document.createElement("a"); l.setAttribute("href", encodeURI(csv)); l.setAttribute("download", 'Export_' + anno + '.csv');
-            document.body.appendChild(l); l.click(); document.body.removeChild(l); toast("File Excel pronto!");
+            document.body.appendChild(l); l.click(); document.body.removeChild(l); window.showToast("File Excel pronto!");
         };
     </script>
 </body>
