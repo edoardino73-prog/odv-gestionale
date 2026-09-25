@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuore d'Argento - Cloud Management Centrale</title>
+    <title>Cuore d'Argento - Cloud Management</title>
     
     <!-- Librerie Font e Icone -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Librerie Funzionali PDF e QR Code -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -32,6 +33,8 @@
             });
         };
     </script>
+    
+    <!-- Google Maps Places API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBeHOqzhD1Z5fCV6oleFEVPj9Cs5XMNn60&libraries=places&callback=initMapAutocomplete" async defer></script>
 
     <!-- FIREBASE SDKs -->
@@ -55,6 +58,13 @@
         .login-box { background: white; padding: 40px 30px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; }
         .login-box h2 { color: var(--primary); font-weight: 800; margin-bottom: 5px; font-size: 1.5rem;}
         .login-box p { color: var(--text-light); font-size: 0.85rem; margin-bottom: 25px; }
+
+        /* --- OVERLAY VERIFICA QR CODE ISPEDIZIONI ASL / NAS --- */
+        #verify-screen { position: fixed; inset: 0; background: var(--bg-body); z-index: 99999; display: none; align-items: center; justify-content: center; flex-direction: column; padding: 20px; overflow-y: auto;}
+        .verify-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 480px; text-align: center; border: 1px solid var(--border); }
+        .verify-header { background: var(--primary); padding: 25px 20px; color: white; }
+        .verify-body { padding: 0 20px 30px 20px; }
+        .verify-foto { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-top: -60px; background: white; }
 
         /* --- TOP BAR --- */
         .topbar { height: 60px; background: linear-gradient(to bottom, #ffffff, #f1f5f9); border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 10; }
@@ -136,6 +146,21 @@
         .btn-ghost { background: transparent; color: var(--text-main); border-color: var(--border); }
         .btn-ghost:hover { background: #f1f5f9; }
 
+        .turni-board { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; align-items: stretch; min-height: 300px;}
+        .turni-board::-webkit-scrollbar { height: 8px; }
+        .turni-board::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .turno-day-col { flex: 0 0 280px; background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; }
+        .turno-day-header { padding: 12px 10px; background: var(--secondary); color: white; font-weight: 700; text-align: center; border-radius: var(--radius) var(--radius) 0 0; font-size: 0.9rem;}
+        .turno-day-header.today { background: var(--primary); }
+        .turno-cards { padding: 10px; display: flex; flex-direction: column; gap: 12px; flex: 1;}
+        .turno-card { background: white; border: 1px solid var(--border); border-left: 4px solid var(--text-light); border-radius: 6px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); position: relative;}
+        .turno-card.coperto { border-left-color: var(--success); }
+        .turno-card.parziale { border-left-color: var(--warning); }
+        .turno-card.scoperto { border-left-color: var(--alert-red); }
+        .turno-card-time { font-size: 0.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;}
+        .turno-card-role { font-size: 0.8rem; display: flex; justify-content: space-between; margin-top: 6px; align-items: center;}
+        .turno-card-actions { display: flex; gap: 6px; margin-top: 12px; justify-content: flex-end; border-top: 1px dashed var(--border); padding-top: 8px; }
+
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 1rem; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal { background: var(--bg-panel); width: 100%; max-width: 850px; max-height: 95vh; overflow-y: auto; border-radius: 12px; padding: 2rem; transform: scale(0.95); transition: 0.2s; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
@@ -163,6 +188,14 @@
     </style>
 </head>
 <body>
+
+    <!-- OVERLAY VERIFICA TESSERA ELETTRONICA (Per Verbali e Ispezioni ASL / NAS) -->
+    <div id="verify-screen">
+        <div style="color:var(--text-main); font-weight:600; text-align:center;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color:var(--primary); margin-bottom:15px;"></i><br>
+            Connessione al database in corso per verifica ispettiva...
+        </div>
+    </div>
 
     <!-- OVERLAY LOGIN TRACCIABILITA' -->
     <div id="login-screen">
@@ -204,8 +237,8 @@
             <button class="topbar-btn" onclick="window.open('turni.html', '_blank')" style="border-color: #10b981; color: #059669; font-weight: 700;" title="Apri Portale Turni ed Equipaggi">
                 <i class="fa-solid fa-user-clock"></i> Portale Turni
             </button>
-            <button class="topbar-btn" onclick="window.open('iso9001 accreditamento.html', '_blank')" style="border-color: #8b5cf6; color: #8b5cf6; font-weight: 700;" title="Portale ISO 9001">
-                <i class="fa-solid fa-medal"></i> Qualità (ISO 9001)
+            <button class="topbar-btn" onclick="window.open('https://iso9001-odv-cuoredargento.netlify.app', '_blank')" style="border-color: #8b5cf6; color: #8b5cf6; font-weight: 700;" title="Portale ISO 9001">
+                <i class="fa-solid fa-medal"></i> Portale ISO 9001
             </button>
         </div>
         <div class="topbar-center">
@@ -388,7 +421,7 @@
                 </div>
                 <div class="glass-panel table-container">
                     <table style="width: 100%;">
-                        <thead><tr><th>Data</th><th>Ora</th><th>Volontario</th><th>Evento</th><th>Stato Presenza / Extra</th></tr></thead>
+                        <thead><tr><th>Data</th><th>Ora</th><th>Volontario</th><th>Evento</th><th>Stato Presenza</th></tr></thead>
                         <tbody id="presenze-corpo"></tbody>
                     </table>
                 </div>
@@ -729,7 +762,7 @@
         </div>
     </div>
 
-    <!-- MODALE TURNO -->
+    <!-- MODALE TURNO (CON LE 7 FASCE UFFICIALI DA EXCEL) -->
     <div class="modal-overlay" id="modalTurno">
         <div class="modal" style="max-width: 550px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
@@ -922,7 +955,6 @@
         var impostazioni = {};
         var filtroDataAttivo = 'oggi', vistaTurni = 'board', filtroTurniAttivo = 'tutti';
         var utenteLoggato = "Admin Direzione", fotoVolontarioBase64 = null, volontarioTesseraAttiva = null;
-        let dbRootPath = 'cuore_argento_db';
 
         const societaInfo = {
             nome: "Associazione di Volontariato Cuore d'Argento ODV",
@@ -937,11 +969,6 @@
             return new Date(dateObj.getTime() - tzoffset).toISOString().split('T')[0];
         };
         const todayStr = getLocalISODate(new Date());
-
-        function getDbRef(subPath) {
-            let cleanSub = subPath ? subPath.replace(/^\/+/, '') : '';
-            return database.ref(dbRootPath + '/' + cleanSub);
-        }
 
         window.switchMainTab = function(tabId) {
             document.querySelectorAll('.tree-item, .side-tab').forEach(function(el) { el.classList.remove('active'); });
@@ -1057,7 +1084,7 @@
             document.getElementById('modalTesseraQR').classList.add('active');
         };
 
-        window.toast = function(msg, type) {
+        window.toast = function(msg, type="success") {
             const container = document.getElementById('toast-container'); if(!container) return;
             const el = document.createElement('div'); el.className = 'toast';
             el.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + msg;
@@ -1137,10 +1164,9 @@
                 appId: "1:271690439864:web:17b36ef2c5ab4263d3684d"
             };
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-            database = firebase.database();
+            const database = firebase.database();
             
-            // ASCOLTO FIREBASE ROOT NORMALIZZATO
-            database.ref().on('value', function(snapshot) {
+            database.ref('/').on('value', function(snapshot) {
                 window.firebaseLoaded = true;
                 
                 try {
@@ -1148,17 +1174,11 @@
                     let data = rawData;
                     if (rawData.cuore_argento_db && typeof rawData.cuore_argento_db === 'object') {
                         data = rawData.cuore_argento_db;
-                        dbRootPath = 'cuore_argento_db';
                     } else {
                         let altKey = Object.keys(rawData).find(function(k) {
                             return rawData[k] && typeof rawData[k] === 'object' && (rawData[k].volontari || rawData[k].trasporti || rawData[k].mezzi);
                         });
-                        if (altKey) {
-                            data = rawData[altKey];
-                            dbRootPath = altKey;
-                        } else {
-                            dbRootPath = 'cuore_argento_db';
-                        }
+                        if (altKey) data = rawData[altKey];
                     }
 
                     trasporti = estraiDati(data.trasporti); 
@@ -1171,6 +1191,7 @@
                     checklists = estraiDati(data.checklists);
                     impostazioni = data.impostazioni || { nome: "CUORE D'ARGENTO ODV", piva: "01725470551", sdi: "", indirizzo: "Via della Stazione n. 51 – Narni Scalo (TR)", telefono: "", email: "", note: "" };
 
+                    // SCHERMATA CONTROLLO ISPETTIVO ASL / NAS VIA QR CODE
                     const urlParams = new URLSearchParams(window.location.search);
                     if (urlParams.has('verify')) {
                         const verifyId = urlParams.get('verify');
@@ -1227,7 +1248,7 @@
             });
 
             window.salvaTutto = function() {
-                database.ref(dbRootPath).update({ 
+                database.ref('cuore_argento_db').update({ 
                     trasporti: trasporti, volontari: volontari, mezzi: mezzi, finanze: finanze, turni: turni, presenze: presenze, sanificazioni: sanificazioni, checklists: checklists, impostazioni: impostazioni 
                 }).then(function() { toast("Sincronizzato sul Cloud!"); }).catch(function(err) { alert("Errore Cloud: " + err.message); });
             };
@@ -1402,7 +1423,7 @@
             if(document.getElementById('runts-saldo')) document.getElementById('runts-saldo').innerText = '€ ' + (entrate - uscite).toFixed(2);
         };
 
-        // RENDER REGISTRO PRESENZE VOLONTARI (CON SUPPORTO STRAORDINARI/EMERGENZE)
+        // RENDER REGISTRO PRESENZE VOLONTARI (NUOVO MODULO D.LGS. 117/17)
         window.renderPresenze = function() {
             const tbody = document.getElementById('presenze-corpo'); if(!tbody) return; tbody.innerHTML = '';
             if (!presenze || presenze.length === 0) {
@@ -1413,24 +1434,12 @@
                 let isEntrata = p.tipo === 'ENTRATA';
                 let badgeColor = isEntrata ? 'var(--success)' : 'var(--alert-red)';
                 let icon = isEntrata ? 'fa-right-to-bracket' : 'fa-right-from-bracket';
-                
-                let statoExtra = '';
-                if (p.straordinario) {
-                    if (p.confermato === false) {
-                        statoExtra = '<span style="color:var(--warning); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> Straordinario (Da Convalidare)</span>';
-                    } else {
-                        statoExtra = '<span style="color:var(--info); font-weight:700;"><i class="fa-solid fa-check-double"></i> Straordinario Convalidato</span>';
-                    }
-                } else {
-                    statoExtra = isEntrata ? '<span style="color:var(--success); font-weight:700;">In Servizio Attivo (Turno)</span>' : '<span style="color:var(--text-light);">Turno Concluso</span>';
-                }
-
                 tbody.innerHTML += '<tr>' +
                     '<td><strong>' + (p.data ? new Date(p.data).toLocaleDateString('it-IT') : '-') + '</strong></td>' +
                     '<td>' + (p.ora || '-') + '</td>' +
                     '<td><strong>' + (p.volontario || '-') + '</strong></td>' +
                     '<td><span class="badge" style="background:' + badgeColor + '; color:white;"><i class="fa-solid ' + icon + '"></i> ' + p.tipo + '</span></td>' +
-                    '<td>' + statoExtra + '</td>' +
+                    '<td>' + (isEntrata ? '<span style="color:var(--success); font-weight:700;">In Servizio Attivo</span>' : '<span style="color:var(--text-light);">Turno Chiuso</span>') + '</td>' +
                 '</tr>';
             });
         };
@@ -1487,7 +1496,7 @@
                 let errBarella = c.barella && c.barella !== 'OK';
                 let errZaino = c.zaino && c.zaino !== 'OK';
                 let errDae = c.dae && c.dae !== 'OK';
-                let errO2 = c.o2 && !c.o2.includes('OK');
+                let errO2 = c.o2 && c.o2 !== 'OK';
                 let errCarb = c.carburante === 'Riserva';
 
                 let bDae = errDae ? 'var(--alert-red)' : 'var(--success)';
@@ -1646,7 +1655,7 @@
             collegaFormStandard('formMezzo', 'mezzi', 'm-', ['nome', 'targa', 'aut', 'assicurazione', 'revisione']);
             collegaFormStandard('formFinanze', 'finanze', 'f-', ['tipo', 'data', 'categoria', 'controparte', 'descrizione', 'importo']);
             collegaFormStandard('formTurno', 'turni', 't-', ['data', 'fascia', 'mezzo', 'autista', 'soccorritore', 'note']);
-            collegaFormStandard('formSanificazione', 'sanificazioni', 'san-', ['data', 'mezzo', 'tipo', 'operatore', 'note']);
+            collegaFormStandard('formSanificazione', 'sanificazioni', 'san-', ['data', 'mezzo', 'operatore', 'tipo', 'note']);
 
             const formVol = document.getElementById('formVolontario');
             if(formVol) {
@@ -1695,9 +1704,7 @@
                     const p = document.getElementById('d-paziente').value, cf = document.getElementById('d-cf').value.toUpperCase(), mz = document.getElementById('d-mezzo').value, ptz = document.getElementById('d-partenza').value, tp = document.getElementById('d-tappa').value.trim(), arr = document.getElementById('d-arrivo').value;
                     const dIn = new Date(document.getElementById('d-inizio').value), dFi = new Date(document.getElementById('d-fine').value);
                     const giorniScelti = Array.from(document.querySelectorAll('input[name="d-giorni"]:checked')).map(function(cb) { return parseInt(cb.value); });
-                    if(dFi < dIn) return alert("Errore: Data fine precedente alla data inizio!");
-                    if(giorniScelti.length === 0) return alert("Seleziona almeno un giorno della settimana per il ciclo dialisi.");
-
+                    if(dFi < dIn) return alert("Errore Date");
                     let curr = new Date(dIn); let count = 0; let oA = document.getElementById('d-turno').value === 'mattina' ? "07:00" : "13:00"; let oR = document.getElementById('d-turno').value === 'mattina' ? "12:00" : "17:00";
                     while(curr <= dFi) {
                         if(giorniScelti.includes(curr.getDay())) {
@@ -1829,27 +1836,23 @@
 
                 doc.setFontSize(8);
                 doc.setTextColor(100, 100, 100);
-                doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva, 14, 20);
-                doc.text(societaInfo.runts + ' | ' + societaInfo.autorizzazione, 14, 24);
+                doc.text(`${societaInfo.sede} | ${societaInfo.cfPiva}`, 14, 20);
+                doc.text(`${societaInfo.runts} | ${societaInfo.autorizzazione}`, 14, 24);
 
                 doc.setFontSize(11);
                 doc.setTextColor(0, 0, 0);
-                doc.text('REGISTRO GENERALE PRESENZE VOLONTARI - Data: ' + new Date().toLocaleDateString('it-IT'), 14, 32);
+                doc.text(`REGISTRO GENERALE PRESENZE VOLONTARI - Data: ${new Date().toLocaleDateString('it-IT')}`, 14, 32);
                 doc.text("Ai sensi degli artt. 17 e 18 del D.Lgs. 117/2017 (Codice del Terzo Settore)", 14, 37);
                 doc.line(14, 40, 196, 40);
 
                 let presenzeOrdinati = [].concat(presenze).sort(function(a, b) { return (b.timestamp || 0) - (a.timestamp || 0); });
                 let bodyData = presenzeOrdinati.map(function(p) {
-                    let stato = p.tipo === 'ENTRATA' ? 'In Servizio' : 'Uscita Conclusa';
-                    if (p.straordinario) {
-                        stato = p.confermato ? 'Straordinario OK' : 'Straordinario (Da Conv.)';
-                    }
                     return [
                         p.data ? new Date(p.data).toLocaleDateString('it-IT') : '-',
                         p.ora || '-',
                         p.volontario || '-',
                         p.tipo || '-',
-                        stato
+                        p.tipo === 'ENTRATA' ? 'In Servizio' : 'Uscita Conclusa'
                     ];
                 });
 
@@ -1870,7 +1873,7 @@
                 doc.setFontSize(9);
                 doc.text("Firma del Presidente / Coordinatore: ______________________", 14, finalY);
 
-                doc.save('Registro_Presenze_Volontari_' + todayStr + '.pdf');
+                doc.save(`Registro_Presenze_Volontari_${todayStr}.pdf`);
                 toast("Registro Presenze scaricato!");
             } catch(e) {
                 alert("Errore generazione registro: " + e.message);
