@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cuore d'Argento ODV - Domanda di Iscrizione Volontario</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- Firebase SDK per invio diretto della sola anagrafica -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #c62828;
+            --primary-dark: #8e0000;
+            --secondary: #1e293b;
+            --bg-body: #f1f5f9;
+            --border: #cbd5e1;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; padding: 15px; display: flex; justify-content: center; align-items: flex-start; }
+
+        .form-card { width: 100%; max-width: 580px; background: white; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.06); padding: 24px; margin: 10px auto 40px auto; }
+        
+        .header-brand { text-align: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px; }
+        .header-brand img { height: 60px; width: auto; object-fit: contain; margin-bottom: 8px; }
+        .header-brand h1 { font-size: 1.25rem; font-weight: 800; color: var(--primary); text-transform: uppercase; }
+        .header-brand p { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+
+        .sec-title { font-size: 0.85rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; margin: 18px 0 10px 0; display: flex; align-items: center; gap: 8px; border-left: 4px solid var(--primary); padding-left: 8px; }
+
+        .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+        .form-group label { font-size: 0.72rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 11px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.92rem; outline: none; background: #f8fafc; font-family: 'Inter', sans-serif; }
+        .form-group input:focus, .form-group select:focus { border-color: var(--primary); background: white; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* AREA FOTO PROFILO */
+        .photo-picker-box { display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #94a3b8; border-radius: 14px; padding: 16px; background: #f8fafc; cursor: pointer; text-align: center; transition: 0.2s; margin-bottom: 14px; }
+        .photo-picker-box:hover { border-color: var(--primary); background: #fef2f2; }
+        .photo-preview { width: 105px; height: 105px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); margin-bottom: 10px; display: none; }
+        .photo-btn { font-size: 0.8rem; font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 6px; }
+
+        /* FIRMA TOUCH */
+        .sig-container { border: 2px solid var(--border); border-radius: 10px; background: #ffffff; position: relative; overflow: hidden; margin-top: 5px; }
+        .sig-canvas { width: 100%; height: 160px; display: block; touch-action: none; }
+        .sig-clear-btn { position: absolute; top: 8px; right: 8px; background: white; border: 1px solid var(--border); padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; color: var(--text-muted); }
+
+        .privacy-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-size: 0.75rem; color: var(--text-main); line-height: 1.4; margin: 15px 0; }
+
+        .btn-submit { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px; box-shadow: 0 4px 12px rgba(198, 40, 40, 0.25); }
+        .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        /* SCHERMATA SUCCESSO */
+        #success-view { display: none; text-align: center; padding: 40px 20px; }
+        .success-icon { font-size: 4rem; color: var(--success); margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="form-card">
+        <!-- VISTA FORM -->
+        <div id="form-container">
+            <div class="header-brand">
+                <img src="logo cuore d'argento.webp" alt="Logo Cuore d'Argento" onerror="this.src='logo cuore d'argento.jpg'">
+                <h1>Domanda di Iscrizione</h1>
+                <p>Associazione Cuore d'Argento ODV • Convenzione AUSL Umbria 2</p>
+            </div>
+
+            <form id="formCandidato" onsubmit="inviaCandidatura(event)">
+                
+                <!-- FOTO PROFILO / TESSERINO -->
+                <div class="sec-title"><i class="fa-solid fa-camera"></i> Foto Profilo / Tesserino</div>
+                <div class="photo-picker-box" onclick="document.getElementById('input-foto-file').click()">
+                    <img id="img-preview" class="photo-preview" alt="Anteprima Foto">
+                    <div id="placeholder-foto">
+                        <i class="fa-solid fa-user-circle" style="font-size: 3rem; color: #94a3b8; margin-bottom: 6px;"></i>
+                        <p class="photo-btn"><i class="fa-solid fa-camera"></i> Scatta Foto o Scegli da Galleria *</p>
+                        <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 4px;">Formato fototessera per tesserino associativo</span>
+                    </div>
+                </div>
+                <input type="file" id="input-foto-file" accept="image/*" capture="user" style="display: none;" onchange="elaboraFoto(event)">
+
+                <!-- DATI ANAGRAFICI -->
+                <div class="sec-title"><i class="fa-solid fa-id-card"></i> Dati Anagrafici</div>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Nome *</label>
+                        <input type="text" id="cand-nome" required placeholder="Mario">
+                    </div>
+                    <div class="form-group">
+                        <label>Cognome *</label>
+                        <input type="text" id="cand-cognome" required placeholder="Rossi">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Codice Fiscale *</label>
+                    <input type="text" id="cand-cf" required maxlength="16" placeholder="RSSMRA80A01L117X" style="text-transform: uppercase;">
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Data di Nascita *</label>
+                        <input type="date" id="cand-nascita-data" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Luogo di Nascita *</label>
+                        <input type="text" id="cand-nascita-luogo" required placeholder="Comune (Prov)">
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Telefono Cellulare *</label>
+                        <input type="tel" id="cand-tel" required placeholder="333 1234567">
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" id="cand-email" required placeholder="mario.rossi@email.it">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Indirizzo di Residenza *</label>
+                    <input type="text" id="cand-indirizzo" required placeholder="Via, Civico, Comune (Prov), CAP">
+                </div>
+
+                <!-- RUOLO E OPERATIVITÀ -->
+                <div class="sec-title"><i class="fa-solid fa-truck-medical"></i> Ruolo e Idoneità Operative</div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Ruolo Richiesto *</label>
+                        <select id="cand-ruolo" required>
+                            <option value="Soccorritore">Soccorritore</option>
+                            <option value="Autista Soccorritore">Autista Soccorritore</option>
+                            <option value="Infermiere">Infermiere</option>
+                            <option value="Barelliere">Barelliere</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Gruppo Sanguigno</label>
+                        <select id="cand-sangue">
+                            <option value="N/D">Non specificato</option>
+                            <option value="0+">0 Positivo</option>
+                            <option value="0-">0 Negativo</option>
+                            <option value="A+">A Positivo</option>
+                            <option value="A-">A Negativo</option>
+                            <option value="B+">B Positivo</option>
+                            <option value="B-">B Negativo</option>
+                            <option value="AB+">AB Positivo</option>
+                            <option value="AB-">AB Negativo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Scadenza Patente (se autista)</label>
+                        <input type="date" id="cand-patente">
+                    </div>
+                    <div class="form-group">
+                        <label>Taglia Divisa (Operativa)</label>
+                        <select id="cand-taglia">
+                            <option value="S">S</option>
+                            <option value="M" selected>M</option>
+                            <option value="L">L</option>
+                            <option value="XL">XL</option>
+                            <option value="XXL">XXL</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Scadenza BLSD Sanitario</label>
+                        <input type="date" id="cand-blsd">
+                    </div>
+                    <div class="form-group">
+                        <label>Visita Medico L. 81/08</label>
+                        <input type="date" id="cand-medico">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>PIN Desiderato per Tablet Missioni (4 cifre) *</label>
+                    <input type="password" id="cand-pin" required maxlength="4" placeholder="Es. 1234" style="text-align: center; font-size: 1.2rem; letter-spacing: 5px;">
+                </div>
+
+                <!-- PRIVACY E FIRMA TOUCH -->
+                <div class="sec-title"><i class="fa-solid fa-file-signature"></i> Nomina Privacy GDPR & Segreto d'Ufficio</div>
+                <div class="privacy-box">
+                    <strong>Dichiarazione Vincolante (Regolamento UE 2016/679):</strong><br>
+                    Il sottoscritto si impegna al più rigoroso segreto d'ufficio e professionale su ogni informazione e dato sanitario appreso durante le attività dell'associazione. Dichiara di custodire personalmente il PIN di bordo senza cederlo a terzi.
+                </div>
+
+                <div class="form-group">
+                    <label>Firma Digitale sullo Schermo *</label>
+                    <div class="sig-container">
+                        <button type="button" class="sig-clear-btn" onclick="pulisciFirma()">Cancella</button>
+                        <canvas id="sig-canvas" class="sig-canvas"></canvas>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-invia" class="btn-submit">
+                    <i class="fa-solid fa-paper-plane"></i> Invia Domanda di Iscrizione
+                </button>
+            </form>
+        </div>
+
+        <!-- VISTA CONFERMA FINALE -->
+        <div id="success-view">
+            <i class="fa-solid fa-circle-check success-icon"></i>
+            <h2 style="font-size: 1.4rem; color: var(--secondary); margin-bottom: 8px;">Iscrizione Registrata!</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 25px;">
+                Grazie <strong id="success-nome"></strong>. I tuoi dati anagrafici, la foto profilo e la firma dell'Atto Privacy sono stati archiviati in sicurezza nella centrale operativa di Cuore d'Argento ODV.
+            </p>
+            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 15px; font-size: 0.82rem; color: var(--text-main);">
+                Puoi ora chiudere questa finestra del browser.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var fotoBase64 = null;
+        var canvas, ctx, isDrawing = false, hasDrawn = false;
+        var database;
+
+        // Inizializzazione Firebase
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDhi3SRh2mDqz8_T03xYVq4XtcRiAL7IF0",
+                authDomain: "cuore-d-argento.firebaseapp.com",
+                databaseURL: "https://cuore-d-argento-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "cuore-d-argento",
+                storageBucket: "cuore-d-argento.firebasestorage.app",
+                messagingSenderId: "271690439864",
+                appId: "1:271690439864:web:17b36ef2c5ab4263d3684d"
+            };
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+        } catch(e) { console.error(e); }
+
+        // Gestione Canvas Firma Touchscreen
+        window.addEventListener('load', function() {
+            canvas = document.getElementById('sig-canvas');
+            ctx = canvas.getContext('2d');
+            
+            // Imposta risoluzione corretta canvas
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#0f172a';
+
+            function getTouchPos(e) {
+                const r = canvas.getBoundingClientRect();
+                return {
+                    x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left,
+                    y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top
+                };
+            }
+
+            canvas.addEventListener('pointerdown', function(e) {
+                isDrawing = true;
+                ctx.beginPath();
+                const pos = getTouchPos(e);
+                ctx.moveTo(pos.x, pos.y);
+            });
+
+            canvas.addEventListener('pointermove', function(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const pos = getTouchPos(e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                hasDrawn = true;
+            });
+
+            canvas.addEventListener('pointerup', function() { isDrawing = false; });
+            canvas.addEventListener('pointercancel', function() { isDrawing = false; });
+
+            // Impedisce che tornando indietro si possa riaprire il form dopo l'invio
+            window.history.pushState(null, null, window.location.href);
+            window.onpopstate = function() { window.history.go(1); };
+        });
+
+        window.pulisciFirma = function() {
+            if (ctx && canvas) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                hasDrawn = false;
+            }
+        };
+
+        // Acquisizione e Compressione Foto Profilo
+        window.elaboraFoto = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const img = new Image();
+                img.onload = function() {
+                    // Ridimensiona e comprime a max 300x300 per salvataggio leggero su Firebase
+                    const maxDim = 300;
+                    let width = img.width, height = img.height;
+                    if (width > height) {
+                        if (width > maxDim) { height *= maxDim / width; width = maxDim; }
+                    } else {
+                        if (height > maxDim) { width *= maxDim / height; height = maxDim; }
+                    }
+
+                    const offCanvas = document.createElement('canvas');
+                    offCanvas.width = width;
+                    offCanvas.height = height;
+                    const offCtx = offCanvas.getContext('2d');
+                    offCtx.drawImage(img, 0, 0, width, height);
+
+                    fotoBase64 = offCanvas.toDataURL('image/jpeg', 0.85);
+
+                    // Mostra anteprima
+                    const prev = document.getElementById('img-preview');
+                    prev.src = fotoBase64;
+                    prev.style.display = 'block';
+                    document.getElementById('placeholder-foto').style.display = 'none';
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // Invio Finale Diretto a Firebase
+        window.inviaCandidatura = function(e) {
+            e.preventDefault();
+
+            if (!fotoBase64) {
+                alert("È obbligatorio scattare o caricare la foto profilo per il tesserino.");
+                return;
+            }
+
+            if (!hasDrawn) {
+                alert("È obbligatorio apporre la firma digitale sullo schermo.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-invia');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvataggio in corso...';
+
+            const nome = document.getElementById('cand-nome').value.trim();
+            const cognome = document.getElementById('cand-cognome').value.trim();
+            const nomeCompleto = (nome + " " + cognome).toUpperCase();
+            const cf = document.getElementById('cand-cf').value.trim().toUpperCase();
+
+            const nuovoId = "VOL_" + Date.now();
+            const dataOggi = new Date().toLocaleString('it-IT');
+
+            const payloadVolontario = {
+                id: nuovoId,
+                nome: nomeCompleto,
+                cf: cf,
+                nascita_data: document.getElementById('cand-nascita-data').value,
+                nascita_luogo: document.getElementById('cand-nascita-luogo').value,
+                tel: document.getElementById('cand-tel').value.trim(),
+                email: document.getElementById('cand-email').value.trim(),
+                indirizzo: document.getElementById('cand-indirizzo').value.trim(),
+                ruolo: document.getElementById('cand-ruolo').value,
+                gruppo_sanguigno: document.getElementById('cand-sangue').value,
+                taglia: document.getElementById('cand-taglia').value,
+                patente: document.getElementById('cand-patente').value || "",
+                blsd: document.getElementById('cand-blsd').value || "",
+                medico: document.getElementById('cand-medico').value || "",
+                pin: document.getElementById('cand-pin').value.trim() || "1234",
+                foto: fotoBase64,
+                gdpr_firmato: true,
+                gdpr_data_firma: dataOggi + " (Registrato via Smartphone)",
+                gdpr_firma_img: canvas.toDataURL('image/png'),
+                stato: "Attivo",
+                data_iscrizione: dataOggi
+            };
+
+            // Scrittura diretta sul nodo Firebase
+            database.ref('cuore_argento_db/volontari/' + nuovoId).set(payloadVolontario)
+                .then(function() {
+                    // Schermata di successo che blocca qualsiasi ritorno indietro
+                    document.getElementById('form-container').style.display = 'none';
+                    document.getElementById('success-nome').innerText = nomeCompleto;
+                    document.getElementById('success-view').style.display = 'block';
+                    window.history.replaceState(null, null, "#completato");
+                })
+                .catch(function(err) {
+                    alert("Errore durante l'invio: " + err.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Invia Domanda di Iscrizione';
+                });
+        };
+    </script>
+</body>
+</html>

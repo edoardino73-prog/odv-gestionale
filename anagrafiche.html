@@ -57,6 +57,9 @@
         tr:hover td { background: #f1f5f9; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
 
+        .user-avatar-cell { display: flex; align-items: center; gap: 10px; }
+        .user-avatar-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); background: #f1f5f9; }
+
         .btn { padding: 8px 15px; border-radius: 6px; font-weight: 600; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem;}
         .btn-primary { background: var(--primary); color: white; }
         .btn-ghost { background: transparent; color: var(--text-main); border: 1px solid var(--border); }
@@ -64,91 +67,10 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 1rem; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal { background: var(--bg-panel); width: 100%; max-width: 700px; max-height: 95vh; overflow-y: auto; border-radius: 12px; padding: 2rem; }
-
-        /* SCHERMATA SELF-SERVICE ONBOARDING CANDIDATO */
-        #self-registration-view { display: none; position: fixed; inset: 0; background: #f8fafc; z-index: 99999; overflow-y: auto; padding: 20px 15px; }
-        .self-card { max-width: 550px; margin: 0 auto; background: white; border-radius: 16px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid var(--border); }
-        .sig-container { border: 2px solid var(--border); border-radius: 12px; background: #f8fafc; margin: 10px 0; position: relative; overflow: hidden; }
-        .sig-canvas { width: 100%; height: 160px; display: block; touch-action: none; }
-        .sig-clear { position: absolute; top: 8px; right: 8px; background: white; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; color: var(--text-muted); }
     </style>
 </head>
 <body>
 
-    <!-- VISTA SELF-SERVICE DI ISCRIZIONE QUANDO SI APRE DA QR CODE -->
-    <div id="self-registration-view">
-        <div class="self-card">
-            <div style="text-align:center; margin-bottom:20px;">
-                <img src="logo cuore d'argento.jpg" alt="Cuore d'Argento Logo" style="height:55px; margin-bottom:10px;">
-                <h2 style="color:var(--primary); font-size:1.4rem; font-weight:800;">Domanda di Iscrizione Volontario</h2>
-                <p style="color:var(--text-light); font-size:0.85rem;">Cuore d'Argento ODV • Convenzione AUSL Umbria 2</p>
-            </div>
-            
-            <form id="formSelfIscrizione" onsubmit="inviaSelfIscrizione(event)">
-                <div style="display:flex; flex-direction:column; gap:12px;">
-                    <div>
-                        <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase;">Nome e Cognome *</label>
-                        <input type="text" id="self-nome" required style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem;">
-                    </div>
-                    <div>
-                        <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase;">Codice Fiscale *</label>
-                        <input type="text" id="self-cf" required style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; font-size:0.95rem; text-transform:uppercase;">
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        <div>
-                            <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase;">Telefono Cellulare *</label>
-                            <input type="tel" id="self-tel" required style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
-                        </div>
-                        <div>
-                            <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase;">Ruolo Richiesto</label>
-                            <select id="self-ruolo" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
-                                <option value="Soccorritore">Soccorritore</option>
-                                <option value="Autista Soccorritore">Autista Soccorritore</option>
-                                <option value="Infermiere">Infermiere</option>
-                                <option value="Barelliere">Barelliere</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        <div>
-                            <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase;">Scadenza BLSD</label>
-                            <input type="date" id="self-blsd" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
-                        </div>
-                        <div>
-                            <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase;">Visita Medico L.81/08</label>
-                            <input type="date" id="self-medico" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
-                        </div>
-                    </div>
-                    <div>
-                        <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase;">PIN Desiderato per Tablet (4 cifre)</label>
-                        <input type="password" id="self-pin" maxlength="4" placeholder="Es. 1234" required style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; text-align:center; font-size:1.1rem; letter-spacing:4px;">
-                    </div>
-
-                    <!-- ACCETTAZIONE PRIVACY GDPR -->
-                    <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:12px; margin-top:10px;">
-                        <h4 style="font-size:0.8rem; color:var(--primary); font-weight:800; margin-bottom:6px;"><i class="fa-solid fa-shield-halved"></i> Presa Visione Privacy & Segreto d'Ufficio</h4>
-                        <p style="font-size:0.75rem; color:var(--text-main); line-height:1.4;">
-                            Dichiaro di operare nel pieno rispetto del Regolamento UE 2016/679 (GDPR), impegnandomi al più rigoroso segreto d'ufficio e professionale sui dati dei pazienti trasportati e a custodire con diligenza il mio PIN personale.
-                        </p>
-                    </div>
-
-                    <div>
-                        <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-top:5px; display:block;">Firma Digitale sullo Schermo *</label>
-                        <div class="sig-container">
-                            <button type="button" class="sig-clear" onclick="pulisciFirmaSelf()">Cancella</button>
-                            <canvas id="self-sig-canvas" class="sig-canvas"></canvas>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="padding:14px; font-size:1.05rem; margin-top:10px; border-radius:10px;">
-                        <i class="fa-solid fa-paper-plane"></i> Invia Richiesta di Iscrizione
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- HEADER CENTRALE DESKTOP -->
     <header class="topbar">
         <div class="topbar-left">
             <a href="index.html" class="topbar-btn home-btn"><i class="fa-solid fa-desktop"></i> Dashboard</a>
@@ -161,7 +83,7 @@
             <span>Modulo: <strong>Anagrafiche & Compliance</strong></span>
         </div>
         <div class="topbar-right">
-            <img src="logo cuore d'argento.jpg" alt="Logo" class="brand-logo-img">
+            <img src="logo cuore d'argento.webp" alt="Logo" class="brand-logo-img" onerror="this.src='logo cuore d'argento.jpg'">
         </div>
     </header>
 
@@ -192,10 +114,9 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h3 style="color: var(--primary);"><i class="fa-solid fa-address-book"></i> Libro Soci & Idoneità Operative</h3>
-                        <p style="font-size:0.8rem; color:var(--text-light);">Iscrizione cartacea, via form o rapida tramite QR Code per nuovi candidati</p>
+                        <p style="font-size:0.8rem; color:var(--text-light);">Scansiona il QR Code con lo smartphone per l'onboarding separato e sicuro</p>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <!-- PULSANTE APERTURA MODALE QR CODE -->
                         <button class="btn btn-ghost" style="border-color:#8b5cf6; color:#8b5cf6;" onclick="mostraQRIscrizione()"><i class="fa-solid fa-qrcode"></i> QR Code Iscrizione</button>
                         <button class="btn btn-primary" onclick="apriModaleVolontario()"><i class="fa-solid fa-user-plus"></i> Inserisci Socio/Volontario</button>
                     </div>
@@ -204,12 +125,12 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Foto & Nome</th>
-                                <th>Categoria & Ruolo</th>
+                                <th>Foto & Volontario</th>
+                                <th>Ruolo & Taglia</th>
                                 <th>Contatti & PIN</th>
                                 <th>Sanità (BLSD/Med)</th>
                                 <th>Stato Privacy GDPR</th>
-                                <th style="text-align:right;">Azioni & Nomina Privacy</th>
+                                <th style="text-align:right;">Azioni & Nomina</th>
                             </tr>
                         </thead>
                         <tbody id="volontari-corpo"></tbody>
@@ -222,7 +143,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h3 style="color: var(--primary);"><i class="fa-solid fa-truck"></i> Parco Veicoli e Assicurazioni</h3>
-                        <p style="font-size:0.8rem; color:var(--text-light);">La modifica dello stato mezzo genera automaticamente le voci nel Registro Continuità del Servizio</p>
+                        <p style="font-size:0.8rem; color:var(--text-light);">Aggiornamento flotta e collegamento al Registro Continuità (Req. 3)</p>
                     </div>
                     <button class="btn btn-primary" onclick="apriModaleMezzo()"><i class="fa-solid fa-plus"></i> Inserisci Mezzo</button>
                 </div>
@@ -268,31 +189,28 @@
         </main>
     </div>
 
-    <!-- MODALE MOSTRA QR CODE ISCRIZIONE -->
+    <!-- MODALE MOSTRA QR CODE ISCRIZIONE ESTERNO -->
     <div class="modal-overlay" id="modalQRIscrizione">
         <div class="modal" style="max-width: 440px; text-align:center;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:15px;">
                 <h3 style="color:var(--primary); font-size:1.15rem; display:flex; align-items:center; gap:8px;">
-                    <i class="fa-solid fa-qrcode"></i> Iscrizione Volontari
+                    <i class="fa-solid fa-qrcode"></i> Iscrizione Nuovi Volontari
                 </h3>
                 <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
             
             <p style="font-size:0.85rem; color:var(--text-main); margin-bottom:12px;">
-                Fai inquadrare questo codice al nuovo volontario con la fotocamera del suo smartphone:
+                Fai inquadrare questo codice con lo smartphone del volontario.<br>
+                <strong>Il modulo è isolato e non permette di accedere al gestionale.</strong>
             </p>
 
             <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:15px; display:inline-flex; justify-content:center; align-items:center; margin-bottom:15px;">
                 <div id="qrcode-iscrizione-container" style="display:flex; justify-content:center; align-items:center; min-height:190px; min-width:190px;"></div>
             </div>
 
-            <p style="font-size:0.75rem; color:var(--text-light); margin-bottom:15px;">
-                Compilando il form da cellulare, il volontario registrerà la propria anagrafica e la firma digitale dell'Atto Privacy GDPR.
-            </p>
-
             <div style="display:flex; gap:10px;">
                 <button type="button" class="btn btn-ghost" onclick="copiaLinkIscrizione()" style="flex:1;"><i class="fa-regular fa-copy"></i> Copia Link</button>
-                <button type="button" class="btn btn-primary" onclick="apriAnteprimaIscrizione()" style="flex:1; background:#8b5cf6;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Apri Modulo</button>
+                <button type="button" class="btn btn-primary" onclick="apriAnteprimaIscrizione()" style="flex:1; background:#8b5cf6;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Apri Pagina</button>
             </div>
         </div>
     </div>
@@ -330,7 +248,7 @@
         </div>
     </div>
 
-    <!-- MODALE INSERIMENTO VOLONTARIO MANUALE -->
+    <!-- MODALE VOLONTARIO MANUALE -->
     <div class="modal-overlay" id="modalVolontario">
         <div class="modal">
             <h2 style="font-size: 1.25rem; color:var(--text-main); margin-bottom:15px;"><i class="fa-solid fa-user-plus"></i> Inserisci Volontario</h2>
@@ -360,12 +278,15 @@
         var volontari = [], mezzi = [], checklists = [], presenze = [], continuitaServizio = [];
         var dbRootPath = 'cuore_argento_db';
         var database;
-        var selfSigCanvas, selfSigCtx, isDrawingSelf = false, hasDrawnSelf = false;
 
         function estraiDati(nodo) {
             if (!nodo) return [];
             if (Array.isArray(nodo)) return nodo.filter(function(i) { return i !== null && typeof i === 'object'; });
-            return Object.keys(nodo).map(function(k) { let item = nodo[k]; if (item && typeof item === 'object') item.id = item.id || k; return item; }).filter(Boolean);
+            return Object.keys(nodo).map(function(k) { 
+                let item = nodo[k]; 
+                if (item && typeof item === 'object') item.id = item.id || k; 
+                return item; 
+            }).filter(Boolean);
         }
 
         window.switchTab = function(tabId) {
@@ -416,10 +337,10 @@
             };
         } catch(e) { console.error(e); }
 
-        // --- GESTIONE QR CODE PER ISCRIZIONE VOLONTARI ---
+        // --- IL QR CODE PUNTA ORA DIRETTAMENTE AL FILE ISOLATO iscrizione.html ---
         function getUrlIscrizione() {
             let loc = window.location.href.split('?')[0];
-            return loc + '?action=iscrizione_volontario';
+            return loc.substring(0, loc.lastIndexOf('/')) + '/iscrizione.html';
         }
 
         window.mostraQRIscrizione = function() {
@@ -448,81 +369,7 @@
             window.open(getUrlIscrizione(), '_blank');
         };
 
-        // --- INIZIALIZZAZIONE TOUCH CANVAS FIRMA SELF-SERVICE ---
-        function initCanvasSelf() {
-            selfSigCanvas = document.getElementById('self-sig-canvas');
-            if(!selfSigCanvas) return;
-            selfSigCtx = selfSigCanvas.getContext('2d');
-            const rect = selfSigCanvas.getBoundingClientRect();
-            selfSigCanvas.width = rect.width;
-            selfSigCanvas.height = rect.height;
-            selfSigCtx.lineWidth = 2.5;
-            selfSigCtx.lineCap = 'round';
-            selfSigCtx.strokeStyle = '#0f172a';
-
-            const start = function(e) { isDrawingSelf = true; selfSigCtx.beginPath(); let pos = getPosSelf(e); selfSigCtx.moveTo(pos.x, pos.y); };
-            const draw = function(e) { if(!isDrawingSelf) return; e.preventDefault(); let pos = getPosSelf(e); selfSigCtx.lineTo(pos.x, pos.y); selfSigCtx.stroke(); hasDrawnSelf = true; };
-            const stop = function() { isDrawingSelf = false; };
-
-            selfSigCanvas.addEventListener('pointerdown', start);
-            selfSigCanvas.addEventListener('pointermove', draw);
-            selfSigCanvas.addEventListener('pointerup', stop);
-        }
-
-        function getPosSelf(e) {
-            const r = selfSigCanvas.getBoundingClientRect();
-            return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left, y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top };
-        }
-
-        window.pulisciFirmaSelf = function() {
-            if(selfSigCtx) {
-                selfSigCtx.clearRect(0, 0, selfSigCanvas.width, selfSigCanvas.height);
-                hasDrawnSelf = false;
-            }
-        };
-
-        window.inviaSelfIscrizione = function(e) {
-            e.preventDefault();
-            if(!hasDrawnSelf) {
-                alert("È obbligatorio apporre la propria firma sullo schermo per completare la richiesta.");
-                return;
-            }
-
-            const nome = document.getElementById('self-nome').value.trim();
-            const cf = document.getElementById('self-cf').value.trim().toUpperCase();
-            const tel = document.getElementById('self-tel').value.trim();
-            const ruolo = document.getElementById('self-ruolo').value;
-            const blsd = document.getElementById('self-blsd').value;
-            const medico = document.getElementById('self-medico').value;
-            const pin = document.getElementById('self-pin').value.trim() || '1234';
-            const firmaImg = selfSigCanvas.toDataURL('image/png');
-            const oggi = new Date().toLocaleString('it-IT');
-
-            const idNuovo = Date.now().toString();
-            const nuovoVolontario = {
-                id: idNuovo,
-                nome: nome,
-                cf: cf,
-                tel: tel,
-                ruolo: ruolo,
-                pin: pin,
-                blsd: blsd,
-                medico: medico,
-                gdpr_firmato: true,
-                gdpr_data_firma: oggi + " (Auto-registrazione QR Code)",
-                gdpr_firma_img: firmaImg,
-                stato_iscrizione: "Approvato"
-            };
-
-            database.ref(dbRootPath + '/volontari/' + idNuovo).set(nuovoVolontario).then(function() {
-                alert("Grazie " + nome + "! La tua domanda di iscrizione e l'Atto Privacy sono stati registrati con successo in centrale.");
-                window.location.href = window.location.href.split('?')[0];
-            }).catch(function(err) {
-                alert("Errore salvataggio: " + err.message);
-            });
-        };
-
-        // --- RENDER TABELLA VOLONTARI ---
+        // RENDER TABELLA CON AVATAR FOTO PROFILO
         function renderVolontari() {
             const tbody = document.getElementById('volontari-corpo'); if(!tbody) return; tbody.innerHTML = '';
             volontari.forEach(function(v) {
@@ -534,11 +381,20 @@
                     ? '<button class="btn btn-ghost" style="padding:4px 8px; font-size:0.75rem; color:#8b5cf6;" onclick="scaricaNominaPrivacyPDF(\'' + v.id + '\')"><i class="fa-solid fa-file-pdf"></i> Lettera Nomina</button>'
                     : '<span style="font-size:0.75rem; color:var(--text-light);">-</span>';
 
+                let fotoAvatar = v.foto 
+                    ? '<img src="' + v.foto + '" class="user-avatar-img" alt="Foto">' 
+                    : '<div class="user-avatar-img" style="display:flex;align-items:center;justify-content:center;color:#94a3b8;"><i class="fa-solid fa-user"></i></div>';
+
                 tbody.innerHTML += '<tr>' +
-                    '<td><strong>' + v.nome + '</strong><br><small>' + (v.cf || 'CF non reg.') + '</small></td>' +
-                    '<td>' + (v.ruolo || 'Volontario') + '</td>' +
+                    '<td>' +
+                        '<div class="user-avatar-cell">' +
+                            fotoAvatar +
+                            '<div><strong>' + v.nome + '</strong><br><small>' + (v.cf || 'CF non reg.') + '</small></div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td>' + (v.ruolo || 'Volontario') + (v.taglia ? '<br><small style="color:var(--text-light);">Taglia: ' + v.taglia + '</small>' : '') + '</td>' +
                     '<td>PIN: <strong>' + (v.pin || '1234') + '</strong>' + (v.tel ? '<br><small>' + v.tel + '</small>' : '') + '</td>' +
-                    '<td>BLSD: ' + (v.blsd || '-') + '</td>' +
+                    '<td>BLSD: ' + (v.blsd || '-') + '<br><small>Med: ' + (v.medico || '-') + '</small></td>' +
                     '<td>' + badgePrivacy + '</td>' +
                     '<td style="text-align:right;">' + btnScaricaNomina + '</td>' +
                 '</tr>';
@@ -588,7 +444,7 @@
             e.preventDefault();
             const nuovo = {
                 id: Date.now().toString(),
-                nome: document.getElementById('v-nome').value,
+                nome: document.getElementById('v-nome').value.toUpperCase(),
                 cf: document.getElementById('v-cf').value.toUpperCase(),
                 ruolo: document.getElementById('v-ruolo').value,
                 pin: document.getElementById('v-pin').value || '1234',
@@ -601,7 +457,6 @@
             });
         });
 
-        // --- GESTIONE MEZZI, CHECKLIST, PRESENZE ---
         function renderMezzi() {
             const tbody = document.getElementById('mezzi-corpo'); if(!tbody) return; tbody.innerHTML = '';
             mezzi.forEach(function(m) {
@@ -702,15 +557,8 @@
             });
         }
 
-        // CONTROLLA SE LA PAGINA È STATA APERTA DA SMARTPHONE VIA QR CODE
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('date-display').innerText = new Date().toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            
-            const params = new URLSearchParams(window.location.search);
-            if(params.get('action') === 'iscrizione_volontario') {
-                document.getElementById('self-registration-view').style.display = 'block';
-                setTimeout(initCanvasSelf, 300);
-            }
         });
     </script>
 </body>
