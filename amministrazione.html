@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuore d'Argento - Amministrazione, ASL & RUNTS</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #c62828; --primary-dark: #8e0000; --secondary: #1e293b;
+            --bg-body: #e2e8f0; --bg-panel: #ffffff; --text-main: #334155; --text-light: #94a3b8;
+            --border: #cbd5e1; --alert-green: #84cc16; --alert-red: #ef4444;
+            --success: #10b981; --warning: #f59e0b; --info: #3b82f6; --danger: #ef4444; --radius: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent;}
+        body { display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-body); overflow: hidden; }
+
+        .svg-icon { width: 20px; height: 20px; vertical-align: middle; flex-shrink: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.12)); }
+        .topbar { height: 60px; background: linear-gradient(to bottom, #ffffff, #f1f5f9); border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 10; }
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
+        .topbar-btn { background: transparent; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: 0.2s;}
+        .topbar-btn:hover { background: #e2e8f0; }
+        .topbar-btn.home-btn { background: var(--secondary); color: white; border: none; }
+        .topbar-center { font-size: 0.85rem; color: var(--text-main); font-weight: 600; background: #e2e8f0; padding: 6px 15px; border-radius: 20px; display: flex; align-items: center; gap: 8px;}
+        .brand-logo-img { height: 38px; width: auto; object-fit: contain; }
+
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 280px; background: #ffffff; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+        .sidebar-title { background: linear-gradient(to right, var(--secondary), #334155); color: white; padding: 12px 15px; font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between;}
+        .tree-menu { list-style: none; padding: 10px; }
+        .tree-folder { margin-bottom: 5px; }
+        .tree-header { display: flex; align-items: center; gap: 8px; padding: 8px; font-size: 0.9rem; font-weight: 700; color: var(--text-main); cursor: pointer; border-radius: 6px; }
+        .tree-items { list-style: none; margin-left: 20px; border-left: 1px dashed var(--border); padding-left: 10px; }
+        .tree-item { padding: 8px 10px; font-size: 0.85rem; color: var(--text-main); cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; transition: 0.2s;}
+        .tree-item:hover { background: #f1f5f9; color: var(--primary); }
+        .tree-item.active { background: #fee2e2; color: var(--primary); font-weight: 800; border-right: 3px solid var(--primary); }
+
+        .dashboard-area { flex: 1; position: relative; display: flex; flex-direction: column; overflow: hidden; }
+        .dash-header { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: #f8fafc; }
+        .tab-content { display: none; flex: 1; flex-direction: column; padding: 20px; overflow-y: auto; gap: 1.2rem; }
+        .tab-content.active { display: flex; }
+
+        .glass-panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .panel-header { font-size: 1.1rem; font-weight: 700; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+        .stat-card { padding: 1.2rem; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); background: white;}
+        .stat-info h4 { color: var(--text-light); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px;}
+        .stat-info .num { font-size: 1.8rem; font-weight: 800; line-height: 1.1; }
+
+        .table-container { border-radius: var(--radius); overflow-x: auto; background: white;}
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 950px; background: white;}
+        th { padding: 12px; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-main); background: #f8fafc; border-bottom: 2px solid var(--border); }
+        td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.85rem; color: var(--text-main); }
+        tr:hover td { background: #f1f5f9; }
+
+        .btn { padding: 8px 15px; border-radius: 6px; font-weight: 600; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem;}
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-ghost { background: transparent; color: var(--text-main); border: 1px solid var(--border); }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .full-width { grid-column: 1 / -1; }
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        .input-group label { font-size: 0.75rem; font-weight: 600; color: var(--text-main); text-transform: uppercase; }
+        .input-group input, .input-group select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; outline: none; background: #f8fafc;}
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 1rem; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal { background: var(--bg-panel); width: 100%; max-width: 550px; border-radius: 12px; padding: 2rem; transform: scale(0.95); transition: 0.2s; }
+        .modal-overlay.active .modal { transform: scale(1); }
+
+        #toast-container { position: fixed; bottom: 25px; right: 25px; z-index: 200; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast { background: white; color: var(--text-main); border-left: 4px solid var(--success); padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="topbar-left">
+            <a href="index.html" class="topbar-btn home-btn"><i class="fa-solid fa-desktop"></i> Dashboard</a>
+            <button class="topbar-btn" onclick="salvaTutto()"><i class="fa-solid fa-cloud" style="color:var(--success)"></i> Sincronizza Cloud</button>
+            <a href="anagrafiche.html" class="topbar-btn"><i class="fa-solid fa-address-book"></i> Anagrafiche</a>
+            <a href="trasporti.html" class="topbar-btn"><i class="fa-solid fa-truck-medical"></i> Monitor Trasporti</a>
+        </div>
+        <div class="topbar-center">
+            <i class="fa-solid fa-file-invoice-dollar" style="color: var(--primary);"></i> 
+            <span>Modulo: <strong>Rendiconto ASL Umbria 2 & RUNTS</strong></span>
+        </div>
+        <div class="topbar-right">
+            <img src="logo cuore d'argento.webp" alt="Logo" class="brand-logo-img">
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-title">Menu Amministrazione <i class="fa-solid fa-bars"></i></div>
+            <ul class="tree-menu">
+                <li class="tree-folder open">
+                    <div class="tree-header"><i class="fa-solid fa-folder-open" style="color:#eab308;"></i> Finanze & Convenzioni</div>
+                    <ul class="tree-items">
+                        <li><div class="tree-item active" id="btn-tab-asl" onclick="switchTab('asl')"><i class="fa-solid fa-file-invoice-dollar"></i> Fatturazione ASL SDI</div></li>
+                        <li><div class="tree-item" id="btn-tab-runts" onclick="switchTab('runts')"><i class="fa-solid fa-scale-balanced" style="color:#8b5cf6"></i> Contabilità & RUNTS</div></li>
+                        <li><div class="tree-item" id="btn-tab-impostazioni" onclick="switchTab('impostazioni')"><i class="fa-solid fa-building" style="color:var(--primary)"></i> Impostazioni Ente</div></li>
+                    </ul>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="dashboard-area">
+            <div class="dash-header">
+                <h3 id="tab-titolo-header" style="color:var(--text-main); font-size:1.1rem; font-weight:700;">Fatturazione & Rendiconto ASL</h3>
+                <span id="date-display" style="font-size:0.85rem; font-weight:600; color:var(--text-light);"></span>
+            </div>
+
+            <!-- TAB ASL CONFORME ART. 7 CONVENZIONE -->
+            <div id="tab-asl" class="tab-content active">
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <div class="panel-header"><i class="fa-solid fa-calculator"></i> Rendiconto Convenzione AUSL Umbria 2 (D.D.G. 416/2019 - Ambulanza Tipo B)</div>
+                    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items: flex-end;">
+                        <div class="input-group" style="min-width: 170px;"><label>Mese di Riferimento</label><input type="month" id="asl-mese" onchange="calcolaASL(true)"></div>
+                        <div class="input-group" style="min-width: 190px;"><label>Filtro Paziente</label><select id="asl-paziente" onchange="calcolaASL(false)"><option value="">-- Tutti i Pazienti --</option></select></div>
+                        <div class="input-group" style="width: 140px;"><label>Chiamata A/R (€)</label><input type="number" step="0.01" id="tariffa-uscita-ar" value="5.00" onchange="calcolaASL(false)"></div>
+                        <div class="input-group" style="width: 140px;"><label>Chiamata Corsa (€)</label><input type="number" step="0.01" id="tariffa-uscita-singola" value="2.50" onchange="calcolaASL(false)"></div>
+                        <div class="input-group" style="width: 130px;"><label>Quota al Km (€)</label><input type="number" step="0.001" id="tariffa-km" value="0.994" onchange="calcolaASL(false)"></div>
+                        <button class="btn btn-primary" onclick="stampaProspettoASL()" style="background:var(--success)"><i class="fa-solid fa-print"></i> Stampa Prospetto Mensile AUSL</button>
+                    </div>
+                    <div style="margin-top: 15px; padding: 12px; background: #f0fdf4; border: 1px solid var(--success); border-radius: 6px; font-size:1.05rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                        <div>Totale Imponibile Rimborsi: <strong id="asl-totale-euro" style="color:var(--success)">€ 0.00</strong></div>
+                        <div style="font-size:0.9rem; color:var(--text-light);">Totale Km Rendicontati: <strong id="asl-tot-km" style="color:var(--text-main);">0</strong> Km | Chiamate: <strong id="asl-tot-chiamate" style="color:var(--text-main);">0</strong></div>
+                    </div>
+                </div>
+                <div class="glass-panel table-container">
+                    <table>
+                        <thead><tr><th>Data</th><th>NRE / Ricetta</th><th>Paziente</th><th>Tratta (Base: Narni Scalo)</th><th>Mezzo</th><th>Km Effettivi</th><th>Quota Chiamata</th></tr></thead>
+                        <tbody id="asl-tabella-corpo"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB RUNTS -->
+            <div id="tab-runts" class="tab-content">
+                <div class="stats-row">
+                    <div class="stat-card glass-panel" style="border-left-color: var(--success);"><div class="stat-info"><h4>Totale Entrate</h4><div class="num" id="runts-entrate" style="color: var(--success)">€ 0.00</div></div></div>
+                    <div class="stat-card glass-panel" style="border-left-color: var(--alert-red);"><div class="stat-info"><h4>Totale Uscite</h4><div class="num" id="runts-uscite" style="color: var(--alert-red)">€ 0.00</div></div></div>
+                    <div class="stat-card glass-panel" style="border-left-color: var(--info);"><div class="stat-info"><h4>Saldo Cassa/Banca</h4><div class="num" id="runts-saldo" style="color: var(--info)">€ 0.00</div></div></div>
+                </div>
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <div class="panel-header"><i class="fa-solid fa-book-open"></i> Gestione Prima Nota e Bilancio RUNTS</div>
+                    <div style="display:flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div style="display:flex; gap:10px;">
+                            <div class="input-group"><input type="number" id="runts-anno" value="2026" min="2020" max="2099" style="width: 100px;" onchange="renderFinanze()"></div>
+                            <button class="btn btn-primary" onclick="apriModaleFinanze()"><i class="fa-solid fa-plus"></i> Registra Movimento</button>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn btn-ghost" onclick="esportaExcelFinanze()"><i class="fa-solid fa-file-excel" style="color: #10b981;"></i> Esporta (CSV/Excel)</button>
+                            <button class="btn btn-primary" onclick="stampaRendicontoRUNTS()" style="background: #8b5cf6;"><i class="fa-solid fa-file-pdf"></i> Genera Modello D PDF</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel table-container">
+                    <table>
+                        <thead><tr><th>Data</th><th>Tipo</th><th>Categoria RUNTS</th><th>Controparte / SDI</th><th>Descrizione</th><th>Importo</th><th style="text-align:right;">Azioni</th></tr></thead>
+                        <tbody id="finanze-corpo"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB IMPOSTAZIONI -->
+            <div id="tab-impostazioni" class="tab-content">
+                <div class="glass-panel" style="padding: 1.5rem; max-width: 800px; margin: 0 auto; width:100%;">
+                    <div class="panel-header"><i class="fa-solid fa-building"></i> Anagrafica Associazione & Fatturazione</div>
+                    <form id="formImpostazioni">
+                        <div class="form-grid">
+                            <div class="input-group full-width"><label>Ragione Sociale / Nome Ente</label><input type="text" id="imp-nome" required></div>
+                            <div class="input-group"><label>Partita IVA</label><input type="text" id="imp-piva"></div>
+                            <div class="input-group"><label>Codice Fiscale</label><input type="text" id="imp-cf" placeholder="C.F. Ente"></div>
+                            <div class="input-group"><label>Codice Destinatario SDI</label><input type="text" id="imp-sdi"></div>
+                            <div class="input-group full-width"><label>Indirizzo Base Operativa / Sede Legale</label><input type="text" id="imp-indirizzo"></div>
+                            <div class="input-group"><label>Telefono Principale</label><input type="text" id="imp-telefono"></div>
+                            <div class="input-group"><label>Email / PEC</label><input type="text" id="imp-email"></div>
+                            <div class="input-group full-width"><label>Note a piè di pagina (Fatture/Stampe PDF)</label><input type="text" id="imp-note" placeholder="Convenzione Trasporti Sanitari Secondari AUSL Umbria 2..."></div>
+                        </div>
+                        <div style="margin-top:20px; text-align:right;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Salva Impostazioni Aziendali</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="modalFinanze">
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
+                <h2 style="font-size: 1.3rem; color:var(--text-main);"><i class="fa-solid fa-scale-balanced" style="color:#8b5cf6"></i> Registra Movimento</h2>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+            <form id="formFinanze">
+                <input type="hidden" id="f-editId">
+                <div class="form-grid">
+                    <div class="input-group"><label>Tipo</label><select id="f-tipo" required><option value="Entrata">Entrata</option><option value="Uscita">Uscita</option></select></div>
+                    <div class="input-group"><label>Data</label><input type="date" id="f-data" required></div>
+                </div>
+                <div class="input-group" style="margin-top:10px;"><label>Categoria</label><select id="f-categoria" required><option value="Rimborsi ASL Umbria 2">Rimborsi ASL Umbria 2</option><option value="Quote Associative">Quote Associative</option><option value="Donazioni">Donazioni</option><option value="Spese Carburante/Manutenzioni">Spese Carburante/Manutenzioni</option><option value="Altre Uscite">Altre Uscite</option></select></div>
+                <div class="input-group" style="margin-top:10px;"><label>Controparte / SDI</label><input type="text" id="f-controparte" required></div>
+                <div class="input-group" style="margin-top:10px;"><label>Descrizione</label><input type="text" id="f-descrizione"></div>
+                <div class="input-group" style="margin-top:10px; margin-bottom:20px;"><label>Importo (€)</label><input type="number" step="0.01" id="f-importo" required></div>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2; background:#8b5cf6;">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        var trasporti = [], finanze = [], impostazioni = {};
+        var database;
+        var dbRootPath = 'cuore_argento_db';
+
+        const societaInfo = {
+            nome: "Associazione di Volontariato Cuore d'Argento ODV",
+            sede: "Via della Stazione n. 51 – 05035 Narni Scalo (TR)",
+            cf: "91086460556",
+            piva: "01725470551",
+            convenzione: "Convenzione AUSL Umbria 2 (Regime Ordinario/Programmato - Amb. Tipo B)"
+        };
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            if(!container) return;
+            const el = document.createElement('div'); el.className = 'toast';
+            el.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--success)"></i> ' + msg;
+            container.appendChild(el);
+            setTimeout(function() { el.remove(); }, 3000);
+        }
+
+        function estraiDati(nodo) {
+            if (!nodo) return [];
+            if (Array.isArray(nodo)) return nodo.filter(function(i) { return i !== null && typeof i === 'object'; });
+            return Object.keys(nodo).map(function(k) { let item = nodo[k]; if (item && typeof item === 'object') item.id = item.id || k; return item; }).filter(Boolean);
+        }
+
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.tree-item').forEach(function(el) { el.classList.remove('active'); });
+            const btn = document.getElementById('btn-tab-' + tabId); if(btn) btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
+            const content = document.getElementById('tab-' + tabId); if(content) content.classList.add('active');
+            
+            const tit = { 'asl': 'Fatturazione & Rendiconto ASL', 'runts': 'Bilancio & Prima Nota RUNTS', 'impostazioni': 'Impostazioni Ente' };
+            const hTitolo = document.getElementById('tab-titolo-header');
+            if(hTitolo) hTitolo.innerText = tit[tabId] || 'Amministrazione';
+            
+            if(tabId === 'asl') calcolaASL(true);
+            if(tabId === 'runts') renderFinanze();
+        };
+
+        window.chiudiModali = function() { 
+            document.querySelectorAll('.modal-overlay').forEach(function(m) { m.classList.remove('active'); }); 
+        };
+
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDhi3SRh2mDqz8_T03xYVq4XtcRiAL7IF0",
+                authDomain: "cuore-d-argento.firebaseapp.com",
+                databaseURL: "https://cuore-d-argento-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "cuore-d-argento",
+                storageBucket: "cuore-d-argento.firebasestorage.app",
+                messagingSenderId: "271690439864",
+                appId: "1:271690439864:web:17b36ef2c5ab4263d3684d"
+            };
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+
+            database.ref().on('value', function(snapshot) {
+                const rawData = snapshot.val() || {};
+                let data = rawData.cuore_argento_db || rawData;
+
+                trasporti = estraiDati(data.trasporti);
+                finanze = estraiDati(data.finanze);
+                impostazioni = data.impostazioni || {};
+
+                renderImpostazioni();
+                calcolaASL(true);
+                renderFinanze();
+            });
+
+            window.salvaTutto = function() {
+                database.ref(dbRootPath).update({ finanze: finanze, impostazioni: impostazioni })
+                    .then(function() { showToast("Sincronizzato sul Cloud!"); });
+            };
+        } catch(e) { console.error("Firebase Init Error:", e); }
+
+        function renderImpostazioni() {
+            if(document.getElementById('imp-nome')) {
+                document.getElementById('imp-nome').value = impostazioni.nome || societaInfo.nome;
+                document.getElementById('imp-piva').value = impostazioni.piva || societaInfo.piva;
+                document.getElementById('imp-cf').value = impostazioni.cf || societaInfo.cf;
+                document.getElementById('imp-sdi').value = impostazioni.sdi || "";
+                document.getElementById('imp-indirizzo').value = impostazioni.indirizzo || societaInfo.sede;
+                document.getElementById('imp-telefono').value = impostazioni.telefono || "";
+                document.getElementById('imp-email').value = impostazioni.email || "";
+                document.getElementById('imp-note').value = impostazioni.note || societaInfo.convenzione;
+            }
+        }
+
+        // CALCOLO ASL RIGOROSO (Art. 7 Convenzione: € 0,994/km + € 5,00 A/R o € 2,50 Corsa)
+        window.calcolaASL = function(aggiornaSelectPazienti) {
+            const meseInput = document.getElementById('asl-mese'); 
+            const mese = meseInput ? meseInput.value : '';
+            const selectPaziente = document.getElementById('asl-paziente');
+            
+            const tChiamataAR = parseFloat(document.getElementById('tariffa-uscita-ar') ? document.getElementById('tariffa-uscita-ar').value : 5.00) || 5.00;
+            const tChiamataSingola = parseFloat(document.getElementById('tariffa-uscita-singola') ? document.getElementById('tariffa-uscita-singola').value : 2.50) || 2.50;
+            const tKm = parseFloat(document.getElementById('tariffa-km') ? document.getElementById('tariffa-km').value : 0.994) || 0.994;
+
+            const tbody = document.getElementById('asl-tabella-corpo'); 
+            if(!tbody) return;
+
+            if (aggiornaSelectPazienti && selectPaziente) {
+                const cur = selectPaziente.value;
+                let list = Array.from(new Set(trasporti.filter(function(t) { 
+                    return !mese || (t.data && t.data.startsWith(mese)); 
+                }).map(function(t) { return t.paziente; }).filter(Boolean))).sort();
+                
+                let opts = '<option value="">-- Tutti i Pazienti --</option>'; 
+                list.forEach(function(p) { opts += '<option value="' + p + '">' + p + '</option>'; });
+                selectPaziente.innerHTML = opts; 
+                if(cur && list.includes(cur)) selectPaziente.value = cur;
+            }
+
+            const pSel = selectPaziente ? selectPaziente.value : '';
+            let vMese = trasporti.filter(function(t) {
+                let m = !mese || (t.data && t.data.startsWith(mese));
+                let r = !((t.regime||'').toLowerCase().includes('privat'));
+                return m && r;
+            });
+            if (pSel) vMese = vMese.filter(function(t) { return t.paziente === pSel; });
+
+            tbody.innerHTML = ''; 
+            let totKm = 0;
+            let totDirittoChiamata = 0;
+
+            if(vMese.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-light);">Nessun viaggio da rendicontare per i criteri scelti.</td></tr>';
+            } else {
+                vMese.forEach(function(t) {
+                    let k = Math.max(0, (parseFloat(t.kmArrivo) || 0) - (parseFloat(t.kmPartenza) || 0));
+                    totKm += k;
+
+                    // Calcolo Chiamata: se A/R autorizzato o ritorno applica 5,00 € o 2,50 €
+                    let isAR = (t.corsaTipo === 'Andata e Ritorno' || t.trattaRitorno === true);
+                    let importoChiamata = isAR ? tChiamataAR : tChiamataSingola;
+                    totDirittoChiamata += importoChiamata;
+
+                    let dataFmt = t.data ? new Date(t.data).toLocaleDateString('it-IT') : '-';
+                    tbody.innerHTML += '<tr>' +
+                        '<td>' + dataFmt + '</td>' +
+                        '<td>' + (t.nre || '-') + '</td>' +
+                        '<td><strong>' + (t.paziente||'-') + '</strong></td>' +
+                        '<td>' + (t.partenza||'-') + ' -> ' + (t.destinazione||'-') + '</td>' +
+                        '<td>' + (t.mezzoSelezionato || t.mezzo || '-') + '</td>' +
+                        '<td>' + k.toFixed(0) + ' Km</td>' +
+                        '<td>€ ' + importoChiamata.toFixed(2) + ' <small>(' + (isAR ? 'A/R' : 'Singola') + ')</small></td>' +
+                    '</tr>';
+                });
+            }
+
+            let totEuro = totDirittoChiamata + (totKm * tKm);
+            if(document.getElementById('asl-totale-euro')) document.getElementById('asl-totale-euro').innerText = '€ ' + totEuro.toFixed(2);
+            if(document.getElementById('asl-tot-km')) document.getElementById('asl-tot-km').innerText = totKm.toFixed(0);
+            if(document.getElementById('asl-tot-chiamate')) document.getElementById('asl-tot-chiamate').innerText = '€ ' + totDirittoChiamata.toFixed(2);
+        };
+
+        window.stampaProspettoASL = function() {
+            const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
+            const mese = document.getElementById('asl-mese').value;
+            const pSel = document.getElementById('asl-paziente').value;
+            const tChiamataAR = parseFloat(document.getElementById('tariffa-uscita-ar').value) || 5.00;
+            const tChiamataSingola = parseFloat(document.getElementById('tariffa-uscita-singola').value) || 2.50;
+            const tKm = parseFloat(document.getElementById('tariffa-km').value) || 0.994;
+
+            let vMese = trasporti.filter(function(t) { return (!mese || (t.data && t.data.startsWith(mese))) && !((t.regime||'').toLowerCase().includes('privat')); });
+            if (pSel) vMese = vMese.filter(function(t) { return t.paziente === pSel; });
+            if (vMese.length === 0) return alert("Nessun viaggio da stampare per i filtri impostati.");
+
+            doc.setFontSize(13); doc.setTextColor(198, 40, 40); doc.setFont("helvetica", "bold");
+            doc.text((impostazioni.nome || societaInfo.nome).toUpperCase(), 14, 15);
+            
+            doc.setFontSize(7.5); doc.setTextColor(80, 80, 80); doc.setFont("helvetica", "normal");
+            doc.text("Sede Operativa: " + (impostazioni.indirizzo || societaInfo.sede) + " | C.F. " + (impostazioni.cf || societaInfo.cf) + " - P.IVA " + (impostazioni.piva || societaInfo.piva), 14, 20);
+            doc.text("CONVENZIONE TRASPORTO SANITARIO SECONDARIO ORDINARIO - AZIENDA USL UMBRIA 2 (D.D.G. n. 416/2019)", 14, 24);
+            doc.line(14, 26, 196, 26);
+
+            doc.setFontSize(10.5); doc.setTextColor(0, 0, 0); doc.setFont("helvetica", "bold");
+            doc.text("Rendiconto Analitico Prestazioni Trasporto - Mese di Riferimento: " + mese, 14, 32);
+
+            let totKm = 0;
+            let totChiamata = 0;
+            const rows = vMese.map(function(t) {
+                let k = Math.max(0, (parseFloat(t.kmArrivo) || 0) - (parseFloat(t.kmPartenza) || 0));
+                totKm += k;
+                let isAR = (t.corsaTipo === 'Andata e Ritorno' || t.trattaRitorno === true);
+                let chiamata = isAR ? tChiamataAR : tChiamataSingola;
+                totChiamata += chiamata;
+
+                return [
+                    new Date(t.data).toLocaleDateString('it-IT'),
+                    t.nre || 'ORDINARIO',
+                    t.paziente,
+                    t.partenza + ' -> ' + t.destinazione,
+                    t.mezzoSelezionato || t.mezzo || '-',
+                    k.toFixed(0) + ' Km',
+                    'E. ' + chiamata.toFixed(2)
+                ];
+            });
+
+            doc.autoTable({ 
+                startY: 36, 
+                head: [['Data', 'NRE / Aut.', 'Paziente', 'Itinerario Eseguito', 'Mezzo', 'Km', 'Chiamata']], 
+                body: rows, 
+                theme: 'grid',
+                headStyles: { fillColor: [198, 40, 40] },
+                styles: { fontSize: 7.5 }
+            });
+
+            let finalY = doc.lastAutoTable.finalY + 10;
+            let totRimborsoKm = totKm * tKm;
+            let totaleGenerale = totChiamata + totRimborsoKm;
+
+            doc.setFontSize(8.5); doc.setFont("helvetica", "normal");
+            doc.text("• Totale Viaggi: " + vMese.length, 14, finalY);
+            doc.text("• Totale Diritti di Chiamata: Euro " + totChiamata.toFixed(2), 14, finalY + 5);
+            doc.text("• Totale Chilometri Eseguiti: " + totKm.toFixed(0) + " Km x Euro " + tKm.toFixed(3) + "/Km = Euro " + totRimborsoKm.toFixed(2), 14, finalY + 10);
+            
+            doc.setFontSize(12); doc.setTextColor(16, 185, 129); doc.setFont("helvetica", "bold");
+            doc.text("TOTALE GENERALE A RIMBORSO: Euro " + totaleGenerale.toFixed(2), 14, finalY + 18);
+
+            doc.setFontSize(8); doc.setTextColor(0, 0, 0); doc.setFont("helvetica", "normal");
+            doc.text("Il Responsabile Amministrativo (Pierpaolo Tarchi): _______________________", 14, finalY + 28);
+            doc.text("Visto del Legale Rappresentante (Dott. Michele Bee): _______________________", 110, finalY + 28);
+
+            doc.save('Rendiconto_AUSL_Umbria2_' + mese + '.pdf');
+            showToast("Prospetto ASL Ufficiale Scaricato!");
+        };
+
+        window.renderFinanze = function() {
+            const tbody = document.getElementById('finanze-corpo'); if(!tbody) return; tbody.innerHTML = '';
+            const annoSel = document.getElementById('runts-anno') ? document.getElementById('runts-anno').value : 2026;
+            let fAnno = finanze.filter(function(f) { return !annoSel || (f.data && f.data.startsWith(String(annoSel))); });
+
+            let entrate = 0, uscite = 0;
+            if (fAnno.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-light);">Nessun movimento registrato.</td></tr>';
+            } else {
+                fAnno.forEach(function(f) {
+                    let imp = parseFloat(f.importo) || 0;
+                    if(f.tipo === 'Entrata') entrate += imp; else uscite += imp;
+                    let color = f.tipo === 'Entrata' ? 'var(--success)' : 'var(--alert-red)';
+                    tbody.innerHTML += '<tr><td>' + new Date(f.data).toLocaleDateString('it-IT') + '</td><td><strong style="color:' + color + '">' + (f.tipo||'-') + '</strong></td><td>' + (f.categoria||'-') + '</td><td>' + (f.controparte||'-') + '</td><td>' + (f.descrizione||'-') + '</td><td><strong>€ ' + imp.toFixed(2) + '</strong></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding:4px 8px;" onclick="eliminaMovimento(\'' + f.id + '\')"><i class="fa-solid fa-trash" style="color:var(--danger)"></i></button></td></tr>';
+                });
+            }
+            if(document.getElementById('runts-entrate')) document.getElementById('runts-entrate').innerText = '€ ' + entrate.toFixed(2);
+            if(document.getElementById('runts-uscite')) document.getElementById('runts-uscite').innerText = '€ ' + uscite.toFixed(2);
+            if(document.getElementById('runts-saldo')) document.getElementById('runts-saldo').innerText = '€ ' + (entrate - uscite).toFixed(2);
+        };
+
+        window.apriModaleFinanze = function() {
+            document.getElementById('formFinanze').reset();
+            document.getElementById('f-data').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('modalFinanze').classList.add('active');
+        };
+
+        window.eliminaMovimento = function(id) {
+            if(!confirm("Confermi l'eliminazione del movimento contabile?")) return;
+            finanze = finanze.filter(function(x) { return String(x.id) !== String(id); });
+            salvaTutto();
+            renderFinanze();
+        };
+
+        window.stampaRendicontoRUNTS = function() {
+            const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
+            const anno = document.getElementById('runts-anno').value;
+            const fAnno = finanze.filter(function(f) { return f.data && f.data.startsWith(anno); });
+
+            doc.setFontSize(14); doc.setTextColor(139, 92, 246);
+            doc.text((impostazioni.nome || societaInfo.nome).toUpperCase(), 14, 20);
+            doc.setFontSize(11); doc.setTextColor(0, 0, 0);
+            doc.text("Rendiconto Finanziario RUNTS (Modello D) - Anno " + anno, 14, 28);
+
+            let tE = 0, tU = 0;
+            const rows = fAnno.map(function(f) {
+                let imp = parseFloat(f.importo) || 0;
+                if(f.tipo === 'Entrata') tE += imp; else tU += imp;
+                return [new Date(f.data).toLocaleDateString('it-IT'), f.tipo, f.categoria, f.controparte, '€ ' + imp.toFixed(2)];
+            });
+            doc.autoTable({ startY: 34, head: [['Data', 'Tipo', 'Categoria', 'Controparte', 'Importo']], body: rows, headStyles: { fillColor: [139, 92, 246] } });
+            let fY = doc.lastAutoTable.finalY + 12;
+            doc.text("Entrate: Euro " + tE.toFixed(2) + " | Uscite: Euro " + tU.toFixed(2), 14, fY);
+            doc.setFontSize(13); doc.text("SALDO FINALE: Euro " + (tE - tU).toFixed(2), 14, fY + 8);
+            doc.save('Modello_D_' + anno + '.pdf');
+            showToast("Modello D scaricato!");
+        };
+
+        window.esportaExcelFinanze = function() {
+            const anno = document.getElementById('runts-anno').value;
+            const fAnno = finanze.filter(function(f) { return f.data && f.data.startsWith(anno); });
+            let csv = "Data,Tipo,Categoria RUNTS,Controparte,Descrizione,Importo\n";
+            fAnno.forEach(function(f) { csv += f.data + ',' + f.tipo + ',' + f.categoria + ',"' + f.controparte + '","' + f.descrizione + '",' + f.importo + '\n'; });
+            const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Export_Finanze_' + anno + '.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("File CSV esportato!");
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('date-display').innerText = new Date().toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const meseInput = document.getElementById('asl-mese');
+            if(meseInput) meseInput.value = new Date().toISOString().slice(0, 7);
+
+            document.getElementById('formFinanze').addEventListener('submit', function(e) {
+                e.preventDefault();
+                finanze.push({
+                    id: Date.now().toString(),
+                    tipo: document.getElementById('f-tipo').value,
+                    data: document.getElementById('f-data').value,
+                    categoria: document.getElementById('f-categoria').value,
+                    controparte: document.getElementById('f-controparte').value,
+                    descrizione: document.getElementById('f-descrizione').value,
+                    importo: parseFloat(document.getElementById('f-importo').value) || 0
+                });
+                salvaTutto();
+                chiudiModali();
+                renderFinanze();
+            });
+
+            document.getElementById('formImpostazioni').addEventListener('submit', function(e) {
+                e.preventDefault();
+                impostazioni = {
+                    nome: document.getElementById('imp-nome').value,
+                    piva: document.getElementById('imp-piva').value,
+                    cf: document.getElementById('imp-cf').value,
+                    sdi: document.getElementById('imp-sdi').value,
+                    indirizzo: document.getElementById('imp-indirizzo').value,
+                    telefono: document.getElementById('imp-telefono').value,
+                    email: document.getElementById('imp-email').value,
+                    note: document.getElementById('imp-note').value
+                };
+                salvaTutto();
+                renderImpostazioni();
+                showToast("Impostazioni salvate con successo!");
+            });
+
+            const tabUrl = new URLSearchParams(window.location.search).get('tab');
+            if(tabUrl) switchTab(tabUrl);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuore d'Argento - Trasporti & Servizi</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        window.initMapAutocomplete = function() {
+            const campiIndirizzo = ['partenza', 'destinazione', 'd-partenza', 'd-arrivo'];
+            campiIndirizzo.forEach(function(id) {
+                const input = document.getElementById(id);
+                if (input && window.google && google.maps && google.maps.places) {
+                    if (!input.dataset.mapsLoaded) {
+                        new google.maps.places.Autocomplete(input, {
+                            componentRestrictions: { country: "it" },
+                            fields: ["formatted_address", "name"]
+                        });
+                        input.dataset.mapsLoaded = "true";
+                    }
+                }
+            });
+        };
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBeHOqzhD1Z5fCV6oleFEVPj9Cs5XMNn60&libraries=places&callback=initMapAutocomplete&loading=async" async defer></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #c62828; --primary-dark: #8e0000; --secondary: #1e293b;
+            --bg-body: #e2e8f0; --bg-panel: #ffffff; --text-main: #334155; --text-light: #94a3b8;
+            --border: #cbd5e1; --alert-green: #84cc16; --alert-red: #ef4444;
+            --success: #10b981; --warning: #f59e0b; --info: #3b82f6; --danger: #ef4444; --radius: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent;}
+        body { display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-body); overflow: hidden; }
+
+        .svg-icon { width: 20px; height: 20px; vertical-align: middle; flex-shrink: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.12)); }
+        .topbar { height: 60px; background: linear-gradient(to bottom, #ffffff, #f1f5f9); border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 10; }
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
+        .topbar-btn { background: transparent; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none;}
+        .topbar-btn:hover { background: #e2e8f0; }
+        .topbar-btn.home-btn { background: var(--secondary); color: white; border: none; }
+        .topbar-center { font-size: 0.85rem; color: var(--text-main); font-weight: 600; background: #e2e8f0; padding: 6px 15px; border-radius: 20px; display: flex; align-items: center; gap: 8px;}
+        .brand-logo-img { height: 38px; width: auto; object-fit: contain; }
+
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 280px; background: #ffffff; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+        .sidebar-title { background: linear-gradient(to right, var(--secondary), #334155); color: white; padding: 12px 15px; font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between;}
+        .tree-menu { list-style: none; padding: 10px; }
+        .tree-folder { margin-bottom: 5px; }
+        .tree-header { display: flex; align-items: center; gap: 8px; padding: 8px; font-size: 0.9rem; font-weight: 700; color: var(--text-main); cursor: pointer; border-radius: 6px; }
+        .tree-header:hover { background: #f1f5f9; }
+        .tree-header .fa-chevron-right { font-size: 0.75rem; transition: transform 0.2s; }
+        .tree-items { list-style: none; margin-left: 20px; border-left: 1px dashed var(--border); padding-left: 10px; display: none; }
+        .tree-folder.open .tree-items { display: block; }
+        .tree-folder.open .fa-chevron-right { transform: rotate(90deg); }
+        .tree-item { padding: 8px 10px; font-size: 0.85rem; color: var(--text-main); cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; transition: 0.2s;}
+        .tree-item:hover { background: #f1f5f9; color: var(--primary); }
+        .tree-item.active { background: #fee2e2; color: var(--primary); font-weight: 800; border-right: 3px solid var(--primary); }
+
+        .dashboard-area { flex: 1; position: relative; display: flex; flex-direction: column; overflow: hidden; }
+        .dash-header { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: #f8fafc; }
+        .tab-content { display: none; flex: 1; flex-direction: column; padding: 20px; overflow-y: auto; gap: 1.2rem; }
+        .tab-content.active { display: flex; }
+
+        .glass-panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .view-controls { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+        .filter-group { display: flex; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 6px; border: 1px solid var(--border); }
+        .filter-btn { padding: 5px 12px; border-radius: 4px; border: none; background: transparent; color: var(--text-main); font-weight: 600; font-size: 0.8rem; cursor: pointer; }
+        .filter-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .search-box { position: relative; flex: 1; min-width: 180px; max-width: 300px; }
+        .search-box i { position: absolute; left: 12px; top: 10px; color: var(--text-light); font-size: 0.85rem; }
+        .search-box input { width: 100%; padding: 8px 12px 8px 32px; border-radius: 20px; border: 1px solid var(--border); outline: none; font-size: 0.85rem; }
+
+        .table-container { border-radius: var(--radius); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1000px; background: white;}
+        th { padding: 12px; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-main); background: #f8fafc; border-bottom: 2px solid var(--border); }
+        td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.85rem; color: var(--text-main); }
+        tr:hover td { background: #f1f5f9; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
+
+        .btn { padding: 8px 15px; border-radius: 6px; font-weight: 600; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem;}
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-ghost { background: transparent; color: var(--text-main); border: 1px solid var(--border); }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 1rem; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal { background: var(--bg-panel); width: 100%; max-width: 750px; max-height: 95vh; overflow-y: auto; border-radius: 12px; padding: 2rem; transform: scale(0.95); transition: 0.2s; }
+        .modal-overlay.active .modal { transform: scale(1); }
+        
+        .form-section-title { font-size: 0.9rem; font-weight: 700; color: var(--primary); margin: 1.5rem 0 0.8rem 0; border-bottom: 2px solid var(--border); padding-bottom: 4px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+        .full-width { grid-column: 1 / -1; }
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        .input-group label { font-size: 0.75rem; font-weight: 600; color: var(--text-main); text-transform: uppercase; }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; outline: none; background: #f8fafc;}
+
+        #toast-container { position: fixed; bottom: 25px; right: 25px; z-index: 200; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast { background: white; color: var(--text-main); border-left: 4px solid var(--success); padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+    <datalist id="destinazioni-asl">
+        <option value="Ospedale S. Maria di Terni">
+        <option value="Ospedale di Narni">
+        <option value="Ospedale di Amelia">
+        <option value="Ospedale S. Giovanni Battista - Foligno">
+        <option value="Ospedale S. Matteo degli Infermi - Spoleto">
+        <option value="Sede ASL Umbria 2">
+    </datalist>
+    <datalist id="lista-pazienti"></datalist>
+
+    <header class="topbar">
+        <div class="topbar-left">
+            <a href="index.html" class="topbar-btn home-btn"><i class="fa-solid fa-desktop"></i> Dashboard</a>
+            <button class="topbar-btn" onclick="salvaTutto()"><i class="fa-solid fa-cloud" style="color:var(--success)"></i> Sincronizza Cloud</button>
+            <a href="anagrafiche.html" class="topbar-btn"><i class="fa-solid fa-address-book"></i> Anagrafiche</a>
+            <a href="amministrazione.html" class="topbar-btn"><i class="fa-solid fa-file-invoice-dollar"></i> Amministrazione</a>
+        </div>
+        <div class="topbar-center">
+            <i class="fa-solid fa-truck-medical" style="color: var(--primary);"></i> 
+            <span>Modulo: <strong>Trasporti & Logistica Servizi</strong></span>
+        </div>
+        <div class="topbar-right">
+            <img src="logo cuore d'argento.webp" alt="Logo" class="brand-logo-img">
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-title">Menu Trasporti <i class="fa-solid fa-bars"></i></div>
+            <ul class="tree-menu">
+                <li class="tree-folder open">
+                    <div class="tree-header" onclick="toggleFolder(this)">
+                        <i class="fa-solid fa-chevron-right"></i>
+                        <i class="fa-solid fa-folder-open" style="color:#eab308;"></i>
+                        Gestione Viaggi
+                    </div>
+                    <ul class="tree-items">
+                        <li><div class="tree-item active" id="btn-tab-operativo" onclick="switchTab('operativo')"><i class="fa-solid fa-list-check"></i> Monitor Operativo Viaggi</div></li>
+                        <li><div class="tree-item" id="btn-tab-calendario" onclick="switchTab('calendario')"><i class="fa-solid fa-calendar-days"></i> Google Calendar Condiviso</div></li>
+                        <li><div class="tree-item" onclick="apriModaleServizio()"><i class="fa-solid fa-plus-circle" style="color:var(--success)"></i> Inserisci Nuovo Servizio</div></li>
+                        <li><div class="tree-item" onclick="apriModaleDialisi()"><i class="fa-solid fa-calendar-days" style="color:var(--info)"></i> Pianifica Dialisi Ricorrente</div></li>
+                    </ul>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="dashboard-area">
+            <div class="dash-header">
+                <h3 id="tab-titolo-header" style="color:var(--text-main); font-size:1.1rem; font-weight:700;">Monitor Operativo Viaggi</h3>
+                <span id="date-display" style="font-size:0.85rem; font-weight:600; color:var(--text-light);"></span>
+            </div>
+
+            <!-- TAB OPERATIVO -->
+            <div id="tab-operativo" class="tab-content active">
+                <div class="view-controls">
+                    <div class="filter-group">
+                        <button class="filter-btn active" id="flt-oggi" onclick="impostaFiltroData('oggi')">Oggi</button>
+                        <button class="filter-btn" id="flt-domani" onclick="impostaFiltroData('domani')">Domani</button>
+                        <button class="filter-btn" id="flt-tutti" onclick="impostaFiltroData('tutti')">Tutti</button>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-primary" onclick="apriModaleServizio()"><i class="fa-solid fa-plus"></i> Nuovo Servizio</button>
+                        <button class="btn btn-primary" onclick="apriModaleDialisi()" style="background:var(--info);"><i class="fa-solid fa-calendar-days"></i> Ciclo Dialisi</button>
+                    </div>
+                    <div class="search-box">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="ricerca" placeholder="Cerca paziente, via..." oninput="renderOperativita()">
+                    </div>
+                </div>
+                <div class="glass-panel table-container">
+                    <table>
+                        <thead><tr><th>Data/Ora</th><th>Paziente & Regime</th><th>Itinerario & Km</th><th>Mezzo</th><th>Stato</th><th style="text-align: right;">Azioni / Chiusura</th></tr></thead>
+                        <tbody id="tabellaCorpo"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB CALENDARIO -->
+            <div id="tab-calendario" class="tab-content">
+                <div class="glass-panel" style="display:flex; flex-direction:column; height:100%; padding:1rem;">
+                    <iframe src="https://calendar.google.com/calendar/embed?src=odv.cuoredargento%40gmail.com&ctz=Europe%2FRome" style="border:0; width:100%; height:100%; border-radius:8px;" frameborder="0"></iframe>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALE GESTIONE SERVIZIO -->
+    <div class="modal-overlay" id="modalServizio">
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
+                <h2 style="font-size: 1.3rem; color:var(--text-main);"><i class="fa-solid fa-truck-medical" style="color:var(--primary)"></i> Gestione Trasporto Sanitario</h2>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+            <form id="formTrasporto">
+                <input type="hidden" id="editId">
+                <div class="form-grid">
+                    <div class="input-group"><label>Regime / Convenzione</label><select id="regime" required><option value="Convenzione ASL Umbria 2">Convenzione ASL Umbria 2</option><option value="Privato / Tariffa Sociale">Privato / Tariffa Sociale</option><option value="Emergenza / 118">Emergenza / 118</option><option value="Convenzione ASL Umbria 2 (Dialisi)">Convenzione ASL Umbria 2 (Dialisi)</option></select></div>
+                    <div class="input-group"><label>Tipo Corsa (Convenzione ASL)</label><select id="corsaTipo" required><option value="Sola Andata">Corsa Singola (Diritto € 2.50)</option><option value="Andata e Ritorno">Andata e Ritorno (Diritto € 5.00)</option></select></div>
+                    <div class="input-group"><label>Paziente</label><input type="text" id="paziente" list="lista-pazienti" required placeholder="Nome e Cognome"></div>
+                    <div class="input-group"><label>Codice Fiscale</label><input type="text" id="cf" placeholder="CF Paziente" style="text-transform: uppercase;"></div>
+                    <div class="input-group"><label>NRE / Ricetta</label><input type="text" id="nre" placeholder="N. NRE o Autorizzazione"></div>
+                    <div class="input-group"><label>Data Servizio</label><input type="date" id="data" required></div>
+                    <div class="input-group"><label>Ora</label><input type="time" id="ora" required></div>
+                    
+                    <div class="input-group full-width"><label>Indirizzo Partenza (Base: Narni Scalo o Domicilio)</label><input type="text" id="partenza" required placeholder="Via, Città..."></div>
+                    <div class="input-group full-width"><label>Soste Intermedie</label><input type="text" id="soste" placeholder="Eventuali fermate intermedie"></div>
+                    <div class="input-group full-width">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label>Indirizzo Destinazione</label>
+                            <button type="button" onclick="apriPercorsoMaps('partenza', 'destinazione')" style="background:none; border:none; padding:0; font-size:0.75rem; color:var(--info); font-weight:700; cursor:pointer;"><i class="fa-solid fa-route"></i> Visualizza Percorso Maps</button>
+                        </div>
+                        <input type="text" id="destinazione" list="destinazioni-asl" required placeholder="Ospedale, Struttura...">
+                    </div>
+                    
+                    <div class="form-section-title full-width"><i class="fa-solid fa-road"></i> KM Mezzo & Spese Anticipate</div>
+                    <div class="input-group"><label>KM Partenza Mezzo</label><input type="number" id="kmPartenza" value="0"></div>
+                    <div class="input-group"><label>KM Arrivo Mezzo</label><input type="number" id="kmArrivo" value="0"></div>
+                    <div class="input-group"><label>Spese Anticipate (€)</label><input type="number" step="0.01" id="speseImporto" value="0.00"></div>
+                    <div class="input-group full-width"><label>Causale Spesa</label><input type="text" id="speseNota" placeholder="Es. Ticket, parcheggio..."></div>
+
+                    <div class="form-section-title full-width"><i class="fa-solid fa-users"></i> Equipaggio & Assegnazioni (Controlli Requisiti Attivi)</div>
+                    <div class="input-group"><label>Mezzo Assegnato</label><select id="mezzoSelezionato"><option value="">-- Seleziona Mezzo --</option></select></div>
+                    <div class="input-group"><label>Autista</label><select id="autistaSelezionato"><option value="">-- Seleziona Autista --</option></select></div>
+                    <div class="input-group"><label>Soccorritore</label><select id="soccorritoreSelezionato"><option value="">-- Seleziona Soccorritore --</option></select></div>
+                    <div class="input-group"><label>Stato Servizio</label><select id="statoServizio"><option value="Programmato">Programmato</option><option value="In Corso">In Corso</option><option value="Completato">Completato</option><option value="Da Rendicontare">Da Rendicontare</option></select></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fa-solid fa-save"></i> Salva Servizio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE PIANIFICAZIONE DIALISI -->
+    <div class="modal-overlay" id="modalDialisi">
+        <div class="modal" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom: 15px;">
+                <h2 style="font-size: 1.3rem; color:var(--text-main);"><i class="fa-solid fa-calendar-days" style="color:var(--info)"></i> Pianificazione Ciclo Dialisi</h2>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+            <form id="formDialisi">
+                <div class="form-grid">
+                    <div class="input-group full-width"><label>Paziente</label><input type="text" id="d-paziente" list="lista-pazienti" required placeholder="Nome e Cognome"></div>
+                    <div class="input-group"><label>Codice Fiscale</label><input type="text" id="d-cf" placeholder="CF Paziente" style="text-transform: uppercase;"></div>
+                    <div class="input-group"><label>Mezzo Assegnato</label><select id="d-mezzo" required><option value="">-- Seleziona Mezzo --</option></select></div>
+                    <div class="input-group full-width"><label>Indirizzo Partenza (Domicilio)</label><input type="text" id="d-partenza" required placeholder="Via, Città..."></div>
+                    <div class="input-group full-width"><label>Centro Dialisi (Arrivo)</label><input type="text" id="d-arrivo" list="destinazioni-asl" required placeholder="Ospedale..."></div>
+                    
+                    <div class="form-section-title full-width"><i class="fa-solid fa-clock"></i> Programmazione Periodo</div>
+                    <div class="input-group"><label>Data Inizio Ciclo</label><input type="date" id="d-inizio" required></div>
+                    <div class="input-group"><label>Data Fine Ciclo</label><input type="date" id="d-fine" required></div>
+                    <div class="input-group full-width">
+                        <label>Giorni Settimana</label>
+                        <div style="display:flex; gap:12px; margin-top:5px; background:#f8fafc; padding:8px; border:1px solid var(--border); border-radius:6px;">
+                            <label><input type="checkbox" name="d-giorni" value="1" checked> Lun</label>
+                            <label><input type="checkbox" name="d-giorni" value="2"> Mar</label>
+                            <label><input type="checkbox" name="d-giorni" value="3" checked> Mer</label>
+                            <label><input type="checkbox" name="d-giorni" value="4"> Gio</label>
+                            <label><input type="checkbox" name="d-giorni" value="5" checked> Ven</label>
+                            <label><input type="checkbox" name="d-giorni" value="6"> Sab</label>
+                        </div>
+                    </div>
+                    <div class="input-group"><label>Turno</label><select id="d-turno"><option value="mattina">Mattina (07:00 / 12:00)</option><option value="pomeriggio">Pomeriggio (13:00 / 17:00)</option></select></div>
+                    <div class="input-group"><label>KM Stimati Andata</label><input type="number" id="d-km-andata" value="15"></div>
+                    <div class="input-group"><label>KM Stimati Ritorno</label><input type="number" id="d-km-ritorno" value="15"></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2; background:var(--info);"><i class="fa-solid fa-calendar-plus"></i> Genera Viaggi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE DETTAGLI CHIUSURA -->
+    <div class="modal-overlay" id="modalDettagli">
+        <div class="modal" style="max-width: 650px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                <h3 style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-clipboard-check" style="color:#8b5cf6"></i> Dettagli Chiusura Servizio</h3>
+                <button class="btn-ghost" onclick="chiudiModali()" style="border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+            <div id="dettagli-content" style="margin-top:15px;"></div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        var trasporti = [], volontari = [], mezzi = [], impostazioni = {};
+        var database, filtroDataAttivo = 'oggi';
+        var dbRootPath = 'cuore_argento_db';
+
+        const getLocalISODate = function(d) {
+            const tzoffset = d.getTimezoneOffset() * 60000;
+            return new Date(d.getTime() - tzoffset).toISOString().split('T')[0];
+        };
+        const todayStr = getLocalISODate(new Date());
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div'); el.className = 'toast';
+            el.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--success)"></i> ' + msg;
+            container.appendChild(el);
+            setTimeout(function() { el.remove(); }, 3000);
+        }
+
+        function estraiDati(nodo) {
+            if (!nodo) return [];
+            if (Array.isArray(nodo)) return nodo.filter(function(i) { return i !== null && typeof i === 'object'; });
+            return Object.keys(nodo).map(function(k) { let item = nodo[k]; if (item && typeof item === 'object') item.id = item.id || k; return item; }).filter(Boolean);
+        }
+
+        function checkVolontarioIdoneo(v) {
+            if (!v) return { idoneo: true };
+            const campi = ['blsd', 'medico', 'sicurezza', 'patente'];
+            for (let c of campi) {
+                if (v[c]) {
+                    let diff = Math.ceil((new Date(v[c]) - new Date()) / (1000 * 60 * 60 * 24));
+                    if (diff < 0) return { idoneo: false, motivo: c.toUpperCase() + ' Scaduto' };
+                }
+            }
+            return { idoneo: true };
+        }
+
+        window.toggleFolder = function(el) { el.parentElement.classList.toggle('open'); };
+
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.tree-item').forEach(function(el) { el.classList.remove('active'); });
+            const btn = document.getElementById('btn-tab-' + tabId); if(btn) btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
+            const content = document.getElementById('tab-' + tabId); if(content) content.classList.add('active');
+            const tit = { 'operativo': 'Monitor Operativo Viaggi', 'calendario': 'Google Calendar Condiviso' };
+            document.getElementById('tab-titolo-header').innerText = tit[tabId] || 'Gestione Viaggi';
+        };
+
+        window.chiudiModali = function() { document.querySelectorAll('.modal-overlay').forEach(function(m) { m.classList.remove('active'); }); };
+
+        window.impostaFiltroData = function(f) {
+            filtroDataAttivo = f;
+            ['oggi', 'domani', 'tutti'].forEach(function(k) {
+                const b = document.getElementById('flt-' + k); if(b) b.classList.remove('active');
+            });
+            const attivo = document.getElementById('flt-' + f); if(attivo) attivo.classList.add('active');
+            renderOperativita();
+        };
+
+        window.apriPercorsoMaps = function(idPartenza, idDestinazione) {
+            const part = (document.getElementById(idPartenza) ? document.getElementById(idPartenza).value : '').trim();
+            const dest = (document.getElementById(idDestinazione) ? document.getElementById(idDestinazione).value : '').trim();
+            if (!part || !dest) { alert("Compila sia l'indirizzo di partenza che la destinazione per visualizzare il percorso."); return; }
+            const url = 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(part) + '&destination=' + encodeURIComponent(dest);
+            window.open(url, '_blank');
+        };
+
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDhi3SRh2mDqz8_T03xYVq4XtcRiAL7IF0",
+                authDomain: "cuore-d-argento.firebaseapp.com",
+                databaseURL: "https://cuore-d-argento-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "cuore-d-argento",
+                storageBucket: "cuore-d-argento.firebasestorage.app",
+                messagingSenderId: "271690439864",
+                appId: "1:271690439864:web:17b36ef2c5ab4263d3684d"
+            };
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+
+            database.ref().on('value', function(snapshot) {
+                const rawData = snapshot.val() || {};
+                let data = rawData.cuore_argento_db || rawData;
+
+                trasporti = estraiDati(data.trasporti);
+                volontari = estraiDati(data.volontari);
+                mezzi = estraiDati(data.mezzi);
+                impostazioni = data.impostazioni || {};
+
+                aggiornaSelectDropdowns();
+                aggiornaListaPazienti();
+                renderOperativita();
+            });
+
+            window.salvaTutto = function() {
+                database.ref(dbRootPath).update({ trasporti: trasporti })
+                    .then(function() { showToast("Sincronizzato sul Cloud!"); });
+            };
+        } catch(e) { console.error("Firebase Init Error:", e); }
+
+        function aggiornaSelectDropdowns() {
+            let mOpts = '<option value="">-- Seleziona Mezzo --</option>';
+            mezzi.forEach(function(m) {
+                let tagFuoriServizio = (m.stato && m.stato !== 'Attivo') ? ' ⛔ [FUORI SERVIZIO]' : '';
+                mOpts += '<option value="' + m.nome + ' (' + m.targa + ')">' + m.nome + ' - ' + m.targa + tagFuoriServizio + '</option>';
+            });
+
+            let vOptsAutisti = '<option value="">-- Seleziona Autista --</option>';
+            let vOptsSoccorr = '<option value="">-- Seleziona Soccorritore --</option>';
+            volontari.forEach(function(v) {
+                let check = checkVolontarioIdoneo(v);
+                let alertTag = !check.idoneo ? ' ⚠️ (' + check.motivo + ')' : '';
+                let optionText = v.nome + ' (' + (v.ruolo || '') + ')' + alertTag;
+                vOptsAutisti += '<option value="' + v.nome + '" style="' + (!check.idoneo ? 'color:red; font-weight:bold;' : '') + '">' + optionText + '</option>';
+                vOptsSoccorr += '<option value="' + v.nome + '" style="' + (!check.idoneo ? 'color:red; font-weight:bold;' : '') + '">' + optionText + '</option>';
+            });
+
+            ['mezzoSelezionato', 'd-mezzo'].forEach(function(id) { const el = document.getElementById(id); if(el) el.innerHTML = mOpts; });
+            const autEl = document.getElementById('autistaSelezionato'); if(autEl) autEl.innerHTML = vOptsAutisti;
+            const socEl = document.getElementById('soccorritoreSelezionato'); if(socEl) socEl.innerHTML = vOptsSoccorr;
+        }
+
+        function aggiornaListaPazienti() {
+            const dl = document.getElementById('lista-pazienti'); if (!dl) return;
+            const nomi = Array.from(new Set(trasporti.map(function(t) { return t.paziente; }).filter(Boolean))).sort();
+            dl.innerHTML = ''; nomi.forEach(function(n) { dl.innerHTML += '<option value="' + n + '">'; });
+        }
+
+        window.renderOperativita = function() {
+            const ricerca = (document.getElementById('ricerca') ? document.getElementById('ricerca').value : '').toLowerCase();
+            let filtrati = [].concat(trasporti).sort(function(a, b) { return new Date(a.data+'T'+(a.ora||'00:00')) - new Date(b.data+'T'+(b.ora||'00:00')); });
+
+            if (filtroDataAttivo === 'oggi') filtrati = filtrati.filter(function(t) { return t.data === todayStr; });
+            if (filtroDataAttivo === 'domani') {
+                let d = new Date(); d.setDate(d.getDate()+1);
+                filtrati = filtrati.filter(function(t) { return t.data === getLocalISODate(d); });
+            }
+
+            const tbody = document.getElementById('tabellaCorpo'); if(!tbody) return; tbody.innerHTML = '';
+            if (filtrati.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:25px; color:var(--text-light);">Nessun servizio programmato.</td></tr>'; return; }
+
+            filtrati.forEach(function(t) {
+                if (ricerca && !((t.paziente + ' ' + t.partenza + ' ' + t.regime).toLowerCase().includes(ricerca))) return;
+                let k = Math.max(0, (parseFloat(t.kmArrivo) || 0) - (parseFloat(t.kmPartenza) || 0));
+                let btnDettagli = (t.statoServizio === 'Completato' || t.statoServizio === 'Da Rendicontare') ? '<button class="btn btn-ghost" style="padding:6px; color:#8b5cf6;" onclick="vediDettagliChiusura(\'' + t.id + '\')" title="Vedi Dettagli"><i class="fa-solid fa-paperclip"></i></button>' : '';
+                
+                tbody.innerHTML += '<tr><td><strong>' + (t.ora||'-') + '</strong><br><small>' + new Date(t.data).toLocaleDateString('it-IT') + '</small></td><td><strong>' + t.paziente + '</strong><br><small>' + t.regime + '</small></td><td>Da: ' + t.partenza + '<br>A: ' + t.destinazione + '<br><small style="color:var(--info)">(' + k + ' Km)</small></td><td>' + (t.mezzoSelezionato||'-') + '</td><td><span class="badge" style="background:' + (t.statoServizio === 'Completato' ? 'var(--success)' : 'var(--warning)') + ';color:white;">' + (t.statoServizio||'Programmato') + '</span></td><td style="text-align:right;">' + btnDettagli + '<button class="btn btn-ghost" style="padding:6px; color:var(--info)" onclick="modificaServizio(\'' + t.id + '\')"><i class="fa-solid fa-pen"></i></button><button class="btn btn-ghost" style="padding:6px; color:var(--primary)" onclick="stampaSchedaSingola(\'' + t.id + '\')"><i class="fa-solid fa-print"></i></button><button class="btn btn-ghost" style="padding:6px; color:var(--danger)" onclick="eliminaServizio(\'' + t.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
+            });
+        };
+
+        window.apriModaleServizio = function() {
+            document.getElementById('formTrasporto').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('data').value = todayStr;
+            document.getElementById('modalServizio').classList.add('active');
+            if(window.initMapAutocomplete) setTimeout(window.initMapAutocomplete, 300);
+        };
+
+        window.apriModaleDialisi = function() {
+            document.getElementById('formDialisi').reset();
+            document.getElementById('d-inizio').value = todayStr;
+            document.getElementById('modalDialisi').classList.add('active');
+            if(window.initMapAutocomplete) setTimeout(window.initMapAutocomplete, 300);
+        };
+
+        window.modificaServizio = function(id) {
+            const t = trasporti.find(function(x) { return String(x.id) === String(id); }); if(!t) return;
+            document.getElementById('formTrasporto').reset();
+            document.getElementById('editId').value = t.id;
+            ['regime','corsaTipo','paziente','cf','nre','data','ora','partenza','soste','destinazione','kmPartenza','kmArrivo','speseImporto','speseNota','mezzoSelezionato','autistaSelezionato','soccorritoreSelezionato','statoServizio'].forEach(function(k) {
+                if(document.getElementById(k)) document.getElementById(k).value = t[k] || '';
+            });
+            document.getElementById('modalServizio').classList.add('active');
+        };
+
+        window.eliminaServizio = function(id) {
+            if(!confirm("Confermi l'eliminazione del trasporto?")) return;
+            trasporti = trasporti.filter(function(x) { return String(x.id) !== String(id); });
+            salvaTutto();
+        };
+
+        window.vediDettagliChiusura = function(id) {
+            const t = trasporti.find(function(x) { return String(x.id) === String(id); }); if(!t) return;
+            let orariTappe = '';
+            if (t.timestampArrivoPosto) orariTappe += '<p><strong>Arrivo sul Posto:</strong> ' + t.timestampArrivoPosto + '</p>';
+            if (t.timestampPazienteCaricato) orariTappe += '<p><strong>Paziente a Bordo:</strong> ' + t.timestampPazienteCaricato + '</p>';
+            
+            let html = '<p><strong>Paziente:</strong> ' + t.paziente + '</p><p><strong>Chiuso alle:</strong> ' + (t.oraChiusura||'-') + '</p>' + orariTappe + '<p><strong>Km Arrivo:</strong> ' + (t.kmArrivo||0) + '</p><div style="display:flex;gap:15px;margin-top:15px;">';
+            if(t.fotoScontrino) html += '<div style="flex:1;text-align:center;"><p style="font-weight:700;">Scontrino:</p><img src="' + t.fotoScontrino + '" style="max-width:100%;max-height:200px;border-radius:6px;"></div>';
+            if(t.firma) html += '<div style="flex:1;text-align:center;"><p style="font-weight:700;">Firma Paziente:</p><img src="' + t.firma + '" style="max-width:100%;max-height:200px;border:1px solid #ccc;"></div>';
+            html += '</div>';
+            document.getElementById('dettagli-content').innerHTML = html;
+            document.getElementById('modalDettagli').classList.add('active');
+        };
+
+        document.getElementById('formTrasporto').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editId').value;
+            const aut = document.getElementById('autistaSelezionato').value;
+            const soc = document.getElementById('soccorritoreSelezionato').value;
+
+            // Controllo Bloccante Scadenze Volontari in Centrale
+            let vAut = volontari.find(function(v) { return v.nome === aut; });
+            let vSoc = volontari.find(function(v) { return v.nome === soc; });
+            if(vAut && !checkVolontarioIdoneo(vAut).idoneo) {
+                if(!confirm("ATTENZIONE: L'autista " + aut + " ha requisiti/BLSD scaduti! Vuoi procedere comunque?")) return;
+            }
+            if(vSoc && !checkVolontarioIdoneo(vSoc).idoneo) {
+                if(!confirm("ATTENZIONE: Il soccorritore " + soc + " ha requisiti/BLSD scaduti! Vuoi procedere comunque?")) return;
+            }
+
+            const obj = {
+                id: editId || Date.now().toString(),
+                regime: document.getElementById('regime').value,
+                corsaTipo: document.getElementById('corsaTipo').value,
+                paziente: document.getElementById('paziente').value,
+                cf: document.getElementById('cf').value.toUpperCase(),
+                nre: document.getElementById('nre').value,
+                data: document.getElementById('data').value,
+                ora: document.getElementById('ora').value,
+                partenza: document.getElementById('partenza').value,
+                soste: document.getElementById('soste').value,
+                destinazione: document.getElementById('destinazione').value,
+                kmPartenza: document.getElementById('kmPartenza').value,
+                kmArrivo: document.getElementById('kmArrivo').value,
+                speseImporto: document.getElementById('speseImporto').value,
+                speseNota: document.getElementById('speseNota').value,
+                mezzoSelezionato: document.getElementById('mezzoSelezionato').value,
+                autistaSelezionato: aut,
+                soccorritoreSelezionato: soc,
+                statoServizio: document.getElementById('statoServizio').value
+            };
+            if(editId) {
+                let idx = trasporti.findIndex(function(x) { return String(x.id) === String(editId); });
+                if(idx > -1) trasporti[idx] = Object.assign({}, trasporti[idx], obj);
+            } else {
+                trasporti.push(obj);
+            }
+            salvaTutto();
+            chiudiModali();
+        });
+
+        document.getElementById('formDialisi').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const p = document.getElementById('d-paziente').value;
+            const cf = document.getElementById('d-cf').value.toUpperCase();
+            const mz = document.getElementById('d-mezzo').value;
+            const ptz = document.getElementById('d-partenza').value;
+            const arr = document.getElementById('d-arrivo').value;
+            const dIn = new Date(document.getElementById('d-inizio').value);
+            const dFi = new Date(document.getElementById('d-fine').value);
+            const giorni = Array.from(document.querySelectorAll('input[name="d-giorni"]:checked')).map(function(c) { return parseInt(c.value); });
+            
+            let curr = new Date(dIn); let count = 0;
+            let oA = document.getElementById('d-turno').value === 'mattina' ? "07:00" : "13:00";
+            let oR = document.getElementById('d-turno').value === 'mattina' ? "12:00" : "17:00";
+            while(curr <= dFi) {
+                if(giorni.includes(curr.getDay())) {
+                    let dStr = getLocalISODate(curr);
+                    trasporti.push({ id: (Date.now() + count++).toString(), regime: "Convenzione ASL Umbria 2 (Dialisi)", corsaTipo: "Andata e Ritorno", paziente: p, cf: cf, nre: "DIALISI", data: dStr, ora: oA, partenza: ptz, destinazione: arr, kmPartenza: 0, kmArrivo: parseFloat(document.getElementById('d-km-andata').value)||0, mezzoSelezionato: mz, statoServizio: "Programmato" });
+                    trasporti.push({ id: (Date.now() + count++).toString(), regime: "Convenzione ASL Umbria 2 (Dialisi)", corsaTipo: "Andata e Ritorno", trattaRitorno: true, paziente: p, cf: cf, nre: "DIALISI", data: dStr, ora: oR, partenza: arr, destinazione: ptz, kmPartenza: 0, kmArrivo: parseFloat(document.getElementById('d-km-ritorno').value)||0, mezzoSelezionato: mz, statoServizio: "Programmato" });
+                }
+                curr.setDate(curr.getDate() + 1);
+            }
+            salvaTutto();
+            chiudiModali();
+            showToast("Generati " + count + " viaggi dialisi!");
+        });
+
+        window.stampaSchedaSingola = function(id) {
+            const t = trasporti.find(function(x) { return String(x.id) === String(id); }); if(!t) return;
+            const doc = new window.jspdf.jsPDF('p', 'mm', 'a5');
+            doc.setFontSize(14); doc.setTextColor(198, 40, 40);
+            doc.text("CUORE D'ARGENTO ODV - Foglio di Viaggio", 10, 15);
+            doc.setFontSize(10); doc.setTextColor(0, 0, 0);
+            doc
