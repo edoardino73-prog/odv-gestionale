@@ -47,7 +47,6 @@
         .btn-ghost { background: white; color: var(--text-main); border: 1px solid var(--border); }
         .btn-ghost:hover { background: #f1f5f9; }
 
-        /* SCHERMO INTERATTIVO FLOWCHART */
         .flowchart-wrapper { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 35px 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.04); flex: 1; display: flex; flex-direction: column; align-items: center; overflow-x: auto; }
         
         .fc-node { background: white; border: 2px solid var(--border); border-radius: 10px; padding: 14px 18px; text-align: center; width: 280px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); position: relative; z-index: 2; transition: transform 0.2s; }
@@ -84,7 +83,7 @@
             <a href="nomine.html" class="btn btn-ghost" style="color:var(--primary);"><i class="fa-solid fa-file-signature"></i> Gestione Nomine</a>
             <div class="topbar-title">
                 <h2><i class="fa-solid fa-sitemap" style="color:var(--primary);"></i> Organigramma Flowchart Integrato (ORG-01)</h2>
-                <p>I ruoli si aggiornano automaticamente in base agli Atti di Nomina registrati su Firebase</p>
+                <p>Sincronizzazione automatica con gli Atti di Nomina registrati su Firebase</p>
             </div>
         </div>
         <div style="display:flex; gap:10px;">
@@ -162,4 +161,292 @@
         <div class="fc-node ops">
             <h4>Corpo Volontari & Personale Operativo di Bordo</h4>
             <div class="fc-person-name" id="role-ops-count">Autisti Soccorritori • Soccorritori • Barellieri</div>
-            <div class="fc-meta
+            <div class="fc-meta" id="role-ops-meta"><span class="badge-sync badge-signed">Personale a Ruolo Registrato</span></div>
+            <span class="fc-desc">Esecuzione Trasporti Sanitari Ordinari, Dialisi ed Emergenze Territoriali</span>
+        </div>
+    </main>
+
+    <div id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toast-msg">Documento generato con successo!</span></div>
+
+    <script>
+        const societaInfo = {
+            nome: "ASSOCIAZIONE DI VOLONTARIATO CUORE D'ARGENTO O.D.V.",
+            sede: "Via della Stazione n. 51 – 05035 Narni Scalo (TR)",
+            cfPiva: "C.F. 91086460556 - P.IVA 01725470551",
+            runts: "RUNTS Det. n. 870/2025 Regione Umbria",
+            aut: "Aut. Esercizio n. 8642 del 19/08/2025",
+            conv: "Convenzione Trasporto Sanitario Ordinario e Dialisi con AUSL UMBRIA 2 (D.D.G. n. 416/2019)"
+        };
+
+        let organigrammaStato = {
+            pres: { nome: "Dott. Michele Bee", prot: "In Carica Statutaria", firmato: true, desc: "Rappresentanza Legale, Titolare Dati (GDPR) e Indirizzo Strategico" },
+            ds: { nome: "Da Assegnare", prot: "In Attesa Nomina", firmato: false, desc: "Supervisione Clinica, Idoneità e Protocolli (Req. 4)" },
+            dt: { nome: "Sig. Pierpaolo Tarchi", prot: "In Carica", firmato: true, desc: "Referente DEC AUSL Umbria 2, Rendicontazione L. 136/10" },
+            rsi: { nome: "Da Assegnare", prot: "In Attesa Nomina", firmato: false, desc: "Qualità Dati, Audit Integrità e Gestione Tablet (Req. 19-20)" },
+            rq: { nome: "Da Assegnare", prot: "In Attesa Nomina", firmato: false, desc: "ISO 9001:2015, Gestione Reclami Utenti entro 60 gg (Req. 26-28)" },
+            mezzi: { nome: "Da Assegnare", prot: "In Attesa Nomina", firmato: false, desc: "Efficienza ambulanze, collaudi DAE e bombole O2 (Req. 13-15)" }
+        };
+
+        let nomine = [];
+        let volontari = [];
+        let dbRootPath = 'cuore_argento_db';
+        let database;
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 3200);
+        }
+
+        function estraiDati(nodo) {
+            if (!nodo) return [];
+            if (Array.isArray(nodo)) return nodo.filter(function(i) { return i !== null && typeof i === 'object'; });
+            return Object.keys(nodo).map(function(k) { 
+                let item = nodo[k]; 
+                if (item && typeof item === 'object') item.id = item.id || k; 
+                return item; 
+            }).filter(Boolean);
+        }
+
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDhi3SRh2mDqz8_T03xYVq4XtcRiAL7IF0",
+                authDomain: "cuore-d-argento.firebaseapp.com",
+                databaseURL: "https://cuore-d-argento-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "cuore-d-argento",
+                storageBucket: "cuore-d-argento.firebasestorage.app",
+                messagingSenderId: "271690439864",
+                appId: "1:271690439864:web:17b36ef2c5ab4263d3684d"
+            };
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+
+            // Lettura difensiva da qualsiasi livello del database
+            database.ref().on('value', function(snapshot) {
+                const rawData = snapshot.val() || {};
+                let data = rawData.cuore_argento_db ? rawData.cuore_argento_db : rawData;
+
+                let nodNomine = data.nomine_archiviate || rawData.nomine_archiviate || data.nomine || rawData.nomine || {};
+                nomine = estraiDati(nodNomine);
+
+                let nodVol = data.volontari || rawData.volontari || {};
+                volontari = estraiDati(nodVol);
+
+                console.log("Nomine lette dal Cloud:", nomine);
+                aggiornaRuoliDaNomine();
+                aggiornaInterfacciaVideo();
+            });
+        } catch(e) { console.error("Errore connessione Firebase:", e); }
+
+        function pulisciTesto(str) {
+            return (str || "").toLowerCase().replace(/&amp;/g, '&').replace(/[^a-z0-9]/g, '');
+        }
+
+        function aggiornaRuoliDaNomine() {
+            // Ordina le nomine dalla più recente alla più vecchia
+            const nomineOrdinate = [].concat(nomine).sort(function(a,b) {
+                return new Date(b.data || 0) - new Date(a.data || 0);
+            });
+
+            nomineOrdinate.forEach(function(n) {
+                const rClean = pulisciTesto(n.ruolo);
+                const persona = (n.persona || "").trim();
+                const prot = n.protocollo ? (n.protocollo + " (" + (n.data || "") + ")") : (n.data || "Nominato");
+                const isFirmato = !!n.file_firmato_base64;
+
+                if (!persona) return;
+
+                // 1. RESPONSABILE PARCO MEZZI & PRESIDI (cerca mezzi, parco, auto, veicol, biomed, presid)
+                if (rClean.includes("mezz") || rClean.includes("parco") || rClean.includes("auto") || rClean.includes("veicol") || rClean.includes("biomed") || rClean.includes("presid")) {
+                    if (organigrammaStato.mezzi.nome === "Da Assegnare") {
+                        organigrammaStato.mezzi = { nome: persona, prot: prot, firmato: isFirmato, desc: "Efficienza ambulanze, collaudi DAE e bombole O2 (Req. 13-15)" };
+                    }
+                }
+                // 2. DIRETTORE SANITARIO
+                else if (rClean.includes("sanitar") || rClean.includes("ds")) {
+                    if (organigrammaStato.ds.nome === "Da Assegnare") {
+                        organigrammaStato.ds = { nome: persona, prot: prot, firmato: isFirmato, desc: "Supervisione Clinica, Idoneità e Protocolli (Req. 4)" };
+                    }
+                }
+                // 3. DIRETTORE TECNICO / AMMINISTRATIVO
+                else if (rClean.includes("tecnic") || rClean.includes("gestione") || rClean.includes("amministrat")) {
+                    organigrammaStato.dt = { nome: persona, prot: prot, firmato: isFirmato, desc: "Referente DEC AUSL Umbria 2, Rendicontazione L. 136/10" };
+                }
+                // 4. REFERENTE SISTEMA INFORMATIVO (RSI)
+                else if (rClean.includes("informativ") || rClean.includes("rsi") || rClean.includes("software")) {
+                    if (organigrammaStato.rsi.nome === "Da Assegnare") {
+                        organigrammaStato.rsi = { nome: persona, prot: prot, firmato: isFirmato, desc: "Qualità Dati, Audit Integrità e Gestione Tablet (Req. 19-20)" };
+                    }
+                }
+                // 5. REFERENTE QUALITÀ & RRP
+                else if (rClean.includes("qualit") || rClean.includes("rrp") || rClean.includes("reclam") || rClean.includes("relazion")) {
+                    if (organigrammaStato.rq.nome === "Da Assegnare") {
+                        organigrammaStato.rq = { nome: persona, prot: prot, firmato: isFirmato, desc: "ISO 9001:2015, Gestione Reclami Utenti entro 60 gg (Req. 26-28)" };
+                    }
+                }
+                // 6. PRESIDENTE / LEGALE RAPPRESENTANTE
+                else if (rClean.includes("president") || rClean.includes("legal")) {
+                    organigrammaStato.pres = { nome: persona, prot: prot, firmato: isFirmato, desc: "Rappresentanza Legale, Titolare Dati (GDPR) e Indirizzo Strategico" };
+                }
+            });
+        }
+
+        function aggiornaInterfacciaVideo() {
+            function applicaNodo(idBase, info) {
+                const nameEl = document.getElementById(idBase + "-name");
+                const metaEl = document.getElementById(idBase + "-meta");
+                if (nameEl) nameEl.innerText = info.nome;
+                if (metaEl) {
+                    if (info.firmato) {
+                        metaEl.innerHTML = '<span class="badge-sync badge-signed"><i class="fa-solid fa-file-circle-check"></i> ' + info.prot + ' (Firmato)</span>';
+                    } else if (info.nome !== "Da Assegnare") {
+                        metaEl.innerHTML = '<span class="badge-sync badge-signed"><i class="fa-solid fa-check"></i> ' + info.prot + '</span>';
+                    } else {
+                        metaEl.innerHTML = '<span class="badge-sync badge-waiting">In Attesa Nomina</span>';
+                    }
+                }
+            }
+
+            applicaNodo("role-pres", organigrammaStato.pres);
+            applicaNodo("role-ds", organigrammaStato.ds);
+            applicaNodo("role-dt", organigrammaStato.dt);
+            applicaNodo("role-rsi", organigrammaStato.rsi);
+            applicaNodo("role-rq", organigrammaStato.rq);
+            applicaNodo("role-mezzi", organigrammaStato.mezzi);
+
+            const opsCountEl = document.getElementById("role-ops-count");
+            const opsMetaEl = document.getElementById("role-ops-meta");
+            if (volontari.length > 0) {
+                if (opsCountEl) opsCountEl.innerText = volontari.length + " Volontari e Operatori Registrati";
+                if (opsMetaEl) opsMetaEl.innerHTML = '<span class="badge-sync badge-signed"><i class="fa-solid fa-users"></i> Parco Operativo Accreditato</span>';
+            }
+        }
+
+        window.esportaFlowchartPDFCartaIntestata = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+
+            doc.setFontSize(13);
+            doc.setTextColor(198, 40, 40);
+            doc.setFont("helvetica", "bold");
+            doc.text(societaInfo.nome, 14, 13);
+
+            doc.setFontSize(7.5);
+            doc.setTextColor(80, 80, 80);
+            doc.setFont("helvetica", "normal");
+            doc.text("Sede Operativa: " + societaInfo.sede + " | " + societaInfo.cfPiva, 14, 18);
+            doc.text(societaInfo.runts + " | " + societaInfo.aut, 14, 22);
+            doc.text(societaInfo.conv, 14, 26);
+            
+            doc.setDrawColor(198, 40, 40);
+            doc.setLineWidth(0.8);
+            doc.line(14, 29, 283, 29);
+
+            doc.setFontSize(10.5);
+            doc.setTextColor(15, 23, 42);
+            doc.setFont("helvetica", "bold");
+            doc.text("DOC. INT.: ORG-01 | FLOWCHART DELL'ORGANIGRAMMA E FUNZIONIGRAMMA AZIENDALE", 14, 35);
+            
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "italic");
+            doc.setTextColor(100, 116, 139);
+            doc.text("Articolazione delle responsabilità e linee di riporto aggiornate con gli Atti di Nomina registrati (R.R. Umbria 6/2024)", 14, 39);
+
+            function drawFlowBox(x, y, w, h, title, name, role, protStr, strokeColor, fillColor) {
+                doc.setDrawColor(strokeColor[0], strokeColor[1], strokeColor[2]);
+                doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
+                doc.setLineWidth(0.4);
+                doc.roundedRect(x, y, w, h, 2, 2, 'FD');
+
+                doc.setFontSize(7.2);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(15, 23, 42);
+                doc.text(title, x + (w / 2), y + 4.5, { align: "center" });
+
+                doc.setFontSize(8.2);
+                doc.setTextColor(198, 40, 40);
+                doc.setFont("helvetica", "bold");
+                doc.text(name, x + (w / 2), y + 8.8, { align: "center" });
+
+                doc.setFontSize(5.8);
+                doc.setFont("helvetica", "italic");
+                doc.setTextColor(100, 116, 139);
+                if (protStr && protStr !== "In Attesa Nomina") {
+                    doc.text("Atto: " + protStr, x + (w / 2), y + 12, { align: "center" });
+                }
+
+                doc.setFontSize(5.8);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(71, 85, 105);
+                const splitRole = doc.splitTextToSize(role, w - 4);
+                doc.text(splitRole, x + (w / 2), y + 15, { align: "center" });
+            }
+
+            // LIVELLO 1
+            drawFlowBox(106, 44, 85, 19, "LEGALE RAPPRESENTANTE / PRESIDENTE", organigrammaStato.pres.nome, organigrammaStato.pres.desc, organigrammaStato.pres.prot, [198, 40, 40], [254, 226, 226]);
+
+            // LIVELLO 2
+            drawFlowBox(54, 73, 86, 19, "DIRETTORE SANITARIO (DS)", organigrammaStato.ds.nome, organigrammaStato.ds.desc, organigrammaStato.ds.prot, [59, 130, 246], [239, 246, 255]);
+            drawFlowBox(157, 73, 86, 19, "DIRETTORE TECNICO & GESTIONE", organigrammaStato.dt.nome, organigrammaStato.dt.desc, organigrammaStato.dt.prot, [59, 130, 246], [239, 246, 255]);
+
+            // LIVELLO 3
+            drawFlowBox(22, 103, 78, 19, "REFERENTE SISTEMA INFORMATIVO (RSI)", organigrammaStato.rsi.nome, organigrammaStato.rsi.desc, organigrammaStato.rsi.prot, [139, 92, 246], [245, 243, 255]);
+            drawFlowBox(109, 103, 78, 19, "REFERENTE QUALITÀ (RQ) & RRP", organigrammaStato.rq.nome, organigrammaStato.rq.desc, organigrammaStato.rq.prot, [139, 92, 246], [245, 243, 255]);
+            drawFlowBox(197, 103, 78, 19, "RESP. PARCO MEZZI & PRESIDI", organigrammaStato.mezzi.nome, organigrammaStato.mezzi.desc, organigrammaStato.mezzi.prot, [139, 92, 246], [245, 243, 255]);
+
+            // LIVELLO 4
+            const opsText = (volontari.length > 0) ? (volontari.length + " Operatori e Volontari a Registro") : "Autisti Soccorritori, Soccorritori e Barellieri";
+            drawFlowBox(76, 132, 145, 16, "CORPO VOLONTARI & PERSONALE OPERATIVO", opsText, "Esecuzione missioni di trasporto sanitario ordinario e dialisi autorizzate", "", [100, 116, 139], [241, 245, 249]);
+
+            // LINEE
+            doc.setDrawColor(148, 163, 184);
+            doc.setLineWidth(0.4);
+            doc.line(148, 63, 148, 68);
+            doc.line(97, 68, 200, 68);
+            doc.line(97, 68, 97, 73);
+            doc.line(200, 68, 200, 73);
+
+            doc.line(148, 92, 148, 97);
+            doc.line(97, 92, 148, 92);
+            doc.line(200, 92, 148, 92);
+            doc.line(61, 97, 236, 97);
+            doc.line(61, 97, 61, 103);
+            doc.line(148, 97, 148, 103);
+            doc.line(236, 97, 236, 103);
+
+            doc.line(148, 122, 148, 132);
+
+            // FIRME
+            const valY = 158;
+            doc.setDrawColor(203, 213, 225);
+            doc.setLineWidth(0.3);
+            doc.line(14, valY, 283, valY);
+
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(71, 85, 105);
+            doc.text("Data di Approvazione e Adozione: " + new Date().toLocaleDateString('it-IT'), 14, valY + 6);
+            doc.text("Luogo: Narni Scalo (TR) - Sede Operativa Autorizzata", 14, valY + 11);
+            doc.text("Validità: Documento sincronizzato e soggetto a riesame annuale congiunto della Direzione", 14, valY + 16);
+
+            doc.setFontSize(8);
+            doc.setTextColor(15, 23, 42);
+            doc.setFont("helvetica", "bold");
+            doc.text("Il Legale Rappresentante (Presidente)", 110, valY + 8);
+            doc.text("Il Direttore Sanitario Responsabile", 205, valY + 8);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7.5);
+            doc.text(organigrammaStato.pres.nome, 110, valY + 14);
+            doc.text("__________________________________________", 110, valY + 23);
+
+            doc.text(organigrammaStato.ds.nome, 205, valY + 14);
+            doc.text("__________________________________________", 205, valY + 23);
+
+            doc.save("ORG-01_Organigramma_Flowchart_Dinamico.pdf");
+            showToast("Organigramma Flowchart esportato con le nomine attuali!");
+        };
+    </script>
+</body>
+</html>
