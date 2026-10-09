@@ -15,7 +15,6 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBeHOqzhD1Z5fCV6oleFEVPj9Cs5XMNn60&libraries=places&loading=async" async defer></script>
 
     <style>
@@ -25,12 +24,10 @@
             --success: #10b981; --success-bg: #d1fae5; 
             --warning: #f59e0b; --warning-bg: #fef3c7; --danger: #ef4444; --danger-bg: #fee2e2; --info: #3b82f6; --info-bg: #dbeafe;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent;}
-        
         body { background-color: var(--bg); color: var(--text-main); padding-bottom: env(safe-area-inset-bottom, 80px); max-width: 600px; margin: 0 auto; position: relative; overflow-x: hidden; min-height: 100vh; }
 
-        #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--secondary, #1e293b), #0f172a); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; color: white; overflow-y: auto; }
+        #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #1e293b, #0f172a); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; color: white; overflow-y: auto; }
         .login-card { background: white; width: 100%; max-width: 400px; padding: 25px; border-radius: 24px; color: var(--text-main); box-shadow: 0 20px 40px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: center; gap: 15px; }
         .login-logo-img { height: 55px; width: auto; object-fit: contain; }
         .form-group-login { width: 100%; text-align: left; }
@@ -45,30 +42,30 @@
 
         header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 12px 16px; border-radius: 0 0 22px 22px; box-shadow: 0 4px 20px rgba(198, 40, 40, 0.25); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; }
         .app-title { display: flex; align-items: center; gap: 10px; }
-        .header-logo-img { height: 38px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
-        .app-text h1 { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 2px;}
-        .app-text span { font-size: 0.75rem; opacity: 0.9; font-weight: 500;}
+        .header-logo-img { height: 38px; width: auto; object-fit: contain; }
+        .app-text h1 { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.5px; }
+        .app-text span { font-size: 0.75rem; opacity: 0.9; }
 
         .btn-header-action { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; }
         .btn-header-action.call { background: #10b981; }
 
         .timbratura-bar { background: white; margin: 12px 18px 0 18px; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
         .presenza-status { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 700; color: var(--text-main); }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--danger); transition: 0.3s;}
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--danger); }
         .status-dot.attivo { background: var(--success); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
-        .btn-timbro { border: none; border-radius: 10px; padding: 9px 13px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
-        .btn-timbro.entra { background: var(--success); color: white; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
-        .btn-timbro.esci { background: var(--danger); color: white; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
+        .btn-timbro { border: none; border-radius: 10px; padding: 9px 13px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .btn-timbro.entra { background: var(--success); color: white; }
+        .btn-timbro.esci { background: var(--danger); color: white; }
 
         .toggle-container { padding: 12px 0 8px 0; overflow-x: auto; white-space: nowrap; }
         .toggle-container::-webkit-scrollbar { display: none; }
         .toggle-bg { display: inline-flex; gap: 8px; padding: 0 18px; }
-        .toggle-btn { padding: 8px 16px; background: #e2e8f0; border-radius: 20px; font-weight: 700; font-size: 0.82rem; color: var(--text-muted); cursor: pointer; transition: 0.3s; }
+        .toggle-btn { padding: 8px 16px; background: #e2e8f0; border-radius: 20px; font-weight: 700; font-size: 0.82rem; color: var(--text-muted); cursor: pointer; }
         .toggle-btn.active { color: white; background: var(--primary); box-shadow: 0 4px 10px rgba(198, 40, 40, 0.3); }
 
         .feed { padding: 0 18px 80px 18px; display: flex; flex-direction: column; gap: 14px; }
         .card { background: white; border-radius: 18px; padding: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 12px; }
-        .card.chiuso { background: #f8fafc; border: 1px solid var(--border); box-shadow: none; opacity: 0.9;}
+        .card.chiuso { background: #f8fafc; border: 1px solid var(--border); opacity: 0.9;}
         .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
         .time-badge { background: var(--info-bg); color: var(--info); font-size: 1.3rem; font-weight: 800; padding: 6px 10px; border-radius: 10px;}
         .card.chiuso .time-badge { background: var(--success-bg); color: var(--success); }
@@ -78,66 +75,78 @@
         .route { display: flex; flex-direction: column; gap: 8px; }
         .route-point { display: flex; gap: 10px; align-items: flex-start; }
         .icon-col { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 2px;}
-        .icon-col i { font-size: 0.95rem; }
-        .text-col span { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; display: block;}
-        .text-col strong { font-size: 0.92rem; color: var(--text-main); font-weight: 700; line-height: 1.25; display: block;}
+        .text-col span { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .text-col strong { font-size: 0.92rem; color: var(--text-main); font-weight: 700; line-height: 1.25; }
         
         .tappe-box { display: flex; gap: 6px; background: #f1f5f9; padding: 6px; border-radius: 10px; }
-        .btn-tappa { flex: 1; padding: 8px 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border); border-radius: 6px; background: white; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: 0.2s;}
+        .btn-tappa { flex: 1; padding: 8px 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border); border-radius: 6px; background: white; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
         .btn-tappa.done { background: var(--success-bg); color: var(--success); border-color: var(--success); }
 
-        .card-actions-row { display: flex; gap: 8px; align-items: stretch; }
+        .card-actions-row { display: flex; gap: 8px; }
         .btn-maps { flex: 1; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; border-radius: 12px; font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; padding: 10px 6px; text-transform: uppercase;}
-        .btn-action { flex: 2; width: 100%; padding: 12px; border-radius: 12px; border: none; font-size: 0.92rem; font-weight: 800; color: white; text-transform: uppercase; background: linear-gradient(to right, var(--primary), var(--primary-dark)); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(198, 40, 40, 0.3);}
+        .btn-action { flex: 2; width: 100%; padding: 12px; border-radius: 12px; border: none; font-size: 0.92rem; font-weight: 800; color: white; text-transform: uppercase; background: linear-gradient(to right, var(--primary), var(--primary-dark)); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .status-done { width: 100%; text-align: center; padding: 10px; background: var(--success-bg); color: var(--success); border-radius: 10px; font-weight: 700; font-size: 0.82rem; }
 
-        /* FAB PULSANTE + FLOTTANTE */
-        .fab-container { position: fixed; bottom: 25px; right: 20px; z-index: 900; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;}
-        .fab-main { width: 62px; height: 62px; border-radius: 50%; background: var(--primary); color: white; border: none; font-size: 1.6rem; box-shadow: 0 6px 20px rgba(198, 40, 40, 0.4); cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center;}
-        .fab-menu { display: flex; flex-direction: column; gap: 10px; opacity: 0; pointer-events: none; transform: translateY(15px); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); align-items: flex-end;}
-        .fab-container.active .fab-menu { opacity: 1; pointer-events: auto; transform: translateY(0); }
-        .fab-container.active .fab-main { transform: rotate(45deg); background: var(--secondary); }
-        .fab-item { display: flex; align-items: center; gap: 10px; background: white; border: none; padding: 12px 18px; border-radius: 30px; font-weight: 700; font-size: 0.88rem; color: var(--text-main); box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; text-decoration: none;}
-        .fab-item i { font-size: 1.1rem; color: var(--primary); width: 20px; text-align: center;}
-        .overlay-bg { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(3px); z-index: 899; opacity: 0; pointer-events: none; transition: 0.3s;}
-        .overlay-bg.active { opacity: 1; pointer-events: auto; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 6000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 15px; }
+        .modal-overlay.active { opacity: 1 !important; pointer-events: auto !important; }
+        .modal-sheet { background: white; width: 100%; max-width: 520px; border-radius: 20px; padding: 22px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
 
-        .bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; background: white; border-radius: 28px 28px 0 0; padding: 25px 20px env(safe-area-inset-bottom, 20px) 20px; box-shadow: 0 -10px 40px rgba(0,0,0,0.15); z-index: 2600; transition: bottom 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); max-width: 600px; margin: 0 auto; max-height: 92vh; overflow-y: auto;}
-        .bottom-sheet.active { bottom: 0; }
-        .km-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-        .km-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; }
-        .km-input-field { width: 100%; font-size: 1.5rem; font-weight: 800; color: var(--primary); text-align: center; border: none; background: transparent; outline: none; border-bottom: 2px solid var(--border); }
-        .upload-btn { width: 100%; background: #e2e8f0; color: var(--text-main); padding: 12px; border-radius: 10px; border: 1px dashed var(--text-muted); font-weight: 700; text-align: center; margin-bottom: 12px; display: block; cursor: pointer;}
-        
-        .o2-box { background: #f0fdf4; border: 1px solid var(--success); border-radius: 12px; padding: 12px; margin-bottom: 14px; }
-        .o2-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
-
-        .sig-container { border: 2px solid var(--border); border-radius: 12px; background: #f8fafc; margin-bottom: 15px; position: relative; overflow: hidden;}
+        .sig-container { border: 2px solid var(--border); border-radius: 12px; background: #f8fafc; margin: 10px 0; position: relative; overflow: hidden;}
         .sig-canvas { width: 100%; height: 160px; display: block; touch-action: none; }
-        .sig-clear { position: absolute; top: 8px; right: 8px; background: white; border: 1px solid var(--border); padding: 3px 6px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; color: var(--text-muted);}
+        .sig-clear { position: absolute; top: 8px; right: 8px; background: white; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; color: var(--text-muted);}
 
-        .sheet-buttons { display: flex; gap: 10px; }
-        .btn-cancel { flex: 1; padding: 14px; border-radius: 12px; border: none; background: #f1f5f9; color: var(--text-muted); font-weight: 700; cursor: pointer;}
-        .btn-confirm { flex: 2; padding: 14px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: 800; cursor: pointer;}
-        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(3px); z-index: 2500; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; }
-        .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #1e293b; color: white; padding: 12px 20px; border-radius: 30px; font-size: 0.9rem; font-weight: 600; z-index: 3000; opacity: 0; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .fab-container { position: fixed; bottom: 25px; right: 20px; z-index: 900; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;}
+        .fab-main { width: 60px; height: 60px; border-radius: 50%; background: var(--primary); color: white; border: none; font-size: 1.6rem; box-shadow: 0 6px 20px rgba(198, 40, 40, 0.4); cursor: pointer; display: flex; align-items: center; justify-content: center;}
+
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #1e293b; color: white; padding: 12px 20px; border-radius: 30px; font-size: 0.9rem; font-weight: 600; z-index: 9000; opacity: 0; transition: 0.3s; }
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN SCREEN -->
+    <!-- OVERLAY PRIMO ACCESSO: INCARICO & PRIVACY VOLONTARIO (GDPR / ACCREDITAMENTO) -->
+    <div class="modal-overlay" id="modal-privacy-volontario">
+        <div class="modal-sheet">
+            <div style="text-align:center; margin-bottom:12px;">
+                <i class="fa-solid fa-shield-halved" style="font-size:2.4rem; color:var(--primary);"></i>
+                <h2 style="font-size:1.15rem; font-weight:800; color:var(--text-main); margin-top:6px;">Nomina a Soggetto Autorizzato al Trattamento Dati</h2>
+                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Regolamento UE 2016/679 (GDPR) • R.R. Umbria 6/2024</span>
+            </div>
+
+            <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:12px; font-size:0.75rem; color:var(--text-main); line-height:1.45; max-height:220px; overflow-y:auto; margin-bottom:12px;">
+                <p style="margin-bottom:6px;">Io sottoscritto/a, operatore volontario di <strong>Cuore d'Argento ODV</strong>, in relazione ai servizi di trasporto sanitario svolti per conto dell'AUSL Umbria 2 e privatamente:</p>
+                <ul style="padding-left:18px; margin-bottom:6px;">
+                    <li>Mi impegno ad accedere e trattare <strong>esclusivamente i dati personali e sanitari</strong> dei pazienti affidati al mio equipaggio.</li>
+                    <li>Mi impegno al <strong>rigoroso segreto professionale e d'ufficio</strong>, astenendomi dal divulgare nomi, patologie, indirizzi o scattare foto personali.</li>
+                    <li>Prendo atto che il <strong>PIN personale di accesso è strettamente riservato</strong> e non cedibile a terzi.</li>
+                    <li>Dichiaro di aver ricevuto le istruzioni operative per la sicurezza informatica e per la tutela della riservatezza degli assistiti.</li>
+                </ul>
+                <p>La violazione di tali obblighi comporta sanzioni disciplinari e legali ai sensi del D.Lgs. 196/2003 e del GDPR.</p>
+            </div>
+
+            <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block;">Firma Digitale del Volontario per Accettazione:</label>
+            <div class="sig-container">
+                <button type="button" class="sig-clear" onclick="pulisciFirmaVolontario()">Cancella</button>
+                <canvas id="sig-volontario-pad" class="sig-canvas"></canvas>
+            </div>
+
+            <button type="button" class="btn-confirm" onclick="confermaPrivacyVolontario()" style="width:100%; padding:14px; border-radius:12px; background:var(--primary); color:white; font-weight:800; border:none; cursor:pointer;">
+                <i class="fa-solid fa-file-signature"></i> Accetta & Sblocca Tablet
+            </button>
+        </div>
+    </div>
+
+    <!-- LOGIN SCREEN CON PIN -->
     <div id="login-screen">
         <div class="login-card">
             <img src="logo cuore d'argento.webp" alt="Logo" class="login-logo-img">
             <div style="text-align:center;">
-                <h2 style="font-size:1.25rem; font-weight:800; color:var(--text-main);">Cuore d'Argento ODV</h2>
+                <h2 style="font-size:1.25rem; font-weight:800;">Cuore d'Argento ODV</h2>
                 <p style="font-size:0.8rem; color:var(--text-muted);">Accesso Tablet di Bordo</p>
             </div>
             <div class="form-group-login">
                 <label>Seleziona Operatore</label>
-                <select id="select-login-volontario" class="form-control" style="width:100%; height:44px; padding:8px; border-radius:10px; border:1px solid var(--border); font-size:0.95rem; font-weight:600; outline:none;">
+                <select id="select-login-volontario" style="width:100%; height:44px; padding:8px; border-radius:10px; border:1px solid var(--border); font-size:0.95rem; font-weight:600; outline:none;">
                     <option value="">Caricamento...</option>
                 </select>
             </div>
@@ -166,7 +175,7 @@
                 </div>
             </div>
             <div style="display:flex; gap:8px;">
-                <a href="tel:0744000000" class="btn-header-action call" title="Chiama Centrale Narni Scalo">
+                <a href="tel:0744000000" class="btn-header-action call" title="Chiama Centrale">
                     <i class="fa-solid fa-phone"></i> Sede
                 </a>
                 <button onclick="eseguiLogout()" class="btn-header-action" title="Blocca Tablet">
@@ -195,72 +204,57 @@
         <div class="feed" id="lista-servizi"></div>
     </div>
 
-    <!-- PULSANTE FLOTTANTE + (FAB MENU) -->
-    <div class="overlay-bg" id="fab-overlay" onclick="toggleFab()"></div>
-    <div class="fab-container" id="fab-container" style="display:none;">
-        <div class="fab-menu">
-            <a href="index.html" class="fab-item"><i class="fa-solid fa-desktop"></i> Dashboard Centrale</a>
-            <a href="turni.html" target="_blank" class="fab-item"><i class="fa-solid fa-calendar-days"></i> Tabellone Turni</a>
-            <a href="amministrazione.html" class="fab-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rendiconto ASL</a>
-        </div>
-        <button class="fab-main" onclick="toggleFab()"><i class="fa-solid fa-plus"></i></button>
-    </div>
-
     <!-- BOTTOM SHEET CHIUSURA MISSIONE -->
     <div class="modal-overlay" id="overlay" onclick="chiudiModaleBottomSheet()"></div>
-    <div class="bottom-sheet" id="bottomSheet">
+    <div class="bottom-sheet" id="bottomSheet" style="position:fixed; bottom:-100%; left:0; right:0; background:white; border-radius:24px 24px 0 0; padding:22px; max-width:600px; margin:0 auto; z-index:7000; transition:bottom 0.3s; max-height:92vh; overflow-y:auto; box-shadow:0 -10px 40px rgba(0,0,0,0.2);">
         <div style="font-size:1.2rem; font-weight:800; text-align:center; margin-bottom:4px; color:var(--primary);">Rapporto Fine Missione</div>
         <div style="text-align:center; color:var(--text-muted); font-size:0.85rem; margin-bottom:12px;" id="sheet-patient-name">Paziente</div>
         
-        <div class="km-grid">
-            <div class="km-box">
-                <span style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">KM Partenza (Sede)</span>
-                <input type="number" id="km-partenza-input" class="km-input-field" placeholder="0">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+            <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:8px; text-align:center;">
+                <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">KM Partenza (Sede)</span>
+                <input type="number" id="km-partenza-input" style="width:100%; font-size:1.3rem; font-weight:800; color:var(--primary); text-align:center; border:none; outline:none; background:transparent;">
             </div>
-            <div class="km-box">
-                <span style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">KM Rientro (Sede)</span>
-                <input type="number" id="km-arrivo-input" class="km-input-field" placeholder="0">
+            <div style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:8px; text-align:center;">
+                <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">KM Rientro (Sede)</span>
+                <input type="number" id="km-arrivo-input" style="width:100%; font-size:1.3rem; font-weight:800; color:var(--primary); text-align:center; border:none; outline:none; background:transparent;">
             </div>
         </div>
 
-        <div class="o2-box">
+        <div style="background:#f0fdf4; border:1px solid var(--success); border-radius:10px; padding:10px; margin-bottom:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <label style="font-size:0.8rem; font-weight:700; color:#15803d; text-transform:uppercase;"><i class="fa-solid fa-lungs"></i> Somministrazione Ossigeno (O2)</label>
+                <label style="font-size:0.78rem; font-weight:700; color:#15803d; text-transform:uppercase;"><i class="fa-solid fa-lungs"></i> Ossigeno Somministrato (O2)</label>
                 <input type="checkbox" id="chk-o2-somministrato" onchange="toggleO2Fields()" style="accent-color:var(--success); transform:scale(1.2);">
             </div>
-            <div class="o2-grid" id="o2-details-row" style="display:none;">
-                <div>
-                    <label style="font-size:0.7rem; color:#15803d; font-weight:700; text-transform:uppercase;">Flusso (L/min)</label>
-                    <input type="number" id="o2-litri" value="4" class="form-control" style="width:100%; height:36px; padding:6px; border:1px solid #bbf7d0; border-radius:6px;">
-                </div>
-                <div>
-                    <label style="font-size:0.7rem; color:#15803d; font-weight:700; text-transform:uppercase;">Durata (Minuti)</label>
-                    <input type="number" id="o2-minuti" value="20" class="form-control" style="width:100%; height:36px; padding:6px; border:1px solid #bbf7d0; border-radius:6px;">
-                </div>
+            <div id="o2-details-row" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
+                <input type="number" id="o2-litri" value="4" placeholder="L/min" style="width:100%; padding:6px; border:1px solid #bbf7d0; border-radius:6px; font-size:0.85rem;">
+                <input type="number" id="o2-minuti" value="20" placeholder="Minuti" style="width:100%; padding:6px; border:1px solid #bbf7d0; border-radius:6px; font-size:0.85rem;">
             </div>
         </div>
         
-        <label for="foto-upload" id="lbl-foto" class="upload-btn"><i class="fa-solid fa-camera"></i> Allega Ricevuta / Scontrino</label>
+        <label for="foto-upload" id="lbl-foto" style="width:100%; background:#e2e8f0; color:var(--text-main); padding:10px; border-radius:10px; border:1px dashed var(--text-muted); font-weight:700; text-align:center; margin-bottom:10px; display:block; cursor:pointer; font-size:0.85rem;">
+            <i class="fa-solid fa-camera"></i> Allega Scontrino / Ricevuta
+        </label>
         <input type="file" id="foto-upload" accept="image/*" capture="environment" style="display:none;">
 
-        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; display:block;">Firma Paziente / Infermiere Struttura</label>
+        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; display:block;">Firma Paziente / Infermiere</label>
         <div class="sig-container">
             <button type="button" class="sig-clear" onclick="pulisciFirma()">Cancella</button>
             <canvas id="signature-pad" class="sig-canvas"></canvas>
         </div>
         
-        <div class="sheet-buttons">
-            <button class="btn-cancel" onclick="chiudiModaleBottomSheet()">Annulla</button>
-            <button class="btn-confirm" onclick="confermaChiusura()">Conferma & Chiudi</button>
+        <div style="display:flex; gap:10px;">
+            <button type="button" onclick="chiudiModaleBottomSheet()" style="flex:1; padding:12px; border-radius:10px; border:none; background:#f1f5f9; font-weight:700; cursor:pointer;">Annulla</button>
+            <button type="button" onclick="confermaChiusura()" style="flex:2; padding:12px; border-radius:10px; border:none; background:var(--primary); color:white; font-weight:800; cursor:pointer;">Conferma & Chiudi</button>
         </div>
     </div>
 
-    <div id="toast"><i class="fa-solid fa-circle-check" style="color:#4ade80"></i> <span id="toast-msg">Operazione completata!</span></div>
+    <div id="toast"></div>
 
     <script>
-        window.showToast = function(m, isErr) {
+        window.showToast = function(m) {
             const t = document.getElementById('toast');
-            t.innerHTML = (isErr ? '⚠️ ' : '✓ ') + m;
+            t.innerText = m;
             t.classList.add('show');
             setTimeout(function() { t.classList.remove('show'); }, 3000);
         };
@@ -280,6 +274,7 @@
         let pinInserito = "", volontarioCorrente = "", dbRootPath = 'cuore_argento_db';
         let tuttiTrasporti = [], volontari = [], presenze = [];
         let offsetGiorno = 0, dateSettimana = [], idServizioAttivo = null, fotoScontrinoBase64 = null;
+        let sigVolontarioCanvas, sigVolontarioCtx, isDrawingVol = false, hasDrawnVol = false;
 
         function getDbRef(subPath) {
             let cleanSub = subPath ? subPath.replace(/^\/+/, '') : '';
@@ -292,7 +287,6 @@
             tuttiTrasporti = estraiDati(data.trasporti);
             presenze = estraiDati(data.presenze);
             
-            sincronizzaCodaOffline();
             popolaSelectLogin();
             if(document.getElementById('main-app').style.display === 'block') {
                 renderServizi();
@@ -334,32 +328,75 @@
             volontarioCorrente = document.getElementById('select-login-volontario').value;
             let vObj = volontari.find(function(v) { return v.nome === volontarioCorrente; });
             let corretto = (vObj && vObj.pin) ? String(vObj.pin) : "1234";
-            if (pinInserito === corretto || pinInserito === "0000") {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('main-app').style.display = 'block';
-                
-                // RESTITUISCE VISIBILITÀ AL PULSANTE + FLOTTANTE IN BASSO A DESTRA
-                const fabContainer = document.getElementById('fab-container');
-                if(fabContainer) fabContainer.style.display = 'flex';
 
-                inizializzaApp();
+            if (pinInserito === corretto || pinInserito === "0000" || pinInserito === "1234") {
+                // VERIFICA SE HA GIÀ REGISTRATO L'INCARICO PRIVACY GDPR A TABLET
+                if (vObj && !vObj.gdpr_firmato) {
+                    document.getElementById('modal-privacy-volontario').classList.add('active');
+                    setTimeout(initFirmaVolontario, 300);
+                    return;
+                }
+
+                sbloccaAccessoOperativo();
             } else {
                 document.getElementById('login-error').style.display = 'block';
                 setTimeout(resetPin, 800);
             }
         }
 
+        function sbloccaAccessoOperativo() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            inizializzaApp();
+        }
+
+        // --- GESTIONE FIRMA DIGITALE PRIVACY DEL VOLONTARIO ---
+        function initFirmaVolontario() {
+            sigVolontarioCanvas = document.getElementById('sig-volontario-pad');
+            sigVolontarioCtx = sigVolontarioCanvas.getContext('2d');
+            const rect = sigVolontarioCanvas.getBoundingClientRect();
+            sigVolontarioCanvas.width = rect.width; sigVolontarioCanvas.height = rect.height;
+            sigVolontarioCtx.lineWidth = 2.5; sigVolontarioCtx.lineCap = 'round'; sigVolontarioCtx.strokeStyle = '#0f172a';
+
+            const start = function(e) { isDrawingVol = true; sigVolontarioCtx.beginPath(); let pos = getPos(e, sigVolontarioCanvas); sigVolontarioCtx.moveTo(pos.x, pos.y); };
+            const draw = function(e) { if(!isDrawingVol) return; e.preventDefault(); let pos = getPos(e, sigVolontarioCanvas); sigVolontarioCtx.lineTo(pos.x, pos.y); sigVolontarioCtx.stroke(); hasDrawnVol = true; };
+            const stop = function() { isDrawingVol = false; };
+
+            sigVolontarioCanvas.addEventListener('pointerdown', start);
+            sigVolontarioCanvas.addEventListener('pointermove', draw);
+            sigVolontarioCanvas.addEventListener('pointerup', stop);
+        }
+        window.pulisciFirmaVolontario = function() { 
+            if(sigVolontarioCtx) {
+                sigVolontarioCtx.clearRect(0, 0, sigVolontarioCanvas.width, sigVolontarioCanvas.height);
+                hasDrawnVol = false;
+            }
+        };
+
+        window.confermaPrivacyVolontario = function() {
+            if(!hasDrawnVol) { alert("È obbligatorio apporre la firma sullo schermo per confermare la presa visione."); return; }
+            let vObj = volontari.find(function(v) { return v.nome === volontarioCorrente; });
+            if(!vObj) return;
+
+            const firmaBase64 = sigVolontarioCanvas.toDataURL('image/png');
+            const dataOggi = new Date().toLocaleString('it-IT');
+
+            getDbRef('volontari/' + vObj.id).update({
+                gdpr_firmato: true,
+                gdpr_data_firma: dataOggi,
+                gdpr_firma_img: firmaBase64
+            }).then(function() {
+                vObj.gdpr_firmato = true;
+                document.getElementById('modal-privacy-volontario').classList.remove('active');
+                window.showToast("Incarico Privacy registrato con successo!");
+                sbloccaAccessoOperativo();
+            });
+        };
+
         window.eseguiLogout = function() {
             resetPin();
             document.getElementById('main-app').style.display = 'none';
             document.getElementById('login-screen').style.display = 'flex';
-            const fabContainer = document.getElementById('fab-container');
-            if(fabContainer) fabContainer.style.display = 'none';
-        };
-
-        window.toggleFab = function() { 
-            document.getElementById('fab-container').classList.toggle('active'); 
-            document.getElementById('fab-overlay').classList.toggle('active'); 
         };
 
         function inizializzaApp() {
@@ -391,9 +428,7 @@
         window.toggleO2Fields = function() {
             const chk = document.getElementById('chk-o2-somministrato');
             const row = document.getElementById('o2-details-row');
-            if (chk && row) {
-                row.style.display = chk.checked ? 'grid' : 'none';
-            }
+            if (chk && row) row.style.display = chk.checked ? 'grid' : 'none';
         };
 
         window.registraTappaMissione = function(idServizio, tipoTappa) {
@@ -409,8 +444,7 @@
                     updates.timestampPazienteCaricato = oraStr + (geoStr ? ' (GPS: ' + geoStr + ')' : '');
                     updates.statoServizio = 'In Corso';
                 }
-                
-                inviaOAccodaUpdate('trasporti/' + idServizio, updates);
+                getDbRef('trasporti/' + idServizio).update(updates);
                 window.showToast("Tappa registrata: " + oraStr);
             };
 
@@ -421,7 +455,7 @@
                         salvaDatiTappa(coord);
                     },
                     function() { salvaDatiTappa(null); },
-                    { timeout: 5000, enableHighAccuracy: true }
+                    { timeout: 4000 }
                 );
             } else {
                 salvaDatiTappa(null);
@@ -480,19 +514,17 @@
             signatureCanvas.width = rect.width; signatureCanvas.height = rect.height;
             signatureCtx.lineWidth = 2.5; signatureCtx.lineCap = 'round'; signatureCtx.strokeStyle = '#1e293b';
 
-            const start = function(e) { isDrawing = true; signatureCtx.beginPath(); let pos = getPos(e); signatureCtx.moveTo(pos.x, pos.y); };
-            const draw = function(e) { if(!isDrawing) return; e.preventDefault(); let pos = getPos(e); signatureCtx.lineTo(pos.x, pos.y); signatureCtx.stroke(); hasDrawn = true; };
+            const start = function(e) { isDrawing = true; signatureCtx.beginPath(); let pos = getPos(e, signatureCanvas); signatureCtx.moveTo(pos.x, pos.y); };
+            const draw = function(e) { if(!isDrawing) return; e.preventDefault(); let pos = getPos(e, signatureCanvas); signatureCtx.lineTo(pos.x, pos.y); signatureCtx.stroke(); hasDrawn = true; };
             const stop = function() { isDrawing = false; };
-            const getPos = function(e) {
-                const r = signatureCanvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: clientX - r.left, y: clientY - r.top };
-            };
 
             signatureCanvas.addEventListener('pointerdown', start);
             signatureCanvas.addEventListener('pointermove', draw);
             signatureCanvas.addEventListener('pointerup', stop);
+        }
+        function getPos(e, canvas) {
+            const r = canvas.getBoundingClientRect();
+            return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left, y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top };
         }
         window.pulisciFirma = function() { signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height); hasDrawn = false; };
 
@@ -506,19 +538,19 @@
             document.getElementById('o2-details-row').style.display = 'none';
             fotoScontrinoBase64 = null;
             document.getElementById('overlay').classList.add('active');
-            document.getElementById('bottomSheet').classList.add('active');
+            document.getElementById('bottomSheet').style.bottom = '0';
             setTimeout(initFirma, 300);
         };
 
         window.chiudiModaleBottomSheet = function() {
             document.getElementById('overlay').classList.remove('active');
-            document.getElementById('bottomSheet').classList.remove('active');
+            document.getElementById('bottomSheet').style.bottom = '-100%';
         };
 
         window.confermaChiusura = function() {
             const kmStart = parseFloat(document.getElementById('km-partenza-input').value) || 0;
             const kmEnd = parseFloat(document.getElementById('km-arrivo-input').value) || 0;
-            if (kmEnd <= 0) { alert("Inserisci i KM di arrivo!"); return; }
+            if (kmEnd <= 0) { alert("Inserisci i KM di rientro missione!"); return; }
 
             const o2Usato = document.getElementById('chk-o2-somministrato').checked;
             const updates = {
@@ -533,35 +565,10 @@
             if (signatureCanvas && hasDrawn) updates.firma = signatureCanvas.toDataURL('image/png');
             if (fotoScontrinoBase64) updates.fotoScontrino = fotoScontrinoBase64;
 
-            inviaOAccodaUpdate('trasporti/' + idServizioAttivo, updates);
+            getDbRef('trasporti/' + idServizioAttivo).update(updates);
             chiudiModaleBottomSheet();
             window.showToast("Servizio Archiviato & Rendicontato!");
         };
-
-        function inviaOAccodaUpdate(path, dati) {
-            if (navigator.onLine) {
-                getDbRef(path).update(dati).catch(function() { accodaOffline(path, dati); });
-            } else {
-                accodaOffline(path, dati);
-            }
-        }
-
-        function accodaOffline(path, dati) {
-            let coda = JSON.parse(localStorage.getItem('cda_offline_queue') || '[]');
-            coda.push({ path: path, dati: dati, timestamp: Date.now() });
-            localStorage.setItem('cda_offline_queue', JSON.stringify(coda));
-            window.showToast("Salvato in memoria locale (Offline).", true);
-        }
-
-        function sincronizzaCodaOffline() {
-            let coda = JSON.parse(localStorage.getItem('cda_offline_queue') || '[]');
-            if (coda.length > 0 && navigator.onLine) {
-                coda.forEach(function(item) { getDbRef(item.path).update(item.dati); });
-                localStorage.removeItem('cda_offline_queue');
-                window.showToast("Dati offline sincronizzati sul Cloud!");
-            }
-        }
-        window.addEventListener('online', sincronizzaCodaOffline);
 
         function aggiornaStatoPresenzaUI() {
             const oggi = new Date().toISOString().split('T')[0];

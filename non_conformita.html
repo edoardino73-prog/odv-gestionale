@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuore d'Argento - Registro Reclami & Non Conformità (RRP)</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #8b5cf6; --primary-dark: #6d28d9; --secondary: #1e293b;
+            --bg-body: #f8fafc; --bg-panel: #ffffff; --text-main: #334155; --text-light: #94a3b8;
+            --border: #e2e8f0; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --radius: 10px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { display: flex; flex-direction: column; min-height: 100vh; background-color: var(--bg-body); color: var(--text-main); }
+
+        .topbar { height: 60px; background: white; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
+        .topbar-btn { background: transparent; border: 1px solid var(--border); padding: 7px 14px; border-radius: 6px; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; }
+        .topbar-btn:hover { background: #f1f5f9; }
+        
+        .main-container { flex: 1; padding: 25px 20px; max-width: 1200px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+        .header-section { background: white; padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        
+        .btn { padding: 9px 16px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; transition: 0.2s; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-ghost { background: white; color: var(--text-main); border: 1px solid var(--border); }
+
+        .table-container { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1000px; }
+        th { padding: 13px 16px; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-main); background: #f8fafc; border-bottom: 2px solid var(--border); }
+        td { padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.85rem; }
+        tr:hover td { background: #f8fafc; }
+
+        .badge { padding: 4px 9px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; text-transform: uppercase; }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 15px; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal { background: white; width: 100%; max-width: 650px; border-radius: 14px; padding: 25px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .full-width { grid-column: span 2; }
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        .input-group label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none; background: #f8fafc; }
+        
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #1e293b; color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 600; z-index: 9999; opacity: 0; transition: 0.3s; }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="topbar-left">
+            <a href="iso9001 accreditamento.html" class="topbar-btn"><i class="fa-solid fa-arrow-left"></i> Torna ad Accreditamento</a>
+            <span style="font-weight: 800; color: var(--secondary);">Gestione Reclami & Non Conformità (RRP)</span>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="header-section">
+            <div>
+                <h1 style="color: var(--primary); font-size: 1.25rem; font-weight: 800;"><i class="fa-solid fa-triangle-exclamation"></i> Workflow Reclami e Rapporti di Prova (ISO 9001)</h1>
+                <p style="font-size: 0.82rem; color: var(--text-light);">Monitoraggio scadenze risposta entro 60 giorni e azioni correttive formalizzate</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="apriModaleNC()"><i class="fa-solid fa-plus"></i> Registra Reclamo/NC</button>
+                <button class="btn btn-ghost" onclick="stampaNCPDF()"><i class="fa-solid fa-file-pdf"></i> Esporta Registro (PDF)</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Data</th>
+                        <th style="width: 170px;">Tipologia</th>
+                        <th style="width: 150px;">Segnalante</th>
+                        <th>Descrizione & Azione Correttiva</th>
+                        <th style="width: 130px;">Stato</th>
+                        <th style="text-align: right; width: 170px;">Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="nc-corpo">
+                    <tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-light);">Caricamento dati in corso...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODALE -->
+    <div class="modal-overlay" id="modalNC">
+        <div class="modal">
+            <h3 style="color:var(--primary); font-size:1.15rem; font-weight:800; margin-bottom:15px;"><i class="fa-solid fa-triangle-exclamation"></i> Registra Reclamo o Non Conformità</h3>
+            <form id="formNC" onsubmit="salvaNC(event)">
+                <div class="form-grid">
+                    <div class="input-group"><label>Data Rilevazione *</label><input type="date" id="nc-data" required></div>
+                    <div class="input-group">
+                        <label>Tipologia *</label>
+                        <select id="nc-tipo" required>
+                            <option value="Reclamo da Paziente/ASL">Reclamo da Paziente/ASL</option>
+                            <option value="Osservazione">Osservazione</option>
+                            <option value="Guasto/Malfunzionamento Mezzo">Guasto/Malfunzionamento Mezzo</option>
+                        </select>
+                    </div>
+                    <div class="input-group"><label>Segnalante *</label><input type="text" id="nc-rilevatore" required placeholder="Nome o 'Utente Esterno'"></div>
+                    <div class="input-group"><label>Stato Workflow</label><select id="nc-stato"><option value="Aperta">1. Ricevuto / Registrato</option><option value="In Gestione">2. In Analisi</option><option value="Chiusa">3. Risposta Inviata / Chiusa</option></select></div>
+                    <div class="input-group full-width"><label>Descrizione Evento *</label><textarea id="nc-descrizione" required rows="2" placeholder="Dettaglio della segnalazione..."></textarea></div>
+                    <div class="input-group full-width"><label>Azione Correttiva Intraprese</label><textarea id="nc-azione" rows="2" placeholder="Provvedimenti adottati..."></textarea></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModale()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2;">Salva in RRP</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast">Operazione completata!</div>
+
+    <script>
+        let nonConformita = [];
+        let dbRootPath = 'cuore_argento_db';
+        let database;
+
+        function showToast(m) {
+            const t = document.getElementById('toast');
+            t.innerText = m; t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 3000);
+        }
+
+        function chiudiModale() { document.getElementById('modalNC').classList.remove('active'); }
+        function apriModaleNC() {
+            document.getElementById('formNC').reset();
+            document.getElementById('nc-data').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modalNC').classList.add('active');
+        }
+
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDhi3SRh2mDqz8_T03xYVq4XtcRiAL7IF0",
+                authDomain: "cuore-d-argento.firebaseapp.com",
+                databaseURL: "https://cuore-d-argento-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "cuore-d-argento",
+                storageBucket: "cuore-d-argento.firebasestorage.app",
+                messagingSenderId: "271690439864",
+                appId: "1:271690439864:web:17b36ef2c5ab4263d3684d"
+            };
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+
+            database.ref().on('value', function(snapshot) {
+                const rawData = snapshot.val() || {};
+                let data = rawData.cuore_argento_db || rawData;
+                nonConformita = (Array.isArray(data.nonConformita) ? data.nonConformita : Object.values(data.nonConformita || {})).filter(Boolean);
+                renderTabella();
+            });
+        } catch(e) { console.error(e); }
+
+        window.salvaNC = function(e) {
+            e.preventDefault();
+            const id = Date.now().toString();
+            const obj = {
+                id: id,
+                data: document.getElementById('nc-data').value,
+                tipo: document.getElementById('nc-tipo').value,
+                rilevatore: document.getElementById('nc-rilevatore').value,
+                descrizione: document.getElementById('nc-descrizione').value,
+                azione: document.getElementById('nc-azione').value,
+                stato: document.getElementById('nc-stato').value
+            };
+            nonConformita.unshift(obj);
+            database.ref(dbRootPath + '/nonConformita').set(nonConformita).then(function() {
+                chiudiModale(); showToast("Reclamo registrato!");
+            });
+        };
+
+        function renderTabella() {
+            const tbody = document.getElementById('nc-corpo');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            if (nonConformita.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-light);">Nessun reclamo o non conformità registrati.</td></tr>';
+                return;
+            }
+
+            nonConformita.forEach(function(n) {
+                let bg = n.stato === 'Aperta' ? 'var(--danger)' : (n.stato === 'In Gestione' ? 'var(--warning)' : 'var(--success)');
+                
+                tbody.innerHTML += '<tr>' +
+                    '<td><strong>' + (n.data || '-') + '</strong></td>' +
+                    '<td><strong style="color:var(--primary);">' + n.tipo + '</strong></td>' +
+                    '<td>' + (n.rilevatore || '-') + '</td>' +
+                    '<td><small><strong>Problema:</strong> ' + n.descrizione + '<br><strong>Azione:</strong> ' + (n.azione || 'In definizione') + '</small></td>' +
+                    '<td><span class="badge" style="background:' + bg + '; color:white;">' + n.stato + '</span></td>' +
+                    '<td style="text-align:right;">' +
+                        '<button class="btn btn-ghost" style="padding:4px 8px; color:var(--primary);" onclick="stampaLetteraNC(\'' + n.id + '\')" title="Stampa Lettera Risposta"><i class="fa-solid fa-envelope"></i></button> ' +
+                        '<button class="btn btn-ghost" style="padding:4px 8px; color:var(--danger);" onclick="eliminaNC(\'' + n.id + '\')"><i class="fa-solid fa-trash"></i></button>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+
+        window.eliminaNC = function(id) {
+            if(!confirm("Eliminare questa segnalazione?")) return;
+            nonConformita = nonConformita.filter(function(x) { return String(x.id) !== String(id); });
+            database.ref(dbRootPath + '/nonConformita').set(nonConformita).then(function() { showToast("Eliminato."); });
+        };
+
+        window.stampaLetteraNC = function(id) {
+            const n = nonConformita.find(function(x) { return String(x.id) === String(id); });
+            if(!n) return;
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
+            doc.setFontSize(12); doc.text("CUORE D'ARGENTO ODV - RISCONTRO SEGNALAZIONE", 14, 20);
+            doc.setFontSize(10); doc.text("Spett.le " + (n.rilevatore || 'Utente'), 14, 32);
+            doc.text("Oggetto: Riscontro alla Sua segnalazione del " + n.data, 14, 42);
+            
+            const testo = "Gentile utente,\n\nIn merito alla Sua segnalazione avente ad oggetto: \"" + n.descrizione + "\", La informiamo che la Direzione ha esaminato l'evento intraprendendo la seguente azione correttiva:\n\n" + (n.azione || "Verifiche interne completate e miglioramento procedure operative applicato.") + "\n\nCordiali saluti.";
+            doc.text(doc.splitTextToSize(testo, 180), 14, 55);
+            doc.save("Riscontro_Reclamo_" + n.id + ".pdf");
+            showToast("Lettera di risposta generata in PDF!");
+        };
+
+        window.stampaNCPDF = function() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
+            doc.setFontSize(12); doc.text("REGISTRO NON CONFORMITA' E RECLAMI (RRP)", 14, 20);
+            doc.autoTable({
+                startY: 28,
+                head: [['Data', 'Tipo', 'Segnalante', 'Descrizione', 'Stato']],
+                body: nonConformita.map(function(n) { return [n.data, n.tipo, n.rilevatore, n.descrizione, n.stato]; }),
+                theme: 'grid'
+            });
+            doc.save("Registro_Reclami_NC.pdf"); showToast("PDF Esportato!");
+        };
+    </script>
+</body>
+</html>

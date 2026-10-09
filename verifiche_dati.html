@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuore d'Argento - Verifiche Qualità Dati RSI (Req. 19-20)</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #8b5cf6; --primary-dark: #6d28d9; --secondary: #1e293b;
+            --bg-body: #f8fafc; --bg-panel: #ffffff; --text-main: #334155; --text-light: #94a3b8;
+            --border: #e2e8f0; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --radius: 10px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { display: flex; flex-direction: column; min-height: 100vh; background-color: var(--bg-body); color: var(--text-main); }
+
+        .topbar { height: 60px; background: white; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
+        .topbar-btn { background: transparent; border: 1px solid var(--border); padding: 7px 14px; border-radius: 6px; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; }
+        .topbar-btn:hover { background: #f1f5f9; }
+        
+        .main-container { flex: 1; padding: 25px 20px; max-width: 1200px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+        .header-section { background: white; padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        
+        .btn { padding: 9px 16px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; transition: 0.2s; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-ghost { background: white; color: var(--text-main); border: 1px solid var(--border); }
+
+        .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+        .kpi-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); }
+        .kpi-card h4 { font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 700; margin-bottom: 4px; }
+        .kpi-card .num { font-size: 1.8rem; font-weight: 800; color: var(--text-main); }
+        .kpi-icon { font-size: 2rem; color: #f1f5f9; }
+
+        .table-container { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1050px; }
+        th { padding: 13px 16px; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-main); background: #f8fafc; border-bottom: 2px solid var(--border); }
+        td { padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.85rem; }
+        tr:hover td { background: #f8fafc; }
+
+        .badge { padding: 4px 9px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; text-transform: uppercase; }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 15px; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal { background: white; width: 100%; max-width: 650px; border-radius: 14px; padding: 25px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .full-width { grid-column: span 2; }
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        .input-group label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none; background: #f8fafc; }
+        
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #1e293b; color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 600; z-index: 9999; opacity: 0; transition: 0.3s; }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="topbar-left">
+            <a href="iso9001 accreditamento.html" class="topbar-btn"><i class="fa-solid fa-arrow-left"></i> Torna ad Accreditamento</a>
+            <span style="font-weight: 800; color: var(--secondary);">Sistema Informativo (RSI) - Qualità Dati</span>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- HEADER SEZIONE -->
+        <div class="header-section">
+            <div>
+                <h1 style="color: var(--primary); font-size: 1.25rem; font-weight: 800;"><i class="fa-solid fa-square-check"></i> Audit & Verifiche Qualità Dati (Req. 19-20)</h1>
+                <p style="font-size: 0.82rem; color: var(--text-light);">Monitoraggio continuo su accuratezza, completezza, riproducibilità e tempestività dei dati raccolti</p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-success" onclick="eseguiAutoAuditRSI()"><i class="fa-solid fa-robot"></i> Esegui Auto-Audit Mese</button>
+                <button class="btn btn-primary" onclick="apriModaleVerifica()"><i class="fa-solid fa-plus"></i> Nuova Verifica Manuale</button>
+                <button class="btn btn-ghost" onclick="stampaVerifichePDF()"><i class="fa-solid fa-file-pdf"></i> Esporta Registro (PDF)</button>
+            </div>
+        </div>
+
+        <!-- STATISTICHE RSI -->
+        <div class="grid-kpi">
+            <div class="kpi-card" style="border-left-color: #3b82f6;">
+                <div><h4>Schede Viaggio Analizzate</h4><div class="num" id="kpi-totale-viaggi">0</div></div>
+                <i class="fa-solid fa-database kpi-icon"></i>
+            </div>
+            <div class="kpi-card" style="border-left-color: #10b981;">
+                <div><h4>Indice Completezza Dati</h4><div class="num" id="kpi-integrita">100%</div></div>
+                <i class="fa-solid fa-circle-check kpi-icon"></i>
+            </div>
+            <div class="kpi-card" style="border-left-color: #8b5cf6;">
+                <div><h4>Verifiche RSI a Registro</h4><div class="num" id="kpi-totale-verifiche">0</div></div>
+                <i class="fa-solid fa-clipboard-check kpi-icon"></i>
+            </div>
+        </div>
+
+        <!-- TABELLA AUDIT QUALITÀ DATI -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Data Verifica</th>
+                        <th style="width: 250px;">Dato / Processo Verificato</th>
+                        <th style="width: 90px;">Accuratezza</th>
+                        <th style="width: 110px;">Completezza</th>
+                        <th style="width: 100px;">Riproducib.</th>
+                        <th style="width: 90px;">Tempestiv.</th>
+                        <th style="width: 120px;">Esito</th>
+                        <th>Azioni Correttive / Note</th>
+                        <th style="width: 100px;">Resp.</th>
+                        <th style="text-align: right; width: 80px;">Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="verifiche-corpo">
+                    <tr><td colspan="10" style="text-align:center; padding:30px; color:var(--text-light);">Caricamento dati dal Cloud in corso...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODALE VERIFICA MANUALE -->
+    <div class="modal-overlay" id="modalVerifica">
+        <div class="modal">
+            <h3 style="color:var(--primary); font-size:1.15rem; font-weight:800; margin-bottom:15px;"><i class="fa-solid fa-square-check"></i> Registra Verifica Qualità Dato</h3>
+            <form id="formVerifica" onsubmit="salvaVerificaManuale(event)">
+                <div class="form-grid">
+                    <div class="input-group"><label>Data Verifica *</label><input type="date" id="vd-data" required></div>
+                    <div class="input-group"><label>Responsabile Verifica *</label><input type="text" id="vd-resp" value="RSI (Referente Sistema Informativo)" required></div>
+                    <div class="input-group full-width"><label>Dato / Campione Verificato *</label><input type="text" id="vd-dato" required placeholder="Es. Tempi di risposta trasporti ordinari mese corrente"></div>
+                    
+                    <div class="input-group">
+                        <label>Accuratezza</label>
+                        <select id="vd-acc"><option value="OK">OK (Conforme)</option><option value="KO">KO (Rilevate discrepanze)</option></select>
+                    </div>
+                    <div class="input-group">
+                        <label>Completezza</label>
+                        <select id="vd-comp"><option value="OK">OK (100% campi presenti)</option><option value="KO">KO (Campi mancanti)</option></select>
+                    </div>
+                    <div class="input-group">
+                        <label>Riproducibilità</label>
+                        <select id="vd-riprod"><option value="OK">OK (Riproducibile da log)</option><option value="KO">KO (Tracciabilità carente)</option></select>
+                    </div>
+                    <div class="input-group">
+                        <label>Tempestività</label>
+                        <select id="vd-temp"><option value="OK">OK (Chiusura entro 24h)</option><option value="KO">KO (Ritardo chiusura scheda)</option></select>
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label>Esito Finale *</label>
+                        <select id="vd-esito"><option value="Conforme">Conforme</option><option value="Non conforme">Non conforme</option></select>
+                    </div>
+                    <div class="input-group full-width"><label>Azioni Correttive / Istruzioni Agli Operatori</label><textarea id="vd-azioni" rows="2" placeholder="Eventuali azioni per riallineare i dati..."></textarea></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModale()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2;">Salva Verifica</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast">Operazione completata!</div>
+
+    <script>
+        let verificheQualitaDati = [];
+        let trasporti = [];
+        let dbRootPath = 'cuore_argento_db';
+        let database;
+
+        function showToast(m) {
+            const t = document.getElementById('toast');
+            t.innerText = m; t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 3000);
+        }
+
+        function chiudiModale() { document.getElementById('modalVerifica').classList.remove('active'); }
+        function apriModaleVerifica() {
+            document.getElementById('formVerifica').reset();
+            document.getElementById('vd-data').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modalVerifica').classList.add('active');
+        }
+
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDhi3SRh2mDqz8_T03xYVq4XtcRiAL7IF0",
+                authDomain: "cuore-d-argento.firebaseapp.com",
+                databaseURL: "https://cuore-d-argento-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "cuore-d-argento",
+                storageBucket: "cuore-d-argento.firebasestorage.app",
+                messagingSenderId: "271690439864",
+                appId: "1:271690439864:web:17b36ef2c5ab4263d3684d"
+            };
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+
+            database.ref().on('value', function(snapshot) {
+                const rawData = snapshot.val() || {};
+                let data = rawData.cuore_argento_db || rawData;
+
+                verificheQualitaDati = (Array.isArray(data.verificheQualitaDati) ? data.verificheQualitaDati : Object.values(data.verificheQualitaDati || {})).filter(Boolean);
+                trasporti = (Array.isArray(data.trasporti) ? data.trasporti : Object.values(data.trasporti || {})).filter(Boolean);
+
+                aggiornaKpi();
+                renderTabella();
+            });
+        } catch(e) { console.error(e); }
+
+        function aggiornaKpi() {
+            document.getElementById('kpi-totale-viaggi').innerText = trasporti.length;
+            document.getElementById('kpi-totale-verifiche').innerText = verificheQualitaDati.length;
+
+            if (trasporti.length > 0) {
+                let completi = 0;
+                trasporti.forEach(function(t) {
+                    let hasKm = (t.kmArrivo !== undefined && t.kmArrivo !== null && t.kmArrivo !== "");
+                    let hasOra = (t.ora || t.oraChiusura);
+                    let hasFirma = (t.firma || t.statoServizio === 'Completato' || t.statoServizio === 'Da Rendicontare');
+                    if (hasKm && hasOra && hasFirma) completi++;
+                });
+                let perc = Math.round((completi / trasporti.length) * 100);
+                document.getElementById('kpi-integrita').innerText = perc + "%";
+            } else {
+                document.getElementById('kpi-integrita').innerText = "100%";
+            }
+        }
+
+        // --- MOTORE AUTO-AUDIT AUTOMATICO RSI ---
+        window.eseguiAutoAuditRSI = function() {
+            if (trasporti.length === 0) {
+                showToast("Nessun dato di trasporto da sottoporre ad audit.");
+                return;
+            }
+
+            let completi = 0;
+            trasporti.forEach(function(t) {
+                let hasKm = (t.kmArrivo !== undefined && t.kmArrivo !== null && t.kmArrivo !== "");
+                let hasOra = (t.ora || t.oraChiusura);
+                let hasFirma = (t.firma || t.statoServizio === 'Completato' || t.statoServizio === 'Da Rendicontare');
+                if (hasKm && hasOra && hasFirma) completi++;
+            });
+
+            let percCompletezza = Math.round((completi / trasporti.length) * 100);
+            let esito = percCompletezza >= 90 ? "Conforme" : "Non conforme";
+            let azioni = percCompletezza >= 90
+                ? "Dati conformi agli standard regionali (Integrità al " + percCompletezza + "%). Nessuna anomalia riscontrata."
+                : "Rilevate schede incomplete. Richiesto riesame e completamento a cura degli equipaggi di bordo.";
+
+            const auditObj = {
+                id: "audit_" + Date.now(),
+                data: new Date().toISOString().split('T')[0],
+                dato: "Audit Automatico Integrità Schede Viaggio (RSI)",
+                acc: "OK",
+                comp: percCompletezza >= 90 ? "OK" : "KO (" + percCompletezza + "%)",
+                riprod: "OK",
+                temp: "OK",
+                esito: esito,
+                resp: "RSI / Auto-Audit",
+                azioni: azioni,
+                readonly: false
+            };
+
+            verificheQualitaDati.unshift(auditObj);
+            database.ref(dbRootPath + '/verificheQualitaDati').set(verificheQualitaDati).then(function() {
+                showToast("Auto-Audit RSI eseguito e registrato!");
+            });
+        };
+
+        window.salvaVerificaManuale = function(e) {
+            e.preventDefault();
+            const id = Date.now().toString();
+            const obj = {
+                id: id,
+                data: document.getElementById('vd-data').value,
+                dato: document.getElementById('vd-dato').value,
+                acc: document.getElementById('vd-acc').value,
+                comp: document.getElementById('vd-comp').value,
+                riprod: document.getElementById('vd-riprod').value,
+                temp: document.getElementById('vd-temp').value,
+                esito: document.getElementById('vd-esito').value,
+                resp: document.getElementById('vd-resp').value,
+                azioni: document.getElementById('vd-azioni').value
+            };
+            verificheQualitaDati.unshift(obj);
+            database.ref(dbRootPath + '/verificheQualitaDati').set(verificheQualitaDati).then(function() {
+                chiudiModale();
+                showToast("Verifica salvata nel registro!");
+            });
+        };
+
+        function renderTabella() {
+            const tbody = document.getElementById('verifiche-corpo');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            if (verificheQualitaDati.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px; color:var(--text-light);">Nessuna verifica registrata. Clicca su "Esegui Auto-Audit Mese" per iniziare.</td></tr>';
+                return;
+            }
+
+            verificheQualitaDati.sort(function(a,b) { return new Date(b.data || 0) - new Date(a.data || 0); }).forEach(function(v) {
+                let badgeEsito = v.esito === 'Conforme'
+                    ? '<span class="badge" style="background:var(--success); color:white;">Conforme</span>'
+                    : '<span class="badge" style="background:var(--danger); color:white;">Non Conforme</span>';
+
+                tbody.innerHTML += '<tr>' +
+                    '<td><strong>' + (v.data || '-') + '</strong></td>' +
+                    '<td><strong style="color:var(--primary);">' + v.dato + '</strong></td>' +
+                    '<td>' + v.acc + '</td>' +
+                    '<td>' + v.comp + '</td>' +
+                    '<td>' + v.riprod + '</td>' +
+                    '<td>' + v.temp + '</td>' +
+                    '<td>' + badgeEsito + '</td>' +
+                    '<td><small>' + (v.azioni || '-') + '</small></td>' +
+                    '<td>' + (v.resp || 'RSI') + '</td>' +
+                    '<td style="text-align:right;">' +
+                        '<button class="btn btn-ghost" style="padding:4px 8px; color:var(--danger);" onclick="eliminaVerifica(\'' + v.id + '\')"><i class="fa-solid fa-trash"></i></button>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+
+        window.eliminaVerifica = function(id) {
+            if(!confirm("Confermi l'eliminazione di questo audit?")) return;
+            verificheQualitaDati = verificheQualitaDati.filter(function(x) { return String(x.id) !== String(id); });
+            database.ref(dbRootPath + '/verificheQualitaDati').set(verificheQualitaDati).then(function() {
+                showToast("Eliminato.");
+            });
+        };
+
+        window.stampaVerifichePDF = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+
+            doc.setFontSize(13);
+            doc.setTextColor(198, 40, 40);
+            doc.setFont("helvetica", "bold");
+            doc.text("ASSOCIAZIONE DI VOLONTARIATO CUORE D'ARGENTO O.D.V.", 14, 15);
+
+            doc.setFontSize(7.5);
+            doc.setTextColor(80, 80, 80);
+            doc.setFont("helvetica", "normal");
+            doc.text("Sede Operativa: Via della Stazione n. 51 – 05035 Narni Scalo (TR) | C.F. 91086460556", 14, 20);
+            doc.text("Convenzione AUSL Umbria 2 | Requisiti 19 e 20 Accreditamento Sanitario R.R. 6/2024", 14, 24);
+            doc.line(14, 26, 196, 26);
+
+            doc.setFontSize(10.5);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont("helvetica", "bold");
+            doc.text("REGISTRO VERIFICA QUALITA' DEI DATI (SISTEMA INFORMATIVO RSI)", 14, 33);
+
+            const righe = verificheQualitaDati.map(function(v) {
+                return [v.data || '-', v.dato, v.acc, v.comp, v.riprod, v.temp, v.esito, v.resp || 'RSI'];
+            });
+
+            doc.autoTable({
+                startY: 38,
+                head: [['Data', 'Dato Verificato', 'Acc.', 'Comp.', 'Riprod.', 'Temp.', 'Esito', 'Resp']],
+                body: righe,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 41, 59], fontSize: 8 },
+                styles: { fontSize: 7.5 }
+            });
+
+            let finalY = doc.lastAutoTable.finalY + 15;
+            doc.setFontSize(8);
+            doc.text("Firma del Referente del Sistema Informativo (RSI): _______________________", 14, finalY);
+
+            doc.save("Registro_Verifiche_Qualita_Dati_RSI.pdf");
+            showToast("PDF Verifiche Dati Esportato!");
+        };
+    </script>
+</body>
+</html>

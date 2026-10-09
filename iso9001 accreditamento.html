@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuore d'Argento - Sistema Qualità Integrato ISO 9001 & Accreditamento Umbria</title>
+    <title>Cuore d'Argento - Presidio Qualità ISO 9001 & Accreditamento Umbria</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -21,9 +21,8 @@
             --primary-dark: #6d28d9; 
             --secondary: #1e293b;
             --bg-body: #f8fafc; --bg-panel: #ffffff; --text-main: #334155; --text-light: #94a3b8;
-            --border: #e2e8f0; --alert-green: #10b981; --alert-red: #ef4444;
-            --success: #10b981; --warning: #f59e0b; --info: #3b82f6; --danger: #ef4444;
-            --radius: 8px;
+            --border: #e2e8f0; --success: #10b981; --warning: #f59e0b; --info: #3b82f6; --danger: #ef4444;
+            --radius: 10px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent;}
@@ -34,41 +33,45 @@
         .topbar-center { font-size: 0.82rem; color: var(--text-main); font-weight: 600; background: #f1f5f9; padding: 6px 15px; border-radius: 20px;}
         .topbar-right { display: flex; align-items: center; gap: 15px; }
         
-        .brand-logo { display: flex; align-items: center; gap: 8px; background: var(--primary); padding: 5px 12px; border-radius: 6px; color: white; box-shadow: 0 2px 5px rgba(139, 92, 246, 0.3); }
+        .brand-logo { display: flex; align-items: center; gap: 8px; background: var(--primary); padding: 5px 12px; border-radius: 6px; color: white; text-decoration: none; }
         .brand-logo i { font-size: 1.3rem; }
         .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
         .brand-text span:first-child { font-weight: 800; font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase; }
         .brand-text span:last-child { font-size: 0.65rem; font-weight: 500; opacity: 0.9; }
 
         .main-container { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 300px; background: #ffffff; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; z-index: 5; }
-        .sidebar-title { background: linear-gradient(to right, var(--secondary), #334155); color: white; padding: 12px 15px; font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between;}
-        .tree-menu { list-style: none; padding: 10px; }
-        .tree-item { padding: 8px 12px; font-size: 0.85rem; color: var(--text-main); cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 10px; font-weight: 600; margin-bottom: 4px; transition: 0.2s;}
+        .sidebar { width: 310px; background: #ffffff; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; z-index: 5; }
+        .sidebar-title { background: linear-gradient(to right, var(--secondary), #334155); color: white; padding: 12px 15px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between;}
+        .sidebar-sep { padding: 8px 15px 4px 15px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.5px; }
+        
+        .tree-menu { list-style: none; padding: 6px 10px; }
+        .tree-item { padding: 8px 12px; font-size: 0.83rem; color: var(--text-main); cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; font-weight: 600; margin-bottom: 3px; transition: 0.2s; text-decoration: none;}
+        .tree-item .item-content { display: flex; align-items: center; gap: 9px; }
         .tree-item:hover { background: #f8fafc; color: var(--primary); }
         .tree-item.active { background: #f3e8ff; color: var(--primary); font-weight: 700; border-left: 4px solid var(--primary); }
-        
+        .tree-item.external { color: var(--secondary); border: 1px dashed var(--border); }
+        .tree-item.external:hover { background: #f1f5f9; border-color: var(--primary); }
+
         .dashboard-area { flex: 1; position: relative; display: flex; flex-direction: column; overflow: hidden; }
-        .dash-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: white; }
+        .dash-header { padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: white; }
         .tab-content { display: none; flex: 1; flex-direction: column; padding: 20px; overflow-y: auto; gap: 1.2rem; }
         .tab-content.active { display: flex; }
 
-        .glass-panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .panel-header { font-size: 1.1rem; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem; margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
-        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-        .stat-card { padding: 1.5rem; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid var(--border); border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
-        .stat-info h4 { color: var(--text-light); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 5px;}
-        .stat-info .num { font-size: 2.2rem; font-weight: 800; line-height: 1; color: var(--text-main); }
-        .stat-icon { font-size: 2.5rem; color: #f1f5f9; }
+        .glass-panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; }
+        .stat-card { padding: 1.3rem; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid var(--border); border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+        .stat-info h4 { color: var(--text-light); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; margin-bottom: 5px;}
+        .stat-info .num { font-size: 2rem; font-weight: 800; line-height: 1; color: var(--text-main); }
+        .stat-icon { font-size: 2.2rem; color: #f1f5f9; }
 
         .table-container { border-radius: var(--radius); overflow-x: auto; background: white; }
-        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 1050px;}
-        th { padding: 12px 15px; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-main); background: #f8fafc; border-bottom: 2px solid var(--border); }
-        td { padding: 12px 15px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.85rem; color: var(--text-main); }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 950px;}
+        th { padding: 12px 14px; font-size: 0.74rem; text-transform: uppercase; font-weight: 700; color: var(--text-main); background: #f8fafc; border-bottom: 2px solid var(--border); }
+        td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.83rem; color: var(--text-main); }
         tr:hover td { background: #f8fafc; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
 
-        .btn { padding: 8px 16px; border-radius: 6px; font-weight: 600; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem; transition: 0.2s;}
+        .btn { padding: 8px 15px; border-radius: 6px; font-weight: 600; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.83rem; transition: 0.2s; text-decoration: none;}
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-ghost { background: transparent; color: var(--text-main); border-color: var(--border); }
@@ -76,27 +79,25 @@
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 1rem; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal { background: var(--bg-panel); width: 100%; max-width: 850px; max-height: 95vh; overflow-y: auto; border-radius: 12px; padding: 2rem; transform: scale(0.95); transition: 0.2s; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .modal { background: var(--bg-panel); width: 100%; max-width: 650px; max-height: 92vh; overflow-y: auto; border-radius: 12px; padding: 2rem; transform: scale(0.95); transition: 0.2s; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
         .modal-overlay.active .modal { transform: scale(1); }
         
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
         .full-width { grid-column: 1 / -1; }
-        .input-group { display: flex; flex-direction: column; gap: 6px; }
-        .input-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; }
-        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; font-weight: 500; outline: none; background: #f8fafc; font-family: 'Inter', sans-serif;}
-        .input-group textarea { resize: vertical; min-height: 80px; }
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        .input-group label { font-size: 0.72rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.88rem; outline: none; background: #f8fafc; }
 
         #toast-container { position: fixed; bottom: 25px; right: 25px; z-index: 200; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-        .toast { background: white; color: var(--text-main); border-left: 4px solid var(--success); padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); animation: slideIn 0.3s forwards; display: flex; align-items: center; gap: 8px; }
+        .toast { background: white; color: var(--text-main); border-left: 4px solid var(--success); padding: 12px 20px; border-radius: 6px; font-weight: 600; font-size: 0.83rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); animation: slideIn 0.3s forwards; display: flex; align-items: center; gap: 8px; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         @media (max-width: 900px) {
             body { flex-direction: column; }
-            .sidebar { width: 100%; flex-direction: row; height: 60px; border-bottom: 1px solid var(--border); z-index: 50; overflow-x: auto; padding: 0;}
-            .sidebar-title { display: none; }
+            .sidebar { width: 100%; height: 60px; border-bottom: 1px solid var(--border); flex-direction: row; overflow-x: auto; }
+            .sidebar-title, .sidebar-sep { display: none; }
             .tree-menu { display: flex; padding: 0; }
-            .tree-item { margin: 0; border-radius: 0; padding: 0 15px; border-left: none; border-bottom: 3px solid transparent; flex-shrink: 0; height: 60px; justify-content: center;}
-            .tree-item.active { border-left: none; border-bottom-color: var(--primary); background: transparent;}
+            .tree-item { margin: 0; border-radius: 0; height: 60px; }
         }
     </style>
 </head>
@@ -104,17 +105,17 @@
 
     <header class="topbar">
         <div class="topbar-left">
-            <div class="brand-logo">
+            <a href="index.html" class="brand-logo">
                 <i class="fa-solid fa-medal"></i>
                 <div class="brand-text">
                     <span id="logo-ente-nome">CUORE D'ARGENTO</span>
                     <span>Accreditamento Sanitario Regione Umbria & ISO 9001</span>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="topbar-center">
             <i class="fa-solid fa-user-doctor" style="color: var(--primary);"></i> 
-            <span style="letter-spacing: 0.5px;">Presidio Sanitario: <strong>Reg. Reg. 6/2024 Umbria</strong></span>
+            <span>Presidio Qualità: <strong>R.R. 6/2024 & Convenzione AUSL Umbria 2</strong></span>
         </div>
         <div class="topbar-right">
             <span id="date-display" style="font-size:0.85rem; font-weight:600; color:var(--text-main);"></span>
@@ -122,201 +123,180 @@
     </header>
 
     <div class="main-container">
+        <!-- SIDEBAR CENTRALIZZATA -->
         <aside class="sidebar">
-            <div class="sidebar-title">Moduli Accreditamento Umbria <i class="fa-solid fa-clipboard-check"></i></div>
-            <ul class="tree-menu" style="flex-direction: column; display: flex;">
-                <li class="tree-item active" id="nav-statistiche" onclick="switchMainTab('statistiche')"><i class="fa-solid fa-chart-pie"></i> KPI & Riesame Direzione</li>
-                <li class="tree-item" id="nav-stampe-asl" onclick="switchMainTab('stampe-asl')"><i class="fa-solid fa-print"></i> Centro Stampe & Registri ASL</li>
-                <li class="tree-item" id="nav-turni" onclick="switchMainTab('turni')"><i class="fa-solid fa-calendar-days"></i> Turni & Reperibilità</li>
-                <li class="tree-item" id="nav-continuita" onclick="switchMainTab('continuita')"><i class="fa-solid fa-shield-heart"></i> Continuità del Servizio</li>
-                <li class="tree-item" id="nav-formazione" onclick="switchMainTab('formazione')"><i class="fa-solid fa-graduation-cap"></i> Formazione & Scadenze BLSD</li>
-                <li class="tree-item" id="nav-verifichedati" onclick="switchMainTab('verifichedati')"><i class="fa-solid fa-square-check"></i> Verifiche Qualità Dati</li>
-                <li class="tree-item" id="nav-customersat" onclick="switchMainTab('customersat')"><i class="fa-solid fa-star"></i> Customer Satisfaction</li>
-                <li class="tree-item" id="nav-nc" onclick="switchMainTab('nc')"><i class="fa-solid fa-triangle-exclamation"></i> Gestione Reclami & Workflow</li>
-                <li class="tree-item" id="nav-fornitori" onclick="switchMainTab('fornitori')"><i class="fa-solid fa-handshake"></i> Albo Fornitori Qualificati</li>
-                <li class="tree-item" id="nav-elettromedicali" onclick="switchMainTab('elettromedicali')"><i class="fa-solid fa-heart-pulse"></i> Elettromedicali & Lotti O2</li>
-                <li class="tree-item" id="nav-sanificazioni" onclick="switchMainTab('sanificazioni')"><i class="fa-solid fa-spray-can-sparkles"></i> Protocollo Sanificazioni PMC</li>
+            <div class="sidebar-title">Moduli Qualità & Controlli <i class="fa-solid fa-clipboard-check"></i></div>
+            
+            <div class="sidebar-sep">Registri Interni</div>
+            <ul class="tree-menu">
+                <li class="tree-item active" id="nav-statistiche" onclick="switchMainTab('statistiche')">
+                    <div class="item-content"><i class="fa-solid fa-chart-pie"></i> KPI & Riesame Direzione</div>
+                </li>
+                <li class="tree-item" id="nav-stampe-asl" onclick="switchMainTab('stampe-asl')">
+                    <div class="item-content"><i class="fa-solid fa-print"></i> Centro Stampe & Registri ASL</div>
+                </li>
+                <li class="tree-item" id="nav-turni" onclick="switchMainTab('turni')">
+                    <div class="item-content"><i class="fa-solid fa-calendar-days"></i> Turni & Reperibilità</div>
+                </li>
+                <li class="tree-item" id="nav-customersat" onclick="switchMainTab('customersat')">
+                    <div class="item-content"><i class="fa-solid fa-star"></i> Customer Satisfaction</div>
+                </li>
+                <li class="tree-item" id="nav-fornitori" onclick="switchMainTab('fornitori')">
+                    <div class="item-content"><i class="fa-solid fa-handshake"></i> Albo Fornitori Qualificati</div>
+                </li>
+                <li class="tree-item" id="nav-elettromedicali" onclick="switchMainTab('elettromedicali')">
+                    <div class="item-content"><i class="fa-solid fa-heart-pulse"></i> Elettromedicali & Lotti O2</div>
+                </li>
+                <li class="tree-item" id="nav-sanificazioni" onclick="switchMainTab('sanificazioni')">
+                    <div class="item-content"><i class="fa-solid fa-spray-can-sparkles"></i> Sanificazioni PMC</div>
+                </li>
+            </ul>
+
+            <div class="sidebar-sep">Moduli Dedicati Esterni</div>
+            <ul class="tree-menu">
+                <li>
+                    <a href="organigramma.html" class="tree-item external">
+                        <div class="item-content"><i class="fa-solid fa-sitemap" style="color:var(--primary);"></i> Organigramma Flowchart</div>
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem; color:var(--text-light);"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="nomine.html" class="tree-item external">
+                        <div class="item-content"><i class="fa-solid fa-file-signature" style="color:#0284c7;"></i> Atti di Nomina & Deleghe</div>
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem; color:var(--text-light);"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="formazione.html" class="tree-item external">
+                        <div class="item-content"><i class="fa-solid fa-graduation-cap" style="color:#10b981;"></i> Formazione & BLSD</div>
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem; color:var(--text-light);"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="continuita.html" class="tree-item external">
+                        <div class="item-content"><i class="fa-solid fa-shield-heart" style="color:#f59e0b;"></i> Continuità del Servizio</div>
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem; color:var(--text-light);"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="verifiche_dati.html" class="tree-item external">
+                        <div class="item-content"><i class="fa-solid fa-square-check" style="color:#ec4899;"></i> Verifiche Qualità Dati RSI</div>
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem; color:var(--text-light);"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="non_conformita.html" class="tree-item external">
+                        <div class="item-content"><i class="fa-solid fa-triangle-exclamation" style="color:var(--danger);"></i> Gestione Reclami & NC</div>
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem; color:var(--text-light);"></i>
+                    </a>
+                </li>
             </ul>
         </aside>
 
         <main class="dashboard-area">
             <div class="dash-header">
-                <h3 id="tab-title" style="color:var(--text-main); font-size:1.2rem; font-weight:800;">Cruscotto KPI (Riesame)</h3>
+                <h3 id="tab-title" style="color:var(--text-main); font-size:1.15rem; font-weight:800;">Cruscotto KPI & Riesame</h3>
             </div>
 
-            <!-- TAB RIESAME & KPI -->
+            <!-- TAB 1: RIESAME & KPI -->
             <div id="tab-statistiche" class="tab-content active">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <p style="color: var(--text-light); font-size: 0.9rem;">Indicatori aggregati in tempo reale dall'Ecosistema Operativo</p>
+                    <p style="color: var(--text-light); font-size: 0.85rem;">Indicatori aggregati in tempo reale dall'Ecosistema Operativo</p>
                     <button class="btn btn-primary" onclick="stampaVerbaleRiesame()"><i class="fa-solid fa-file-pdf"></i> Genera Verbale Riesame (ISO 9001 & DS)</button>
                 </div>
                 
-                <div class="stats-row" style="margin-bottom: 20px;">
+                <div class="stats-row">
                     <div class="stat-card" style="border-left-color: #3b82f6;">
-                        <div class="stat-info"><h4>Servizi Erogati Totali</h4><div class="num" id="kpi-servizi">0</div></div><i class="fa-solid fa-truck-medical stat-icon"></i>
+                        <div class="stat-info"><h4>Servizi Erogati Totali</h4><div class="num" id="kpi-servizi">0</div></div>
+                        <i class="fa-solid fa-truck-medical stat-icon"></i>
                     </div>
                     <div class="stat-card" style="border-left-color: #ec4899;">
-                        <div class="stat-info"><h4>Soddisfazione Pazienti</h4><div class="num" id="kpi-cs">N/D</div></div><i class="fa-solid fa-face-smile stat-icon"></i>
+                        <div class="stat-info"><h4>Soddisfazione Pazienti</h4><div class="num" id="kpi-cs">N/D</div></div>
+                        <i class="fa-solid fa-face-smile stat-icon"></i>
                     </div>
                     <div class="stat-card" style="border-left-color: #f59e0b;">
-                        <div class="stat-info"><h4>Non Conformità Aperte</h4><div class="num" id="kpi-nc">0</div></div><i class="fa-solid fa-triangle-exclamation stat-icon"></i>
+                        <div class="stat-info"><h4>Non Conformità Aperte</h4><div class="num" id="kpi-nc">0</div></div>
+                        <i class="fa-solid fa-triangle-exclamation stat-icon"></i>
                     </div>
                     <div class="stat-card" style="border-left-color: #10b981;">
-                        <div class="stat-info"><h4>Fornitori Registrati</h4><div class="num" id="kpi-fornitori">0</div></div><i class="fa-solid fa-boxes-packing stat-icon"></i>
+                        <div class="stat-info"><h4>Fornitori Registrati</h4><div class="num" id="kpi-fornitori">0</div></div>
+                        <i class="fa-solid fa-boxes-packing stat-icon"></i>
                     </div>
-                </div>
-                
-                <div class="stats-row">
                     <div class="stat-card" style="border-left-color: #8b5cf6;">
-                        <div class="stat-info"><h4>Volontari a Registro</h4><div class="num" id="kpi-volontari">0</div></div><i class="fa-solid fa-users stat-icon"></i>
+                        <div class="stat-info"><h4>Volontari a Registro</h4><div class="num" id="kpi-volontari">0</div></div>
+                        <i class="fa-solid fa-users stat-icon"></i>
                     </div>
                     <div class="stat-card" style="border-left-color: #06b6d4;">
-                        <div class="stat-info"><h4>Mezzi in Flotta</h4><div class="num" id="kpi-mezzi">0</div></div><i class="fa-solid fa-truck stat-icon"></i>
+                        <div class="stat-info"><h4>Mezzi in Flotta</h4><div class="num" id="kpi-mezzi">0</div></div>
+                        <i class="fa-solid fa-truck stat-icon"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB CENTRO STAMPE ASL -->
+            <!-- TAB 2: CENTRO STAMPE ASL -->
             <div id="tab-stampe-asl" class="tab-content">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="color: var(--primary);"><i class="fa-solid fa-print"></i> Centro Stampe e Registri Ufficiali (Reg. Umbria 6/2024 & ISO 9001)</h3>
-                </div>
+                <h3 style="color: var(--primary);"><i class="fa-solid fa-print"></i> Centro Stampe e Registri Ufficiali (Reg. Umbria 6/2024 & ISO 9001)</h3>
                 <p style="font-size:0.85rem; color:var(--text-light);">Tutti i documenti includono la validazione della Direzione Sanitaria e dell'Ente:</p>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; margin-top: 10px;">
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
                             <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-calendar-days"></i> Registro Turni & Reperibilità</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Stampa del piano turni operativi e della lista di reperibilità notturna del personale.</p>
+                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Piano turni operativi e lista reperibilità notturna del personale.</p>
                         </div>
                         <button class="btn btn-primary" onclick="stampaRegistroTurniAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Turni (PDF)</button>
                     </div>
+
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
-                            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-shield-heart"></i> Registro Continuità del Servizio</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Log delle emergenze, guasti improvvisi e attivazione di mezzi sostitutivi o reti di supporto.</p>
+                            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-spray-can-sparkles"></i> Sanificazioni & Disinfezioni</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Log disinfezione cellula sanitaria con Presidi Medico-Chirurgici (PMC).</p>
                         </div>
-                        <button class="btn btn-primary" onclick="stampaRegistroContinuitaAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Continuità (PDF)</button>
+                        <button class="btn btn-primary" onclick="stampaRegistroSanificazioniAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Sanificazioni (PDF)</button>
                     </div>
+
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
-                            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-graduation-cap"></i> Registro Formazione Personale</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Stato formativo, corsi BLSD, aggiornamenti e conformità del personale operativo con timbro DS.</p>
+                            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-heart-pulse"></i> Elettromedicali & Lotti O2</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Inventario apparecchiature (DAE), collaudi e scadenze lotti gas medicinali.</p>
                         </div>
-                        <button class="btn btn-primary" onclick="stampaRegistroFormazioneAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Formazione (PDF)</button>
+                        <button class="btn btn-primary" onclick="stampaRegistroElettromedicaliAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Elettromedicali (PDF)</button>
                     </div>
+
                     <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
                         <div>
-                            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-square-check"></i> Verifiche Qualità Dati</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Report di controllo su accuratezza, completezza, riproducibilità e tempestività dei dati.</p>
+                            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-file-lines"></i> Questionario Customer Satisfaction</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Modulo cartaceo ufficiale di rilevazione qualità percepita dall'utente.</p>
                         </div>
-                        <button class="btn btn-primary" onclick="stampaRegistroVerificheDatiAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Verifiche Dati (PDF)</button>
-                    </div>
-                    <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
-                        <div>
-                            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-book"></i> Registro Non Conformità (RRP)</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Elenco reclami e segnalazioni con relative azioni correttive e chiusura formale.</p>
-                        </div>
-                        <button class="btn btn-primary" onclick="stampaRegistroNCAsl()"><i class="fa-solid fa-file-pdf"></i> Esporta Registro NC (PDF)</button>
-                    </div>
-                    <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
-                        <div>
-                            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-clipboard-check"></i> Registro Checklist & Mezzi</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Log controlli pre-partenza da tablet e tracciabilità conformità flotta (Assicurazione/Revisione).</p>
-                        </div>
-                        <div style="display:flex; gap:8px;">
-                            <button class="btn btn-ghost" style="flex:1; font-size:0.75rem; border-color:var(--primary); color:var(--primary);" onclick="stampaRegistroChecklistAsl()">Checklist (Tablet)</button>
-                            <button class="btn btn-ghost" style="flex:1; font-size:0.75rem; border-color:var(--primary); color:var(--primary);" onclick="stampaRegistroMezziAsl()">Conformità Mezzi</button>
-                        </div>
-                    </div>
-                    <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
-                        <div>
-                            <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;"><i class="fa-solid fa-spray-can-sparkles"></i> Sanificazioni & Gas Medicali</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 15px;">Log disinfezione con PMC e tracciabilità lotti/scadenze collaudo bombole O2.</p>
-                        </div>
-                        <div style="display:flex; gap:8px;">
-                            <button class="btn btn-ghost" style="flex:1; font-size:0.75rem;" onclick="stampaRegistroSanificazioniAsl()">Sanificazioni PMC</button>
-                            <button class="btn btn-ghost" style="flex:1; font-size:0.75rem;" onclick="stampaRegistroElettromedicaliAsl()">Elettromedicali & O2</button>
-                        </div>
+                        <button class="btn btn-primary" onclick="stampaQuestionarioCartaceo()"><i class="fa-solid fa-file-pdf"></i> Stampa Questionario (PDF)</button>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB TURNI -->
+            <!-- TAB 3: TURNI -->
             <div id="tab-turni" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-calendar-days"></i> Registro Turni e Reperibilità Personale</h3>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-primary" onclick="apriModale('modalTurno', 'formTurno', 'turn-')"><i class="fa-solid fa-plus"></i> Aggiungi Reperibilità Notturna</button>
-                        <button class="btn btn-ghost" onclick="stampaRegistroTurniAsl()" style="border-color: var(--primary); color: var(--primary);"><i class="fa-solid fa-file-pdf"></i> Stampa Registro</button>
+                        <button class="btn btn-primary" onclick="apriModale('modalTurno', 'formTurno', 'turn-')"><i class="fa-solid fa-plus"></i> Aggiungi Reperibilità</button>
+                        <button class="btn btn-ghost" onclick="stampaRegistroTurniAsl()"><i class="fa-solid fa-file-pdf"></i> Stampa Registro</button>
                     </div>
                 </div>
                 <div class="glass-panel table-container">
                     <table>
-                        <thead><tr><th>Data</th><th>Turno / Fascia</th><th>Operatore</th><th>Qualifica</th><th>Reperibile</th><th>Sostituto</th><th>Note</th><th style="text-align:right;">Azioni / Sync</th></tr></thead>
+                        <thead><tr><th>Data</th><th>Turno / Fascia</th><th>Operatore</th><th>Qualifica</th><th>Reperibile</th><th>Sostituto</th><th>Note</th><th style="text-align:right;">Azioni</th></tr></thead>
                         <tbody id="turni-corpo"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- TAB CONTINUITÀ -->
-            <div id="tab-continuita" class="tab-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <h3 style="color: var(--primary);"><i class="fa-solid fa-shield-heart"></i> Registro Continuità del Servizio & Emergenze</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-primary" onclick="apriModale('modalContinuita', 'formContinuita', 'cont-')"><i class="fa-solid fa-plus"></i> Registra Evento Critico</button>
-                        <button class="btn btn-ghost" onclick="stampaRegistroContinuitaAsl()" style="border-color: var(--primary); color: var(--primary);"><i class="fa-solid fa-file-pdf"></i> Stampa Registro</button>
-                    </div>
-                </div>
-                <div class="glass-panel table-container">
-                    <table>
-                        <thead><tr><th>Data</th><th>Evento</th><th>Segnalante</th><th>Coinvolto</th><th>Azione Correttiva</th><th>Esito</th><th>Note</th><th style="text-align:right;">Azioni</th></tr></thead>
-                        <tbody id="continuita-corpo"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB FORMAZIONE -->
-            <div id="tab-formazione" class="tab-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <h3 style="color: var(--primary);"><i class="fa-solid fa-graduation-cap"></i> Registro Formazione e Scadenze Operative</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-primary" onclick="apriModale('modalFormazione', 'formFormazione', 'form-')"><i class="fa-solid fa-plus"></i> Registra Corso Extra</button>
-                        <button class="btn btn-ghost" onclick="stampaRegistroFormazioneAsl()" style="border-color: var(--primary); color: var(--primary);"><i class="fa-solid fa-file-pdf"></i> Stampa Registro</button>
-                    </div>
-                </div>
-                <div class="glass-panel table-container">
-                    <table>
-                        <thead><tr><th>Operatore</th><th>Qualifica</th><th>Corso / Idoneità</th><th>Scadenza</th><th>Stato</th><th style="text-align:right;">Azioni / Sync</th></tr></thead>
-                        <tbody id="formazione-corpo"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB VERIFICHE DATI -->
-            <div id="tab-verifichedati" class="tab-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <h3 style="color: var(--primary);"><i class="fa-solid fa-square-check"></i> Registro Verifica Qualità Dati</h3>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-primary" onclick="apriModale('modalVerificaDato', 'formVerificaDato', 'vd-')"><i class="fa-solid fa-plus"></i> Nuova Verifica RSI</button>
-                        <button class="btn btn-ghost" onclick="stampaRegistroVerificheDatiAsl()" style="border-color: var(--primary); color: var(--primary);"><i class="fa-solid fa-file-pdf"></i> Stampa Registro</button>
-                    </div>
-                </div>
-                <div class="glass-panel table-container">
-                    <table>
-                        <thead><tr><th>Data Verifica</th><th>Dato Verificato</th><th>Accuratezza</th><th>Completezza</th><th>Riproducibilità</th><th>Tempestività</th><th>Esito</th><th>Azioni Correttive</th><th>Resp.</th><th style="text-align:right;">Azioni</th></tr></thead>
-                        <tbody id="verifichedati-corpo"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB CUSTOMER SATISFACTION -->
+            <!-- TAB 4: CUSTOMER SATISFACTION -->
             <div id="tab-customersat" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-star"></i> Registro Soddisfazione Utenti (ISO 9001)</h3>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="btn btn-ghost" onclick="stampaQuestionarioCartaceo()" style="border-color: var(--secondary); color: var(--secondary);"><i class="fa-solid fa-file-lines"></i> Stampa Questionario</button>
-                        <button class="btn btn-ghost" onclick="mostraQRCustomerSat()" style="border-color: #ec4899; color: #ec4899;"><i class="fa-solid fa-qrcode"></i> QR Code Pazienti</button>
+                        <button class="btn btn-ghost" onclick="stampaQuestionarioCartaceo()"><i class="fa-solid fa-file-lines"></i> Questionario Cartaceo</button>
+                        <button class="btn btn-ghost" onclick="mostraQRCustomerSat()" style="border-color:#ec4899; color:#ec4899;"><i class="fa-solid fa-qrcode"></i> QR Code Pazienti</button>
                         <button class="btn btn-primary" onclick="apriModale('modalCustomerSat', 'formCustomerSat', 'cs-')"><i class="fa-solid fa-plus"></i> Inserisci Esito</button>
                     </div>
                 </div>
@@ -328,21 +308,7 @@
                 </div>
             </div>
 
-            <!-- TAB NON CONFORMITÀ -->
-            <div id="tab-nc" class="tab-content">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="color: var(--primary);"><i class="fa-solid fa-triangle-exclamation"></i> Workflow Gestione Reclami & Non Conformità</h3>
-                    <button class="btn btn-primary" onclick="apriModale('modalNC', 'formNC', 'nc-')"><i class="fa-solid fa-plus"></i> Registra Reclamo/NC</button>
-                </div>
-                <div class="glass-panel table-container">
-                    <table>
-                        <thead><tr><th>Data Rilevazione</th><th>Tipologia</th><th>Segnalante</th><th>Descrizione Sintetica</th><th>Azione Correttiva</th><th>Stato</th><th style="text-align:right;">Azioni</th></tr></thead>
-                        <tbody id="nc-corpo"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB FORNITORI -->
+            <!-- TAB 5: FORNITORI -->
             <div id="tab-fornitori" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-handshake"></i> Albo Fornitori Qualificati</h3>
@@ -356,7 +322,7 @@
                 </div>
             </div>
 
-            <!-- TAB ELETTROMEDICALI & GAS MEDICALI -->
+            <!-- TAB 6: ELETTROMEDICALI & GAS MEDICALI -->
             <div id="tab-elettromedicali" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-heart-pulse"></i> Inventario Elettromedicali & Farmaco Ossigeno</h3>
@@ -380,7 +346,7 @@
                 </div>
             </div>
 
-            <!-- TAB SANIFICAZIONI -->
+            <!-- TAB 7: SANIFICAZIONI -->
             <div id="tab-sanificazioni" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="color: var(--primary);"><i class="fa-solid fa-spray-can-sparkles"></i> Registro Sanificazioni & Disinfezioni (Protocollo PMC)</h3>
@@ -406,7 +372,7 @@
         </main>
     </div>
 
-    <!-- Modali Form -->
+    <!-- MODALI REGISTRI INTERNI -->
     <div class="modal-overlay" id="modalTurno">
         <div class="modal" style="max-width: 550px;">
             <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-calendar-days"></i> Registra Reperibilità Notturna <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
@@ -415,144 +381,11 @@
                 <div class="form-grid">
                     <div class="input-group"><label>Data</label><input type="date" id="turn-data" required></div>
                     <div class="input-group"><label>Turno / Fascia</label><select id="turn-turno" required><option value="Notte (20:00 - 08:00)">Notte (20:00 - 08:00)</option><option value="Festivo">Festivo</option><option value="H24">H24</option></select></div>
-                    <div class="input-group"><label>Nome Operatore / Volontario</label><select id="turn-nome" required><option value="">-- Seleziona --</option></select></div>
+                    <div class="input-group"><label>Nome Operatore</label><select id="turn-nome" required><option value="">-- Seleziona --</option></select></div>
                     <div class="input-group"><label>Qualifica</label><input type="text" id="turn-qualifica" value="Soccorritore"></div>
-                    <div class="input-group"><label>Reperibile (SI/NO)</label><select id="turn-reperibile"><option value="SI">SI</option><option value="NO">NO</option></select></div>
-                    <div class="input-group"><label>Sostituto (se assente)</label><input type="text" id="turn-sostituto" value="-"></div>
+                    <div class="input-group"><label>Reperibile</label><select id="turn-reperibile"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+                    <div class="input-group"><label>Sostituto</label><input type="text" id="turn-sostituto" value="-"></div>
                     <div class="input-group full-width"><label>Note</label><input type="text" id="turn-note"></div>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva nel Registro</button></div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="modalContinuita">
-        <div class="modal" style="max-width: 600px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-shield-heart"></i> Registro Continuità del Servizio <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
-            <form id="formContinuita">
-                <input type="hidden" id="cont-editId">
-                <div class="form-grid">
-                    <div class="input-group"><label>Data Evento</label><input type="date" id="cont-data" required></div>
-                    <div class="input-group"><label>Tipo Evento</label><select id="cont-evento"><option value="Guasto Mezzo">Guasto Mezzo</option><option value="Assenza Operatore">Assenza Operatore</option><option value="Emergenza Straordinaria">Emergenza Straordinaria</option></select></div>
-                    <div class="input-group"><label>Segnalato Da</label><input type="text" id="cont-segnalante" value="Centrale Operativa" required></div>
-                    <div class="input-group"><label>Mezzo o Operatore Coinvolto</label><input type="text" id="cont-coinvolto" required placeholder="Es. Ambulanza 1"></div>
-                    <div class="input-group full-width"><label>Azione Correttiva (es. Mezzo sostitutivo)</label><textarea id="cont-azione" required rows="2"></textarea></div>
-                    <div class="input-group"><label>Esito</label><select id="cont-esito"><option value="In Gestione">In Gestione</option><option value="Risolto">Risolto</option></select></div>
-                    <div class="input-group full-width"><label>Note</label><input type="text" id="cont-note"></div>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Evento</button></div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="modalFormazione">
-        <div class="modal" style="max-width: 550px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-graduation-cap"></i> Scheda Formazione Extra <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
-            <form id="formFormazione">
-                <input type="hidden" id="form-editId">
-                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">Nota: BLSD, Visita Medica, L.81/08 e Patente vengono importati in automatico dall'Anagrafica Volontari.</p>
-                <div class="form-grid">
-                    <div class="input-group"><label>Nome Operatore</label><select id="form-nome" required><option value="">-- Seleziona Operatore --</option></select></div>
-                    <div class="input-group"><label>Qualifica</label><input type="text" id="form-qualifica" value="Soccorritore"></div>
-                    <div class="input-group"><label>Corso Extra (Es. Antincendio)</label><input type="text" id="form-corso" required placeholder="Nome corso"></div>
-                    <div class="input-group"><label>Data Scadenza</label><input type="date" id="form-datascadenza" required></div>
-                    <div class="input-group full-width"><label>Note</label><input type="text" id="form-note"></div>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Formazione Extra</button></div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="modalVerificaDato">
-        <div class="modal" style="max-width: 600px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-square-check"></i> Registro Verifica Qualità Dati <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
-            <form id="formVerificaDato">
-                <input type="hidden" id="vd-editId">
-                <div class="form-grid">
-                    <div class="input-group"><label>Data Verifica</label><input type="date" id="vd-data" required></div>
-                    <div class="input-group"><label>Dato Verificato</label><input type="text" id="vd-dato" required placeholder="Es. Tempi di risposta servizi"></div>
-                    <div class="input-group"><label>Accuratezza</label><select id="vd-acc"><option value="OK">OK</option><option value="KO">KO</option></select></div>
-                    <div class="input-group"><label>Completezza</label><select id="vd-comp"><option value="OK">OK</option><option value="KO">KO</option></select></div>
-                    <div class="input-group"><label>Riproducibilità</label><select id="vd-riprod"><option value="OK">OK</option><option value="KO">KO</option></select></div>
-                    <div class="input-group"><label>Tempestività</label><select id="vd-temp"><option value="OK">OK</option><option value="KO">KO</option></select></div>
-                    <div class="input-group"><label>Esito</label><select id="vd-esito"><option value="Conforme">Conforme</option><option value="Non conforme">Non conforme</option></select></div>
-                    <div class="input-group"><label>Responsabile (es. RSI)</label><input type="text" id="vd-resp" value="RSI"></div>
-                    <div class="input-group full-width"><label>Azioni Correttive</label><textarea id="vd-azioni" rows="2" placeholder="Eventuali richieste di integrazione dati"></textarea></div>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Verifica</button></div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="modalNC">
-        <div class="modal" style="max-width: 650px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-triangle-exclamation"></i> Reclamo o Non Conformità (Workflow RRP) <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
-            <form id="formNC">
-                <input type="hidden" id="nc-editId">
-                <div class="form-grid">
-                    <div class="input-group"><label>Data Rilevazione</label><input type="date" id="nc-data" required></div>
-                    <div class="input-group"><label>Rilevatore (Volontario/Paziente)</label><select id="nc-rilevatore" required><option value="Utente Esterno">Utente Esterno</option></select></div>
-                    <div class="input-group full-width"><label>Tipologia Segnalazione</label><select id="nc-tipo" required><option value="Reclamo da Paziente/ASL">Reclamo da Paziente/ASL</option><option value="Osservazione">Osservazione</option><option value="Guasto/Malfunzionamento Mezzo">Guasto/Malfunzionamento Mezzo</option></select></div>
-                    <div class="input-group full-width"><label>Descrizione Evento</label><textarea id="nc-descrizione" required rows="3"></textarea></div>
-                    <div class="input-group full-width"><label>Azione Correttiva</label><textarea id="nc-azione" rows="2"></textarea></div>
-                    <div class="input-group"><label>Stato Workflow</label><select id="nc-stato" required><option value="Aperta">1. Ricevuto / Registrato in RRP</option><option value="In Gestione">2. In Analisi / Valutazione</option><option value="Chiusa">3. Risposta Scritta inviata / Chiusa</option></select></div>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2; background:var(--warning);">Salva in RRP</button></div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="modalFornitore">
-        <div class="modal" style="max-width: 600px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-handshake"></i> Aggiungi Fornitore <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
-            <form id="formFornitore">
-                <input type="hidden" id="forn-editId">
-                <div class="form-grid">
-                    <div class="input-group full-width"><label>Ragione Sociale / P.IVA</label><input type="text" id="forn-ragione" required></div>
-                    <div class="input-group"><label>Categoria</label><input type="text" id="forn-categoria" required placeholder="Es. Gas Medicali, Materiale Sanitario"></div>
-                    <div class="input-group"><label>Scadenza Contratto</label><input type="date" id="forn-scadenza" required></div>
-                    <div class="input-group"><label>Valutazione Annuale</label><select id="forn-valutazione"><option value="Positiva">Positiva</option><option value="Sufficiente">Sufficiente</option><option value="Negativa">Negativa</option><option value="Da Valutare">Da Valutare</option></select></div>
-                    <div class="input-group full-width"><label>Note</label><input type="text" id="forn-note"></div>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Fornitore</button></div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODALE ELETTROMEDICALI & O2 -->
-    <div class="modal-overlay" id="modalElettromedicale">
-        <div class="modal" style="max-width: 650px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-heart-pulse"></i> Inserisci Presidio / Bombola O2 <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
-            <form id="formElettromedicale">
-                <input type="hidden" id="el-editId">
-                <div class="form-grid">
-                    <div class="input-group"><label>Tipo Dispositivo</label><select id="el-tipo" required><option value="DAE (Defibrillatore)">DAE (Defibrillatore)</option><option value="Bombola O2 Medicinale">Bombola O2 Medicinale</option><option value="Aspiratore Tascabile">Aspiratore Tascabile</option><option value="Pulsossimetro">Pulsossimetro</option><option value="Altro">Altro</option></select></div>
-                    <div class="input-group"><label>Modello / Produttore</label><input type="text" id="el-modello" required placeholder="Es. Saver One, Sapio Life"></div>
-                    <div class="input-group"><label>Matricola Apparecchio / Matricola Bombola</label><input type="text" id="el-matricola" required></div>
-                    <div class="input-group"><label>Assegnazione Mezzo</label><input type="text" id="el-assegnazione" required placeholder="Es. Ambulanza 1"></div>
-                    <div class="input-group"><label>Lotto AIC Farmaco (Solo per O2)</label><input type="text" id="el-lotto" placeholder="Es. LT102456"></div>
-                    <div class="input-group"><label>Scadenza Farmaco O2</label><input type="date" id="el-scad-farmaco"></div>
-                    <div class="input-group"><label>Scadenza Manutenzione Elettrica / Collaudo Bombola</label><input type="date" id="el-scad-manutenzione" required></div>
-                    <div class="input-group"><label>Scadenza Consumabili (Piastre/Batterie/Filtri)</label><input type="date" id="el-scad-consumabili"></div>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Dispositivo</button></div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODALE SANIFICAZIONI PMC -->
-    <div class="modal-overlay" id="modalSanificazione">
-        <div class="modal" style="max-width: 650px;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-spray-can-sparkles"></i> Registra Sanificazione & Disinfezione (PMC) <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
-            <form id="formSanificazione">
-                <input type="hidden" id="san-editId">
-                <div class="form-grid">
-                    <div class="input-group"><label>Data Intervento</label><input type="date" id="san-data" required></div>
-                    <div class="input-group"><label>Mezzo Sanificato</label><input type="text" id="san-mezzo" required placeholder="Es. Ambulanza 1"></div>
-                    <div class="input-group"><label>Tipo Intervento</label><select id="san-tipo" required><option value="Ordinaria (Fine Turno)">Ordinaria (Fine Turno)</option><option value="Straordinaria (Rischio Infettivo)">Straordinaria (Rischio Infettivo)</option><option value="Trattamento Ozono / Nebulizzazione">Trattamento Ozono / Nebulizzazione</option></select></div>
-                    <div class="input-group"><label>Disinfettante / Presidio Medico Chirurgico (PMC)</label><input type="text" id="san-pmc" required placeholder="Es. Clorossidante PMC n.18245, Alcool 70%"></div>
-                    <div class="input-group"><label>Operatore Esecutore</label><select id="san-operatore" required><option value="Membro Equipaggio">Membro Equipaggio</option></select></div>
-                    <div class="input-group full-width"><label>Note / Tempo di Contatto (minuti)</label><input type="text" id="san-note" placeholder="Es. Contatto 15 min, areazione eseguita"></div>
                 </div>
                 <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva nel Registro</button></div>
             </form>
@@ -565,34 +398,84 @@
             <form id="formCustomerSat">
                 <input type="hidden" id="cs-editId">
                 <div class="form-grid">
-                    <div class="input-group"><label>Data Compilazione</label><input type="date" id="cs-data" required></div>
-                    <div class="input-group"><label>Compilatore (Opzionale)</label><input type="text" id="cs-compilatore" value="Anonimo"></div>
-                    <div class="input-group"><label>Voto Globale (1 a 5)</label><input type="number" id="cs-voto_globale" min="1" max="5" required placeholder="Es. 5"></div>
-                    <div class="input-group"><label>Consiglierebbe il servizio?</label><select id="cs-consiglia"><option value="Sì">Sì</option><option value="No">No</option></select></div>
+                    <div class="input-group"><label>Data</label><input type="date" id="cs-data" required></div>
+                    <div class="input-group"><label>Compilatore</label><input type="text" id="cs-compilatore" value="Anonimo"></div>
+                    <div class="input-group"><label>Voto Globale (1 a 5)</label><input type="number" id="cs-voto_globale" min="1" max="5" required></div>
+                    <div class="input-group"><label>Consiglierebbe?</label><select id="cs-consiglia"><option value="Sì">Sì</option><option value="No">No</option></select></div>
                 </div>
-                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Esito</button></div>
+                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva</button></div>
             </form>
         </div>
     </div>
 
-    <!-- MODALE QR CODE CUSTOMER SATISFACTION -->
+    <div class="modal-overlay" id="modalFornitore">
+        <div class="modal" style="max-width: 600px;">
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-handshake"></i> Fornitore Qualificato <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
+            <form id="formFornitore">
+                <input type="hidden" id="forn-editId">
+                <div class="form-grid">
+                    <div class="input-group full-width"><label>Ragione Sociale / P.IVA</label><input type="text" id="forn-ragione" required></div>
+                    <div class="input-group"><label>Categoria</label><input type="text" id="forn-categoria" required placeholder="Es. Gas Medicali"></div>
+                    <div class="input-group"><label>Scadenza Contratto</label><input type="date" id="forn-scadenza" required></div>
+                    <div class="input-group"><label>Valutazione</label><select id="forn-valutazione"><option value="Positiva">Positiva</option><option value="Sufficiente">Sufficiente</option><option value="Negativa">Negativa</option></select></div>
+                    <div class="input-group full-width"><label>Note</label><input type="text" id="forn-note"></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Fornitore</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalElettromedicale">
+        <div class="modal" style="max-width: 650px;">
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-heart-pulse"></i> Presidio / Bombola O2 <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
+            <form id="formElettromedicale">
+                <input type="hidden" id="el-editId">
+                <div class="form-grid">
+                    <div class="input-group"><label>Tipo Dispositivo</label><select id="el-tipo" required><option value="DAE (Defibrillatore)">DAE (Defibrillatore)</option><option value="Bombola O2 Medicinale">Bombola O2 Medicinale</option><option value="Aspiratore Tascabile">Aspiratore Tascabile</option></select></div>
+                    <div class="input-group"><label>Modello</label><input type="text" id="el-modello" required placeholder="Es. Saver One"></div>
+                    <div class="input-group"><label>Matricola</label><input type="text" id="el-matricola" required></div>
+                    <div class="input-group"><label>Assegnazione Mezzo</label><input type="text" id="el-assegnazione" required placeholder="Es. Ambulanza 1"></div>
+                    <div class="input-group"><label>Lotto AIC Farmaco O2</label><input type="text" id="el-lotto" placeholder="Es. LT102456"></div>
+                    <div class="input-group"><label>Scadenza Farmaco O2</label><input type="date" id="el-scad-farmaco"></div>
+                    <div class="input-group"><label>Scadenza Manutenzione / Collaudo</label><input type="date" id="el-scad-manutenzione" required></div>
+                    <div class="input-group"><label>Scadenza Consumabili (Piastre/Batteria)</label><input type="date" id="el-scad-consumabili"></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva Dispositivo</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalSanificazione">
+        <div class="modal" style="max-width: 650px;">
+            <div class="panel-header" style="justify-content: space-between; border-bottom: none;"><i class="fa-solid fa-spray-can-sparkles"></i> Registra Sanificazione PMC <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
+            <form id="formSanificazione">
+                <input type="hidden" id="san-editId">
+                <div class="form-grid">
+                    <div class="input-group"><label>Data</label><input type="date" id="san-data" required></div>
+                    <div class="input-group"><label>Mezzo</label><input type="text" id="san-mezzo" required placeholder="Es. Ambulanza 1"></div>
+                    <div class="input-group"><label>Tipo</label><select id="san-tipo" required><option value="Ordinaria (Fine Turno)">Ordinaria (Fine Turno)</option><option value="Straordinaria">Straordinaria</option></select></div>
+                    <div class="input-group"><label>Presidio Medico Chirurgico (PMC)</label><input type="text" id="san-pmc" required placeholder="Es. Clorossidante PMC n.18245"></div>
+                    <div class="input-group"><label>Operatore</label><select id="san-operatore" required><option value="Membro Equipaggio">Membro Equipaggio</option></select></div>
+                    <div class="input-group full-width"><label>Note / Tempo Contatto</label><input type="text" id="san-note"></div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;"><button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button><button type="submit" class="btn btn-primary" style="flex:2;">Salva</button></div>
+            </form>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="modalQRCustomerSat">
         <div class="modal" style="max-width: 440px; text-align:center;">
-            <div class="panel-header" style="justify-content: space-between; border-bottom: none;">
-                <span><i class="fa-solid fa-star" style="color:#ec4899"></i> Questionario Pazienti (ISO 9001)</span> 
-                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none;" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:15px;">
+                <span><i class="fa-solid fa-star" style="color:#ec4899"></i> QR Code Pazienti (ISO 9001)</span> 
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none; cursor:pointer;">✕</button>
             </div>
-            
             <div style="padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); display: inline-flex; justify-content: center; align-items: center; margin: 10px 0;">
                 <div id="qrcode" style="display:flex; justify-content:center; align-items:center; min-height: 180px; min-width: 180px;"></div>
             </div>
-
-            <p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-main); font-weight: 600;">Inquadra con la fotocamera dello smartphone per compilare il questionario di qualità.</p>
-            <p style="margin-top: 4px; font-size: 0.75rem; color: var(--text-light);">I dati confluiscono direttamente nel modulo di Customer Satisfaction ai fini dell'Accreditamento Regionale.</p>
-            
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <button type="button" class="btn btn-ghost" onclick="copiaLinkCS()" style="flex:1; border-color:var(--border); font-size:0.8rem;"><i class="fa-regular fa-copy"></i> Copia Link</button>
-                <button type="button" class="btn btn-primary" onclick="window.open(URL_QUESTIONARIO_CS, '_blank')" style="flex:1; background:#ec4899; font-size:0.8rem;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Apri Modulo</button>
+            <p style="font-size:0.8rem; color:var(--text-light); margin-top:8px;">Inquadra per aprire il questionario di gradimento.</p>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button type="button" class="btn btn-ghost" onclick="copiaLinkCS()" style="flex:1;">Copia Link</button>
+                <button type="button" class="btn btn-primary" onclick="window.open(URL_QUESTIONARIO_CS, '_blank')" style="flex:1; background:#ec4899;">Apri Modulo</button>
             </div>
         </div>
     </div>
@@ -600,30 +483,27 @@
     <div id="toast-container"></div>
 
     <script>
-        const URL_QUESTIONARIO_CS = "https://docs.google.com/forms/d/e/1FAIpQLSerxr5ggAvhPCAPKwkPGKkm5tbjsDYWIiPlguYWskejUX7g-w/viewform?usp=sharing&ouid=117117615506418942572";
+        const URL_QUESTIONARIO_CS = "https://docs.google.com/forms/d/e/1FAIpQLSerxr5ggAvhPCAPKwkPGKkm5tbjsDYWIiPlguYWskejUX7g-w/viewform?usp=sharing";
 
         const societaInfo = {
             nome: "Associazione di Volontariato Cuore d'Argento ODV",
             sede: "Via della Stazione n. 51 – 05035 Narni Scalo (TR)",
-            cfPiva: "C.F. / P.IVA: 01725470551",
+            cfPiva: "C.F. 91086460556 - P.IVA 01725470551",
             runts: "RUNTS Det. n. 870/2025 Regione Umbria",
             autorizzazione: "Aut. Esercizio n. 8642 del 19/08/2025 (Reg. Umbria)",
-            direttoreSanitario: "Dott. Medico Chirurgo Responsabile (Iscr. Ordine Medici TR n. 0000)"
+            presidente: "Dott. Michele Bee",
+            direttoreSanitario: "Dott. Medico Chirurgo Responsabile (Iscr. Ordine Medici TR)"
         };
 
-        var trasporti = [], volontari = [], mezzi = [], sanificazioni = [], elettromedicali = [], nonConformita = [], fornitori = [], customerSat = [], verbali = [], checklists = [];
+        var trasporti = [], volontari = [], mezzi = [], sanificazioni = [], elettromedicali = [], nonConformita = [], fornitori = [], customerSat = [];
         var turniReperibilita = [];
-        var continuitaServizio = [];
-        var formazionePersonale = [];
-        var verificheQualitaDati = [];
-        var presenze = [];
 
         var utenteLoggato = localStorage.getItem("nome_utente_gestionale") || "Resp. Qualità ISO 9001";
         const todayStr = new Date().toISOString().split('T')[0];
         let dbRootPath = 'cuore_argento_db';
-        let impostazioni = { nome: "CUORE D'ARGENTO ODV", piva: "01725470551", sdi: "", indirizzo: "Via della Stazione n. 51 – Narni Scalo (TR)", telefono: "", email: "", note: "" };
-        
-        function toast(msg, type) {
+        let database;
+
+        function toast(msg) {
             const container = document.getElementById('toast-container'); 
             if(!container) return;
             const el = document.createElement('div'); 
@@ -633,23 +513,22 @@
             setTimeout(function() { el.remove(); }, 3000);
         }
 
-        function estraiDati(nodo, defaultArr) {
-            if (!defaultArr) defaultArr = [];
-            if (!nodo) return defaultArr;
-            const res = (Array.isArray(nodo) ? nodo : Object.values(nodo)).filter(function(item) { 
-                return item !== null && typeof item === 'object'; 
-            });
-            return res.length > 0 ? res : defaultArr;
+        function estraiDati(nodo) {
+            if (!nodo) return [];
+            if (Array.isArray(nodo)) return nodo.filter(function(i) { return i !== null && typeof i === 'object'; });
+            return Object.keys(nodo).map(function(k) { 
+                let item = nodo[k]; 
+                if (item && typeof item === 'object') item.id = item.id || k; 
+                return item; 
+            }).filter(Boolean);
         }
 
         function checkScadenza(dataScadenza) {
             if(!dataScadenza || dataScadenza === "" || dataScadenza === "-") return { stato: 'ok', html: '-' };
             const dataElemento = new Date(dataScadenza);
             if (isNaN(dataElemento.getTime())) return { stato: 'ok', html: dataScadenza };
-            
             const diff = Math.ceil((dataElemento - new Date()) / (1000 * 60 * 60 * 24));
             const formatData = dataElemento.toLocaleDateString('it-IT');
-            
             if (diff < 0) return { stato: 'scaduto', html: '<span class="badge" style="background:#fee2e2; color:var(--danger)">Scaduto (' + formatData + ')</span>' };
             if (diff <= 30) return { stato: 'allarme', html: '<span class="badge" style="background:#fef3c7; color:var(--warning)">In scadenza (' + diff + 'gg)</span>' };
             return { stato: 'ok', html: formatData };
@@ -664,28 +543,13 @@
             const qrContainer = document.getElementById("qrcode");
             if (qrContainer) {
                 qrContainer.innerHTML = "";
-                try {
-                    new QRCode(qrContainer, {
-                        text: URL_QUESTIONARIO_CS,
-                        width: 180,
-                        height: 180,
-                        colorDark: "#1e293b",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.M
-                    });
-                } catch(err) {
-                    console.error("Errore generazione QR:", err);
-                }
+                new QRCode(qrContainer, { text: URL_QUESTIONARIO_CS, width: 180, height: 180, colorDark: "#1e293b", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
             }
             document.getElementById('modalQRCustomerSat').classList.add('active');
         };
 
         window.copiaLinkCS = function() {
-            navigator.clipboard.writeText(URL_QUESTIONARIO_CS).then(function() {
-                toast("Link questionario copiato!");
-            }).catch(function() {
-                prompt("Copia il link del questionario:", URL_QUESTIONARIO_CS);
-            });
+            navigator.clipboard.writeText(URL_QUESTIONARIO_CS).then(function() { toast("Link questionario copiato!"); });
         };
 
         document.getElementById('date-display').innerText = new Date().toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -693,12 +557,7 @@
         function getListByName(name) {
             switch(name) {
                 case 'turniReperibilita': return turniReperibilita;
-                case 'continuitaServizio': return continuitaServizio;
-                case 'formazionePersonale': return formazionePersonale;
-                case 'verificheQualitaDati': return verificheQualitaDati;
                 case 'customerSat': return customerSat;
-                case 'verbali': return verbali;
-                case 'nonConformita': return nonConformita;
                 case 'fornitori': return fornitori;
                 case 'sanificazioni': return sanificazioni;
                 case 'elettromedicali': return elettromedicali;
@@ -706,28 +565,17 @@
             }
         }
 
-        var database;
-
-        function getDbRef(subPath) {
-            let cleanSub = subPath ? subPath.replace(/^\/+/, '') : '';
-            return database.ref(dbRootPath + '/' + cleanSub);
-        }
-
         window.salvaNodo = function(nomeNodo, dati) {
-            if(!database) {
-                alert("Database non connesso. Verificare la configurazione Firebase.");
-                return;
-            }
-            // Evita di salvare su Firebase i dati in sola lettura "syncati" dal gestionale
+            if(!database) { alert("Database non connesso."); return; }
             let datiDaSalvare = dati;
             if(nomeNodo === 'turniReperibilita') datiDaSalvare = dati.filter(function(x) { return !x.readonly; });
-            if(nomeNodo === 'formazionePersonale') datiDaSalvare = dati.filter(function(x) { return !x.readonly; });
             
-            getDbRef(nomeNodo).set(datiDaSalvare)
-                .then(function() { toast("Salvataggio su Firebase completato!"); })
+            database.ref(dbRootPath + '/' + nomeNodo).set(datiDaSalvare)
+                .then(function() { toast("Salvataggio completato!"); })
                 .catch(function(err) { alert("Errore Cloud: " + err.message); });
         };
 
+        // --- INIZIALIZZAZIONE FIREBASE REALTIME ---
         try {
             const firebaseConfig = {
                 apiKey: "AIzaSyDhi3SRh2mDqz8_T03xYVq4XtcRiAL7IF0",
@@ -742,86 +590,46 @@
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             database = firebase.database();
             
-            // ASCOLTO FIREBASE ROOT E FUSIONE DATI OPERATIVI -> ISO
             database.ref().on('value', function(snapshot) {
                 const rawData = snapshot.val() || {};
-                let data = rawData;
-                
-                if (rawData.cuore_argento_db && typeof rawData.cuore_argento_db === 'object') {
-                    data = rawData.cuore_argento_db;
-                    dbRootPath = 'cuore_argento_db';
-                } else {
-                    let altKey = Object.keys(rawData).find(function(k) {
-                        return rawData[k] && typeof rawData[k] === 'object' && (rawData[k].volontari || rawData[k].trasporti || rawData[k].mezzi);
-                    });
-                    if (altKey) {
-                        data = rawData[altKey];
-                        dbRootPath = altKey;
-                    } else {
-                        dbRootPath = 'cuore_argento_db';
-                    }
-                }
+                let data = rawData.cuore_argento_db || rawData;
 
-                impostazioni = data.impostazioni || impostazioni;
-                if (impostazioni.nome) { document.getElementById('logo-ente-nome').innerText = impostazioni.nome.toUpperCase(); }
+                trasporti = estraiDati(data.trasporti); 
+                volontari = estraiDati(data.volontari); 
+                mezzi = estraiDati(data.mezzi);
+                sanificazioni = estraiDati(data.sanificazioni);
+                elettromedicali = estraiDati(data.elettromedicali); 
+                nonConformita = estraiDati(data.nonConformita);
+                customerSat = estraiDati(data.customerSat); 
+                fornitori = estraiDati(data.fornitori); 
 
-                trasporti = estraiDati(data.trasporti); volontari = estraiDati(data.volontari); mezzi = estraiDati(data.mezzi);
-                checklists = estraiDati(data.checklists); sanificazioni = estraiDati(data.sanificazioni);
-                elettromedicali = estraiDati(data.elettromedicali); nonConformita = estraiDati(data.nonConformita);
-                customerSat = estraiDati(data.customerSat); fornitori = estraiDati(data.fornitori); verbali = estraiDati(data.verbali);
-                
-                continuitaServizio = estraiDati(data.continuitaServizio, continuitaServizio);
-                verificheQualitaDati = estraiDati(data.verificheQualitaDati, verificheQualitaDati);
-
-                // --- 1. FUSIONE TURNI OPERATIVI (DA INDEX) E REPERIBILITÀ MANUALI (DA ISO) ---
+                // Turni operativi uniti al registro
                 let turniOperativi = estraiDati(data.turni);
-                let reperibilitaManuali = estraiDati(data.turniReperibilita);
                 let turniMappati = [];
-                
                 turniOperativi.forEach(function(t) {
-                    if(t.autista) {
-                        turniMappati.push({ id: t.id + '_A', data: t.data, turno: t.fascia || '-', nome: t.autista, qualifica: 'Autista', reperibile: 'NO', sostituto: '-', note: 'Turno Operativo', readonly: true });
-                    }
-                    if(t.soccorritore) {
-                        turniMappati.push({ id: t.id + '_S', data: t.data, turno: t.fascia || '-', nome: t.soccorritore, qualifica: 'Soccorritore', reperibile: 'NO', sostituto: '-', note: 'Turno Operativo', readonly: true });
-                    }
+                    if(t.autista) turniMappati.push({ id: t.id + '_A', data: t.data, turno: t.fascia || '-', nome: t.autista, qualifica: 'Autista', reperibile: 'NO', sostituto: '-', note: 'Turno Operativo', readonly: true });
+                    if(t.soccorritore) turniMappati.push({ id: t.id + '_S', data: t.data, turno: t.fascia || '-', nome: t.soccorritore, qualifica: 'Soccorritore', reperibile: 'NO', sostituto: '-', note: 'Turno Operativo', readonly: true });
                 });
-                turniReperibilita = turniMappati.concat(reperibilitaManuali);
+                turniReperibilita = turniMappati.concat(estraiDati(data.turniReperibilita));
 
-                // --- 2. FUSIONE FORMAZIONE ANAGRAFICA (DA INDEX) E CORSI MANUALI (DA ISO) ---
-                let manualFormazione = estraiDati(data.formazionePersonale);
-                let autoFormazione = [];
-                
-                volontari.forEach(function(v) {
-                    if(v.blsd) autoFormazione.push({ id: 'b_'+v.id, nome: v.nome, qualifica: v.ruolo||'Soccorritore', corso: 'BLSD Sanitario', datacorso: '-', datascadenza: v.blsd, readonly: true });
-                    if(v.medico) autoFormazione.push({ id: 'm_'+v.id, nome: v.nome, qualifica: v.ruolo||'Soccorritore', corso: 'Visita Medica Idoneità', datacorso: '-', datascadenza: v.medico, readonly: true });
-                    if(v.sicurezza) autoFormazione.push({ id: 's_'+v.id, nome: v.nome, qualifica: v.ruolo||'Soccorritore', corso: 'Sicurezza D.Lgs. 81/08 (Rischio Alto)', datacorso: '-', datascadenza: v.sicurezza, readonly: true });
-                    if(v.patente) autoFormazione.push({ id: 'p_'+v.id, nome: v.nome, qualifica: v.ruolo||'Soccorritore', corso: 'Patente di Guida Ambulanze', datacorso: '-', datascadenza: v.patente, readonly: true });
-                });
-                formazionePersonale = autoFormazione.concat(manualFormazione);
-
-                popolaTendine(); renderStatistiche(); renderTurni(); renderContinuita(); renderFormazione();
-                renderVerificheDati(); renderNC(); renderCustomerSat(); renderFornitori(); renderElettromedicali(); renderSanificazioni();
+                popolaTendine(); 
+                renderStatistiche(); 
+                renderTurni(); 
+                renderCustomerSat(); 
+                renderFornitori(); 
+                renderElettromedicali(); 
+                renderSanificazioni();
             });
 
         } catch (error) {
             console.error("Errore Firebase:", error);
-            alert("Connessione al database fallita.");
         }
 
         function popolaTendine() {
-            let vOptsNC = '<option value="Utente Esterno">Utente Esterno</option>';
-            let vOptsPuri = '<option value="">-- Seleziona Operatore --</option>';
-            
-            volontari.forEach(function(v) { 
-                vOptsNC += '<option value="' + v.nome + '">' + v.nome + '</option>'; 
-                vOptsPuri += '<option value="' + v.nome + '">' + v.nome + '</option>';
-            });
-            
-            if(document.getElementById('nc-rilevatore')) document.getElementById('nc-rilevatore').innerHTML = vOptsNC;
-            if(document.getElementById('san-operatore')) document.getElementById('san-operatore').innerHTML = vOptsPuri;
-            if(document.getElementById('form-nome')) document.getElementById('form-nome').innerHTML = vOptsPuri;
-            if(document.getElementById('turn-nome')) document.getElementById('turn-nome').innerHTML = vOptsPuri;
+            let vOpts = '<option value="">-- Seleziona Operatore --</option>';
+            volontari.forEach(function(v) { vOpts += '<option value="' + v.nome + '">' + v.nome + '</option>'; });
+            if(document.getElementById('san-operatore')) document.getElementById('san-operatore').innerHTML = vOpts;
+            if(document.getElementById('turn-nome')) document.getElementById('turn-nome').innerHTML = vOpts;
         }
 
         window.apriModale = function(modalId, formId, prefix) {
@@ -836,14 +644,10 @@
             if(!confirm("Sicuro di voler eliminare questo elemento?")) return;
             let arr = getListByName(listaName).filter(function(x) { return String(x.id) !== String(id); });
             if(listaName === 'turniReperibilita') turniReperibilita = arr;
-            else if(listaName === 'continuitaServizio') continuitaServizio = arr;
-            else if(listaName === 'formazionePersonale') formazionePersonale = arr;
-            else if(listaName === 'verificheQualitaDati') verificheQualitaDati = arr;
             else if(listaName === 'customerSat') customerSat = arr;
             else if(listaName === 'fornitori') fornitori = arr;
             else if(listaName === 'elettromedicali') elettromedicali = arr;
             else if(listaName === 'sanificazioni') sanificazioni = arr;
-            else if(listaName === 'nonConformita') nonConformita = arr;
             salvaNodo(listaName, arr);
         };
 
@@ -859,7 +663,6 @@
                     const el = document.getElementById(prefix + f);
                     if (el) obj[f] = el.type === 'checkbox' ? el.checked : el.value;
                 });
-                obj.utente_modifica = utenteLoggato;
                 if (editId) {
                     const idx = arr.findIndex(function(x) { return String(x.id) === String(editId); });
                     if (idx > -1) arr[idx] = Object.assign({}, arr[idx], obj);
@@ -874,177 +677,85 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             collegaForm('formTurno', 'turniReperibilita', 'turn-', ['data', 'turno', 'nome', 'qualifica', 'reperibile', 'sostituto', 'note']);
-            collegaForm('formContinuita', 'continuitaServizio', 'cont-', ['data', 'evento', 'segnalante', 'coinvolto', 'azione', 'esito', 'note']);
-            collegaForm('formFormazione', 'formazionePersonale', 'form-', ['nome', 'qualifica', 'corso', 'datacorso', 'datascadenza', 'note']);
-            collegaForm('formVerificaDato', 'verificheQualitaDati', 'vd-', ['data', 'dato', 'acc', 'comp', 'riprod', 'temp', 'esito', 'resp', 'azioni']);
-            collegaForm('formNC', 'nonConformita', 'nc-', ['data', 'rilevatore', 'tipo', 'descrizione', 'azione', 'stato']);
             collegaForm('formFornitore', 'fornitori', 'forn-', ['ragione', 'categoria', 'scadenza', 'valutazione', 'note']);
             collegaForm('formElettromedicale', 'elettromedicali', 'el-', ['tipo', 'modello', 'matricola', 'assegnazione', 'lotto', 'scad-farmaco', 'scad-manutenzione', 'scad-consumabili']);
             collegaForm('formSanificazione', 'sanificazioni', 'san-', ['data', 'mezzo', 'tipo', 'pmc', 'operatore', 'note']);
             collegaForm('formCustomerSat', 'customerSat', 'cs-', ['data', 'compilatore', 'voto_globale', 'consiglia']);
-            
-            const formNomeEl = document.getElementById('form-nome');
-            if(formNomeEl) {
-                formNomeEl.addEventListener('change', function(e) {
-                    const selVol = volontari.find(function(v) { return v.nome === e.target.value; });
-                    if(selVol && document.getElementById('form-qualifica')) {
-                        document.getElementById('form-qualifica').value = selVol.ruolo || selVol.qualifica || 'Soccorritore';
-                    }
-                });
-            }
-
-            const turnNomeEl = document.getElementById('turn-nome');
-            if(turnNomeEl) {
-                turnNomeEl.addEventListener('change', function(e) {
-                    const selVol = volontari.find(function(v) { return v.nome === e.target.value; });
-                    if(selVol && document.getElementById('turn-qualifica')) {
-                        document.getElementById('turn-qualifica').value = selVol.ruolo || selVol.qualifica || 'Soccorritore';
-                    }
-                });
-            }
         });
 
+        // --- FUNZIONI DI RENDER TABELLARI REATTIVE ---
         window.renderStatistiche = function() {
-            const kpiServizi = document.getElementById('kpi-servizi');
-            const kpiNc = document.getElementById('kpi-nc');
-            const kpiFornitori = document.getElementById('kpi-fornitori');
-            const kpiCs = document.getElementById('kpi-cs');
-            const kpiVol = document.getElementById('kpi-volontari');
-            const kpiMezzi = document.getElementById('kpi-mezzi');
+            document.getElementById('kpi-servizi').innerText = trasporti.length;
+            document.getElementById('kpi-nc').innerText = nonConformita.filter(function(n) { return n.stato !== 'Chiusa'; }).length;
+            document.getElementById('kpi-fornitori').innerText = fornitori.length;
+            document.getElementById('kpi-volontari').innerText = volontari.length;
+            document.getElementById('kpi-mezzi').innerText = mezzi.length;
 
-            if (kpiServizi) kpiServizi.innerText = trasporti.length;
-            if (kpiNc) kpiNc.innerText = nonConformita.filter(function(n) { return n.stato !== 'Chiusa'; }).length;
-            if (kpiFornitori) kpiFornitori.innerText = fornitori.length;
-            if (kpiVol) kpiVol.innerText = volontari.length;
-            if (kpiMezzi) kpiMezzi.innerText = mezzi.length;
-            
-            if (kpiCs) {
-                if (customerSat.length > 0) {
-                    const sum = customerSat.reduce(function(acc, c) { return acc + (parseFloat(c.voto_globale || c['voto-globale']) || 5); }, 0);
-                    kpiCs.innerText = (sum / customerSat.length).toFixed(1) + " / 5";
-                } else {
-                    kpiCs.innerText = "N/D";
-                }
+            if (customerSat.length > 0) {
+                const sum = customerSat.reduce(function(acc, c) { return acc + (parseFloat(c.voto_globale || 5)); }, 0);
+                document.getElementById('kpi-cs').innerText = (sum / customerSat.length).toFixed(1) + " / 5";
+            } else {
+                document.getElementById('kpi-cs').innerText = "N/D";
             }
         };
 
         window.renderTurni = function() {
             const tbody = document.getElementById('turni-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            
+            if (turniReperibilita.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:25px; color:var(--text-light);">Nessun turno registrato.</td></tr>';
+                return;
+            }
             turniReperibilita.sort(function(a,b) { return new Date(b.data || 0) - new Date(a.data || 0); }).forEach(function(t) {
                 let repBg = t.reperibile === 'SI' ? 'var(--warning)' : 'var(--text-light)';
-                let btnAzione = t.readonly 
-                    ? '<span style="font-size:0.75rem; color:var(--success); font-weight:700;"><i class="fa-solid fa-link"></i> Sync</span>'
-                    : '<button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'turniReperibilita\', \'' + t.id + '\')"><i class="fa-solid fa-trash"></i></button>';
-
-                tbody.innerHTML += '<tr><td>' + (t.data ? new Date(t.data).toLocaleDateString('it-IT') : '-') + '</td><td><strong>' + t.turno + '</strong></td><td>' + t.nome + '</td><td>' + t.qualifica + '</td><td><span class="badge" style="background:' + repBg + '; color:white">' + t.reperibile + '</span></td><td>' + (t.sostituto || '-') + '</td><td><small>' + (t.note || '-') + '</small></td><td style="text-align:right;">' + btnAzione + '</td></tr>';
-            });
-        };
-
-        window.renderContinuita = function() {
-            const tbody = document.getElementById('continuita-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            continuitaServizio.forEach(function(c) {
-                let badgeColor = c.esito === 'Risolto' ? 'var(--success)' : 'var(--warning)';
-                tbody.innerHTML += '<tr><td>' + c.data + '</td><td><strong>' + c.evento + '</strong></td><td>' + (c.segnalante || 'Centrale') + '</td><td>' + c.coinvolto + '</td><td><small>' + (c.azione || '-') + '</small></td><td><span class="badge" style="background:' + badgeColor + '; color:white">' + c.esito + '</span></td><td><small>' + (c.note || '-') + '</small></td><td style="text-align:right;"><button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--info)" aria-label="Modifica" onclick="editItem(\'continuitaServizio\', \'' + c.id + '\')"><i class="fa-solid fa-pen"></i></button> <button type="button" class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'continuitaServizio\', \'' + c.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
-            });
-        };
-
-        window.renderFormazione = function() {
-            const tbody = document.getElementById('formazione-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            formazionePersonale.forEach(function(f) {
-                let validazioneScadenza = checkScadenza(f.datascadenza);
-                
-                let btnAzione = f.readonly 
-                    ? '<span style="font-size:0.75rem; color:var(--success); font-weight:700;"><i class="fa-solid fa-link"></i> Sync Anagrafica</span>'
-                    : '<button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'formazionePersonale\', \'' + f.id + '\')"><i class="fa-solid fa-trash"></i></button>';
-
-                tbody.innerHTML += '<tr><td><strong>' + f.nome + '</strong></td><td>' + f.qualifica + '</td><td>' + f.corso + '</td><td>' + f.datascadenza + '</td><td>' + validazioneScadenza.html + '</td><td style="text-align:right;">' + btnAzione + '</td></tr>';
-            });
-        };
-
-        window.renderVerificheDati = function() {
-            const tbody = document.getElementById('verifichedati-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            verificheQualitaDati.forEach(function(v) {
-                let esBg = v.esito === 'Conforme' ? 'var(--success)' : 'var(--alert-red)';
-                tbody.innerHTML += '<tr><td>' + v.data + '</td><td><strong>' + v.dato + '</strong></td><td>' + v.acc + '</td><td>' + v.comp + '</td><td>' + v.riprod + '</td><td>' + v.temp + '</td><td><span class="badge" style="background:' + esBg + '; color:white">' + v.esito + '</span></td><td><small>' + (v.azioni || '-') + '</small></td><td>' + v.resp + '</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'verificheQualitaDati\', \'' + v.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
-            });
-        };
-
-        window.chiudiNC = function(idNC) {
-            if(!confirm("Confermi di voler chiudere definitivamente questa pratica?")) return;
-            const reclamo = nonConformita.find(function(n) { return String(n.id) === String(idNC); });
-            if(reclamo && reclamo.stato !== "Chiusa") {
-                reclamo.stato = "Chiusa";
-                reclamo.utente_modifica = utenteLoggato; 
-                salvaNodo('nonConformita', nonConformita);
-                renderNC();
-                renderStatistiche();
-            }
-        };
-
-        window.renderNC = function() {
-            const tbody = document.getElementById('nc-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            nonConformita.forEach(function(n) {
-                let bg = n.stato === 'Aperta' ? 'var(--alert-red)' : (n.stato === 'In Gestione' ? 'var(--warning)' : 'var(--success)');
-                let btnChiudi = n.stato !== 'Chiusa' ? '<button class="btn btn-ghost" title="Chiudi Pratica Manualmente" style="padding: 4px 6px; color:var(--success)" aria-label="Chiudi Pratica" onclick="chiudiNC(\'' + n.id + '\')"><i class="fa-solid fa-check"></i></button>' : '';
-
-                tbody.innerHTML += '<tr><td>' + n.data + '</td><td>' + n.tipo + '</td><td>' + n.rilevatore + '</td><td><small>' + n.descrizione + '</small></td><td><small>' + (n.azione || '-') + '</small></td><td><span class="badge" style="background:' + bg + ';color:white">' + n.stato + '</span></td><td style="text-align:right;">' + btnChiudi + '<button class="btn btn-ghost" title="Genera Lettera di Risposta" style="padding: 4px 6px; color:var(--primary)" aria-label="Genera Lettera" onclick="stampaLetteraRispostaNC(\'' + n.id + '\')"><i class="fa-solid fa-envelope-open-text"></i></button><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'nonConformita\', \'' + n.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
+                tbody.innerHTML += '<tr><td>' + (t.data ? new Date(t.data).toLocaleDateString('it-IT') : '-') + '</td><td><strong>' + t.turno + '</strong></td><td>' + t.nome + '</td><td>' + t.qualifica + '</td><td><span class="badge" style="background:' + repBg + '; color:white">' + t.reperibile + '</span></td><td>' + (t.sostituto || '-') + '</td><td><small>' + (t.note || '-') + '</small></td><td style="text-align:right;">' + (t.readonly ? '<span style="font-size:0.75rem; color:var(--success); font-weight:700;"><i class="fa-solid fa-link"></i> Sync</span>' : '<button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem(\'turniReperibilita\', \'' + t.id + '\')"><i class="fa-solid fa-trash"></i></button>') + '</td></tr>';
             });
         };
 
         window.renderCustomerSat = function() {
             const tbody = document.getElementById('customersat-corpo'); if(!tbody) return; tbody.innerHTML = '';
+            if (customerSat.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:25px; color:var(--text-light);">Nessun esito presente.</td></tr>';
+                return;
+            }
             customerSat.forEach(function(c) {
-                tbody.innerHTML += '<tr><td>' + c.data + '</td><td><strong>' + c.compilatore + '</strong></td><td>' + (c.voto_globale || 5) + '/5</td><td><span class="badge" style="background:var(--success);color:white">' + (c.consiglia || 'Sì') + '</span></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'customerSat\', \'' + c.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
+                tbody.innerHTML += '<tr><td>' + (c.data || '-') + '</td><td><strong>' + (c.compilatore || 'Anonimo') + '</strong></td><td>' + (c.voto_globale || 5) + '/5</td><td><span class="badge" style="background:var(--success);color:white">' + (c.consiglia || 'Sì') + '</span></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem(\'customerSat\', \'' + c.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
             });
         };
         
         window.renderFornitori = function() {
             const tbody = document.getElementById('fornitori-corpo'); if(!tbody) return; tbody.innerHTML = '';
+            if (fornitori.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:25px; color:var(--text-light);">Nessun fornitore qualificato registrato.</td></tr>';
+                return;
+            }
             fornitori.forEach(function(f) {
-                let validazioneScadenza = checkScadenza(f.scadenza);
-                let badgeBg = f.valutazione === 'Positiva' ? 'var(--success)' : (f.valutazione === 'Negativa' ? 'var(--alert-red)' : 'var(--warning)');
-                tbody.innerHTML += '<tr><td><strong>' + f.ragione + '</strong></td><td>' + f.categoria + '</td><td>' + validazioneScadenza.html + '</td><td><span class="badge" style="background:' + badgeBg + '; color:white">' + f.valutazione + '</span></td><td><small>' + (f.note || '-') + '</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'fornitori\', \'' + f.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
+                let valScad = checkScadenza(f.scadenza);
+                tbody.innerHTML += '<tr><td><strong>' + f.ragione + '</strong></td><td>' + f.categoria + '</td><td>' + valScad.html + '</td><td><span class="badge" style="background:var(--success); color:white">' + f.valutazione + '</span></td><td><small>' + (f.note || '-') + '</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem(\'fornitori\', \'' + f.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
             });
         };
 
         window.renderElettromedicali = function() {
             const tbody = document.getElementById('elettromedicali-corpo'); if(!tbody) return; tbody.innerHTML = '';
+            if (elettromedicali.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:25px; color:var(--text-light);">Nessuna apparecchiatura o bombola registrata.</td></tr>';
+                return;
+            }
             elettromedicali.forEach(function(e) {
                 let valManu = checkScadenza(e['scad-manutenzione']);
-                let valCons = checkScadenza(e['scad-consumabili']);
-                let lottoInfo = e.lotto ? 'Lotto: <strong>' + e.lotto + '</strong><br><small>Scad. Gas: ' + (e['scad-farmaco'] ? new Date(e['scad-farmaco']).toLocaleDateString('it-IT') : '-') + '</small>' : '-';
-                tbody.innerHTML += '<tr><td><strong>' + e.tipo + '</strong><br><small>' + e.modello + '</small></td><td>' + e.matricola + '</td><td>' + lottoInfo + '</td><td>' + e.assegnazione + '</td><td>' + valManu.html + '</td><td>' + valCons.html + '</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'elettromedicali\', \'' + e.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
+                let lottoInfo = e.lotto ? 'Lotto: <strong>' + e.lotto + '</strong>' : '-';
+                tbody.innerHTML += '<tr><td><strong>' + e.tipo + '</strong><br><small>' + e.modello + '</small></td><td>' + e.matricola + '</td><td>' + lottoInfo + '</td><td>' + e.assegnazione + '</td><td>' + valManu.html + '</td><td>' + (e['scad-consumabili'] || '-') + '</td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem(\'elettromedicali\', \'' + e.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
             });
         };
 
         window.renderSanificazioni = function() {
             const tbody = document.getElementById('sanificazioni-corpo'); if(!tbody) return; tbody.innerHTML = '';
-            sanificazioni.forEach(function(s) {
-                tbody.innerHTML += '<tr><td>' + s.data + '</td><td><strong>' + s.mezzo + '</strong></td><td>' + s.tipo + '</td><td><strong style="color:var(--primary);">' + (s.pmc || 'PMC Standard') + '</strong></td><td>' + s.operatore + '</td><td><small>' + (s.note || '-') + '</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" aria-label="Elimina" onclick="eliminaItem(\'sanificazioni\', \'' + s.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
-            });
-        };
-
-        window.editItem = function(lista, id) {
-            const arr = getListByName(lista); const item = arr.find(function(x) { return String(x.id) === String(id); }); if(!item) return;
-            let prefix, modalId;
-            
-            if(lista === 'formazionePersonale') { prefix = 'form-'; modalId = 'modalFormazione'; }
-            else if(lista === 'turniReperibilita') { prefix = 'turn-'; modalId = 'modalTurno'; }
-            else if(lista === 'verificheQualitaDati') { prefix = 'vd-'; modalId = 'modalVerificaDato'; }
-            else if(lista === 'nonConformita') { prefix = 'nc-'; modalId = 'modalNC'; }
-            else if(lista === 'fornitori') { prefix = 'forn-'; modalId = 'modalFornitore'; }
-            else if(lista === 'elettromedicali') { prefix = 'el-'; modalId = 'modalElettromedicale'; }
-            else if(lista === 'sanificazioni') { prefix = 'san-'; modalId = 'modalSanificazione'; }
-            else if(lista === 'customerSat') { prefix = 'cs-'; modalId = 'modalCustomerSat'; }
-            else if(lista === 'continuitaServizio') { prefix = 'cont-'; modalId = 'modalContinuita'; }
-
-            if(prefix) {
-                const formEl = document.querySelector('#' + modalId + ' form'); if(formEl) formEl.reset();
-                document.getElementById(prefix + 'editId').value = item.id;
-                Object.keys(item).forEach(function(k) { const el = document.getElementById(prefix + k); if(el) { if(el.type === 'checkbox') el.checked = item[k]; else el.value = item[k]; } });
-                document.getElementById(modalId).classList.add('active');
+            if (sanificazioni.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:25px; color:var(--text-light);">Nessuna sanificazione registrata.</td></tr>';
+                return;
             }
+            sanificazioni.forEach(function(s) {
+                tbody.innerHTML += '<tr><td>' + (s.data || '-') + '</td><td><strong>' + s.mezzo + '</strong></td><td>' + s.tipo + '</td><td><strong style="color:var(--primary);">' + (s.pmc || 'PMC Standard') + '</strong></td><td>' + s.operatore + '</td><td><small>' + (s.note || '-') + '</small></td><td style="text-align:right;"><button class="btn btn-ghost" style="padding: 4px 6px; color:var(--danger)" onclick="eliminaItem(\'sanificazioni\', \'' + s.id + '\')"><i class="fa-solid fa-trash"></i></button></td></tr>';
+            });
         };
 
         window.switchMainTab = function(tabId) {
@@ -1052,250 +763,58 @@
             if(document.getElementById('nav-' + tabId)) document.getElementById('nav-' + tabId).classList.add('active');
             document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
             if(document.getElementById('tab-' + tabId)) document.getElementById('tab-' + tabId).classList.add('active');
-            const titles = { 'statistiche': 'Cruscotto Direzionale ISO 9001', 'stampe-asl': 'Centro Stampe e Registri ASL', 'turni': 'Registro Turni e Reperibilità', 'continuita': 'Registro Continuità del Servizio', 'formazione': 'Registro Formazione Personale', 'verifichedati': 'Registro Verifica Qualità Dati', 'customersat': 'Customer Satisfaction', 'nc': 'Gestione Reclami & Workflow', 'fornitori': 'Albo Fornitori Qualificati', 'elettromedicali': 'Inventario Elettromedicali & O2', 'sanificazioni': 'Registro Sanificazioni PMC' };
+            
+            const titles = { 
+                'statistiche': 'Cruscotto KPI & Riesame Direzione', 
+                'stampe-asl': 'Centro Stampe e Registri ASL', 
+                'turni': 'Registro Turni e Reperibilità', 
+                'customersat': 'Customer Satisfaction (ISO 9001)', 
+                'fornitori': 'Albo Fornitori Qualificati', 
+                'elettromedicali': 'Inventario Elettromedicali & O2', 
+                'sanificazioni': 'Registro Sanificazioni PMC' 
+            };
             document.getElementById('tab-title').innerText = titles[tabId] || 'Pannello Qualità';
         };
 
-        window.stampaLetteraRispostaNC = function(idNC) {
-            const reclamo = nonConformita.find(function(n) { return String(n.id) === String(idNC); });
-            if(!reclamo) return;
-
-            const jsPDF = window.jspdf.jsPDF; 
-            const doc = new jsPDF('p', 'mm', 'a4'); 
-            const dataOggi = new Date().toLocaleDateString('it-IT');
-
-            doc.setFontSize(14); 
-            doc.setTextColor(139, 92, 246); 
-            doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV" + ' - Servizio Qualità', 14, 20);
-            doc.setFontSize(8);
-            doc.setTextColor(100, 100, 100);
-            doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 24);
-            doc.line(14, 26, 196, 26);
-
-            doc.setFontSize(11); 
-            doc.setTextColor(0, 0, 0);
-            doc.text('Terni, ' + dataOggi, 14, 35);
-            doc.text('Spett.le ' + (reclamo.rilevatore || 'Utente'), 14, 45); 
-            
-            doc.setFont(undefined, 'bold');
-            doc.text('Oggetto: Riscontro alla Sua segnalazione del ' + reclamo.data, 14, 60);
-            doc.setFont(undefined, 'normal');
-
-            const testo = 'Gentile ' + (reclamo.rilevatore || 'Utente') + ',\n\nFacendo seguito alla Sua segnalazione classificata come "' + reclamo.tipo + '" in merito all\'evento "' + reclamo.descrizione + '", desideriamo informarLa che la Direzione ha preso immediatamente in carico la questione.\n\nLa qualità del trasporto e la sicurezza dei nostri assistiti sono la priorità assoluta per la nostra associazione. A seguito delle nostre verifiche interne, abbiamo intrapreso la seguente azione correttiva:\n"' + (reclamo.azione || 'Valutazione interna in corso / Nessuna azione definita') + '".\n\nRinnovando le nostre scuse per l\'eventuale disagio arrecato, restiamo a Sua completa disposizione per qualsiasi ulteriore chiarimento.\n\nCordiali saluti.';
-
-            const lineeTesto = doc.splitTextToSize(testo, 180);
-            doc.text(lineeTesto, 14, 75);
-
-            doc.text("Il Responsabile Qualità", 14, 150);
-            doc.text("________________________", 14, 160);
-
-            doc.text("Visto del Direttore Sanitario:", 110, 150);
-            doc.text("________________________", 110, 160);
-
-            let nomeFile = 'Lettera_Risposta_NC_' + (reclamo.rilevatore || 'Anonimo').replace(/\s+/g, '_') + '.pdf';
-            doc.save(nomeFile);
-
-            toast("Lettera scaricata con successo.");
-        };
-
+        // --- ESPORTAZIONI PDF UFFICIALI ---
         window.stampaRegistroTurniAsl = function() {
-            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO TURNI E REPERIBILITA' PERSONALE (L.R. 11/2015)", 14, 29); doc.line(14, 32, 196, 32);
-            
-            let turniOrdinati = [].concat(turniReperibilita).sort(function(a,b) { return new Date(a.data || 0) - new Date(b.data || 0); });
-            let bodyData = turniOrdinati.map(function(t) { return [t.data ? new Date(t.data).toLocaleDateString('it-IT') : '-', t.turno, t.nome, t.qualifica, t.reperibile, t.sostituto, t.note || '-']; });
-            
-            doc.autoTable({ startY: 37, head: [['Data', 'Turno', 'Operatore', 'Qualifica', 'Reperibile', 'Sostituto', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
-            let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Responsabile Operativo: ______________________", 14, finalY);
-            doc.text("Firma Presidente / DS: ______________________", 110, finalY);
-            doc.save('Registro_Turni_Reperibilita_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro Turni Esportato!");
-        };
-
-        window.stampaRegistroContinuitaAsl = function() {
-            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO CONTINUITA' DEL SERVIZIO E GESTIONE EMERGENZE", 14, 29); doc.line(14, 32, 196, 32);
-            let bodyData = continuitaServizio.map(function(c) { return [c.data, c.evento, c.segnalante || 'Centrale', c.coinvolto, c.azione || '-', c.esito, c.note || '-']; });
-            doc.autoTable({ startY: 37, head: [['Data', 'Evento', 'Segnalante', 'Coinvolto', 'Azione Correttiva', 'Esito', 'Note']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] }, styles: { fontSize: 8 } });
-            let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Responsabile Qualità (RQ): ______________________", 14, finalY);
-            doc.text("Visto Direttore Sanitario: ______________________", 110, finalY);
-            doc.save('Registro_Continuita_Servizio_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro Continuità Esportato!");
-        };
-
-        window.stampaRegistroFormazioneAsl = function() {
-            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO FORMAZIONE, AGGIORNAMENTO BLSD E IDONEITA'", 14, 29); doc.line(14, 32, 196, 32);
-            
-            let formOrdinati = [].concat(formazionePersonale).sort(function(a,b) { return a.nome.localeCompare(b.nome); });
-            let bodyData = formOrdinati.map(function(f) { return [f.nome, f.qualifica, f.corso, f.datascadenza]; });
-            
-            doc.autoTable({ startY: 37, head: [['Operatore', 'Qualifica', 'Corso / Idoneità', 'Scadenza']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
-            let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Responsabile Formazione: ______________________", 14, finalY);
-            doc.text("Approvazione Direttore Sanitario: ______________________", 110, finalY);
-            doc.save('Registro_Formazione_Personale_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro Formazione Esportato!");
-        };
-
-        window.stampaRegistroVerificheDatiAsl = function() {
-            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO VERIFICA QUALITA' DEI DATI (ISO 9001)", 14, 29); doc.line(14, 32, 196, 32);
-            let bodyData = verificheQualitaDati.map(function(v) { return [v.data, v.dato, v.acc, v.comp, v.riprod, v.temp, v.esito, v.resp]; });
-            doc.autoTable({ startY: 37, head: [['Data', 'Dato', 'Acc.', 'Comp.', 'Riprod.', 'Temp.', 'Esito', 'Resp']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
-            let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Responsabile Sistema Informativo (RSI): ______________________", 14, finalY);
-            doc.save('Registro_Verifiche_Qualita_Dati_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro Verifiche Dati Esportato!");
-        };
-
-        window.stampaRegistroNCAsl = function() {
-            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO NON CONFORMITA' E RECLAMI (RRP)", 14, 29); doc.line(14, 32, 196, 32);
-            let bodyData = nonConformita.length > 0 ? nonConformita.map(function(n) { return [n.data, n.tipo, n.rilevatore, n.descrizione, n.azione, n.stato]; }) : [["-", "Nessuna NC registrata", "-", "-", "-", "-"]];
-            doc.autoTable({ startY: 37, head: [['Data', 'Tipologia', 'Segnalante', 'Descrizione', 'Azione Correttiva', 'Stato']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
-            let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Responsabile Qualità (RQ): ______________________", 14, finalY);
-            doc.text("Visto Direttore Sanitario: ______________________", 110, finalY);
-            doc.save('Registro_NC_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro NC Esportato!");
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
+            doc.setFontSize(12); doc.text("REGISTRO TURNI E REPERIBILITA' PERSONALE (L.R. 11/2015)", 14, 20);
+            doc.autoTable({ startY: 28, head: [['Data', 'Turno', 'Operatore', 'Qualifica', 'Reperibile', 'Sostituto']], body: turniReperibilita.map(function(t) { return [t.data||'-', t.turno, t.nome, t.qualifica, t.reperibile, t.sostituto||'-']; }), theme: 'grid' });
+            doc.save('Registro_Turni.pdf'); toast("Registro Turni Esportato!");
         };
 
         window.stampaRegistroSanificazioniAsl = function() {
-            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO SANIFICAZIONI MEZZI E DISINFEZIONE CON PROTOCOLLO PMC", 14, 29); doc.line(14, 32, 196, 32);
-            let bodyData = sanificazioni.length > 0 ? sanificazioni.map(function(s) { return [s.data, s.mezzo, s.tipo, s.pmc || 'PMC Cloroattivo', s.operatore, s.note || '-']; }) : [["-", "Nessuna sanificazione", "-", "-", "-", "-"]];
-            doc.autoTable({ startY: 37, head: [['Data', 'Mezzo', 'Tipo Intervento', 'Presidio Medico Chirurgico', 'Operatore', 'Note/Tempo']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
-            let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Responsabile Autoparco: ______________________", 14, finalY);
-            doc.text("Validazione Direttore Sanitario: ______________________", 110, finalY);
-            doc.save('Registro_Sanificazioni_PMC_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Sanificazioni Esportate!");
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
+            doc.setFontSize(12); doc.text("REGISTRO SANIFICAZIONI MEZZI (PROTOCOLLO PMC)", 14, 20);
+            doc.autoTable({ startY: 28, head: [['Data', 'Mezzo', 'Tipo', 'PMC Utilizzato', 'Operatore']], body: sanificazioni.map(function(s) { return [s.data, s.mezzo, s.tipo, s.pmc, s.operatore]; }), theme: 'grid' });
+            doc.save('Registro_Sanificazioni_PMC.pdf'); toast("Sanificazioni Esportate!");
         };
 
         window.stampaRegistroElettromedicaliAsl = function() {
-            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("INVENTARIO APPARECCHIATURE ELETTROMEDICALI E LOTTI OSSIGENO FARMACO", 14, 29); doc.line(14, 32, 196, 32);
-            let bodyData = elettromedicali.length > 0 ? elettromedicali.map(function(e) { return [e.tipo + ' - ' + e.modello, e.matricola, e.lotto ? 'Lotto: ' + e.lotto + ' (Scad: ' + (e['scad-farmaco']||'-') + ')' : '-', e.assegnazione, e['scad-manutenzione'], e['scad-consumabili'] || '-']; }) : [["Nessun dispositivo registrato", "-", "-", "-", "-", "-"]];
-            doc.autoTable({ startY: 37, head: [['Tipo e Modello', 'Matricola', 'Lotto AIC / Scad. Farmaco (O2)', 'Assegnazione', 'Scad. Verifica / Collaudo', 'Consumabili']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] }, styles: { fontSize: 8 } });
-            let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Responsabile Apparecchiature: ______________________", 14, finalY);
-            doc.text("Validazione Direttore Sanitario: ______________________", 110, finalY);
-            doc.save('Inventario_Elettromedicali_O2_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Elettromedicali Esportati!");
-        };
-
-        window.stampaRegistroChecklistAsl = function() {
-            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO CONTROLLI E CHECKLIST MEZZI PRE-PARTENZA", 14, 29); doc.line(14, 32, 196, 32);
-            
-            let chkOrdinati = [].concat(checklists).sort(function(a,b) { return new Date(b.data || 0) - new Date(a.data || 0); });
-            let bodyData = chkOrdinati.length > 0 ? chkOrdinati.map(function(c) { 
-                return [
-                    c.data ? new Date(c.data).toLocaleString('it-IT') : '-', 
-                    c.mezzo || '-', 
-                    c.autista || '-', 
-                    "DAE: " + (c.dae || '-') + "\nO2: " + (c.o2 || '-') + "\nZaino: " + (c.zaino || '-'), 
-                    c.note || '-'
-                ]; 
-            }) : [["-", "Nessuna checklist registrata", "-", "-", "-"]];
-            
-            doc.autoTable({ startY: 37, head: [['Data Compilazione', 'Mezzo', 'Operatore', 'Stato Dotazioni (DAE/O2/Zaino)', 'Note/Anomalie']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
-            let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Responsabile Autoparco: ______________________", 14, finalY);
-            doc.save('Registro_Checklist_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro Checklist Esportato!");
-        };
-
-        window.stampaRegistroMezziAsl = function() {
-            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
-            doc.setFontSize(11); doc.setTextColor(0, 0, 0); doc.text("REGISTRO CONFORMITA' PARCO MEZZI E VEICOLI DI SOCCORSO", 14, 29); doc.line(14, 32, 196, 32);
-            
-            let bodyData = mezzi.length > 0 ? mezzi.map(function(m) { 
-                return [m.nome, m.targa, m.aut, m.assicurazione ? new Date(m.assicurazione).toLocaleDateString('it-IT') : '-', m.revisione ? new Date(m.revisione).toLocaleDateString('it-IT') : '-']; 
-            }) : [["-", "Nessun mezzo registrato", "-", "-", "-"]];
-            
-            doc.autoTable({ startY: 37, head: [['Descrizione Mezzo', 'Targa', 'N. Autorizzazione', 'Scadenza Assicurazione', 'Scadenza Revisione']], body: bodyData, theme: 'grid', headStyles: { fillColor: [139, 92, 246] } });
-            let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Responsabile Autoparco: ______________________", 14, finalY);
-            doc.text("Firma Direttore Sanitario: ______________________", 110, finalY);
-            doc.save('Registro_Conformita_Mezzi_' + dataOggi.replace(/\//g, '-') + '.pdf'); toast("Registro Mezzi Esportato!");
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
+            doc.setFontSize(12); doc.text("INVENTARIO APPARECCHIATURE ELETTROMEDICALI & GAS MEDICALI", 14, 20);
+            doc.autoTable({ startY: 28, head: [['Dispositivo', 'Matricola', 'Mezzo', 'Lotto O2', 'Scadenza Verifica']], body: elettromedicali.map(function(e) { return [e.tipo, e.matricola, e.assegnazione, e.lotto||'-', e['scad-manutenzione']]; }), theme: 'grid' });
+            doc.save('Inventario_Elettromedicali_O2.pdf'); toast("Elettromedicali Esportati!");
         };
 
         window.stampaQuestionarioCartaceo = function() {
-            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4');
-            doc.setFontSize(14); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18);
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
-            doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.text("QUESTIONARIO DI SODDISFAZIONE UTENTI (ISO 9001 & ASL UMBRIA)", 14, 29); doc.line(14, 32, 196, 32);
-            doc.setFontSize(10);
-            doc.text("Gentile utente, la preghiamo di valutare il servizio ricevuto (1 = Scarso, 5 = Ottimo):", 14, 42);
-            doc.autoTable({
-                startY: 48,
-                head: [['Aspetto Valutato', '1 (Scarso)', '2', '3 (Sufficiente)', '4', '5 (Eccellente)']],
-                body: [
-                    ['Cortesia e disponibilità del personale soccorritore', '', '', '', '', ''],
-                    ['Puntualità rispetto all\'orario concordato', '', '', '', '', ''],
-                    ['Pulizia, comfort e climatizzazione dell\'ambulanza', '', '', '', '', ''],
-                    ['Facilità di prenotazione e risposta della centrale', '', '', '', '', ''],
-                    ['Valutazione globale complessiva del servizio', '', '', '', '', '']
-                ],
-                theme: 'grid', headStyles: { fillColor: [139, 92, 246] }, styles: { minCellHeight: 10 }
-            });
-            let finalY = doc.lastAutoTable.finalY + 15;
-            doc.text("Consiglierebbe il nostro servizio di trasporto sanitario ad altre persone?   [  ] SI    [  ] NO", 14, finalY);
-            doc.text("Eventuali suggerimenti o osservazioni per migliorare il nostro servizio:", 14, finalY + 12);
-            doc.setDrawColor(200, 200, 200);
-            doc.line(14, finalY + 22, 196, finalY + 22);
-            doc.line(14, finalY + 32, 196, finalY + 32);
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
+            doc.setFontSize(13); doc.text("QUESTIONARIO DI SODDISFAZIONE UTENTI (ISO 9001)", 14, 20);
+            doc.setFontSize(9); doc.text("Gentile utente, La preghiamo di valutare il servizio ricevuto (da 1 a 5):", 14, 26);
+            doc.autoTable({ startY: 30, head: [['Aspetto Valutato', '1 (Scarso)', '2', '3 (Sufficiente)', '4', '5 (Ottimo)']], body: [['Cortesia equipaggio', '', '', '', '', ''], ['Puntualità', '', '', '', '', ''], ['Igiene ambulanza', '', '', '', '', ''], ['Comfort di guida', '', '', '', '', '']] });
             doc.save("Questionario_Soddisfazione_Pazienti.pdf"); toast("Questionario Stampato!");
         };
 
         window.stampaVerbaleRiesame = function() {
-            const jsPDF = window.jspdf.jsPDF; const doc = new jsPDF('p', 'mm', 'a4'); const dataOggi = new Date().toLocaleDateString('it-IT');
-            doc.setFontSize(16); doc.setTextColor(139, 92, 246); doc.text(impostazioni.nome || "CUORE D'ARGENTO ODV", 14, 18); 
-            doc.setFontSize(8); doc.setTextColor(100, 100, 100); doc.text(societaInfo.sede + ' | ' + societaInfo.cfPiva + ' | ' + societaInfo.autorizzazione, 14, 22);
-            doc.setFontSize(13); doc.setTextColor(0, 0, 0); doc.text("VERBALE DI RIESAME DELLA DIREZIONE - NORMA ISO 9001:2015 & ACCREDITAMENTO", 14, 29); doc.line(14, 32, 196, 32);
-            doc.setFontSize(10);
-            doc.text("Data della riunione: " + dataOggi, 14, 40);
-            doc.text("Partecipanti: Legale Rappresentante, Direttore Sanitario, Responsabile Qualità (RQ).", 14, 46);
-            doc.text("Oggetto: Valutazione KPI di qualità, efficacia del servizio ed idoneità igienico-sanitaria.", 14, 52);
-            
-            let csMedia = "N/D";
-            if (customerSat.length > 0) {
-                let sum = customerSat.reduce(function(acc, c) { return acc + (parseFloat(c.voto_globale || 5)); }, 0);
-                csMedia = (sum / customerSat.length).toFixed(1) + " / 5";
-            }
-
-            doc.autoTable({
-                startY: 58,
-                head: [['Indicatore di Qualità / Processo', 'Valore Rilevato', 'Esito']],
-                body: [
-                    ['Totale Servizi di Trasporto Erogati', trasporti.length.toString(), 'Conforme agli Obiettivi'],
-                    ['Punteggio Medio Customer Satisfaction', csMedia, 'Soddisfacente'],
-                    ['Non Conformità e Reclami Aperti', nonConformita.filter(function(n) { return n.stato !== 'Chiusa'; }).length.toString(), 'Sotto Controllo'],
-                    ['Fornitori Qualificati Registrati', fornitori.length.toString(), 'Albo Aggiornato'],
-                    ['Mezzi Sanificati con Protocollo PMC', sanificazioni.length.toString(), 'Procedure Rispettate'],
-                    ['Apparecchiature Elettromedicali & O2', elettromedicali.length.toString(), 'Verifiche Periodiche e Lotti OK']
-                ],
-                theme: 'grid', headStyles: { fillColor: [139, 92, 246] }
-            });
-            let finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Firma Legale Rappresentante: ______________________", 14, finalY);
-            doc.text("Firma Direttore Sanitario: ______________________", 110, finalY);
-            doc.save('Verbale_Riesame_Direzione_' + dataOggi.replace(/\//g, '-') + '.pdf'); 
-            toast("Verbale Riesame Generato!");
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
+            doc.setFontSize(14); doc.text("VERBALE DI RIESAME DELLA DIREZIONE - ISO 9001:2015", 14, 20);
+            doc.setFontSize(8); doc.text("Associazione Cuore d'Argento ODV | Sede di Narni Scalo (TR)", 14, 25);
+            doc.autoTable({ startY: 30, head: [['Processo Valutato', 'Dato Rilevato', 'Esito']], body: [['Servizi di Trasporto Erogati', trasporti.length.toString(), 'Conforme agli Obiettivi'], ['Reclami e NC Aperti', nonConformita.filter(function(n) { return n.stato !== 'Chiusa'; }).length.toString(), 'Sotto Controllo'], ['Fornitori Qualificati Registrati', fornitori.length.toString(), 'Albo Aggiornato']] });
+            let finalY = doc.lastAutoTable.finalY + 15;
+            doc.text("Firma Legale Rappresentante: _______________________", 14, finalY);
+            doc.text("Firma Direttore Sanitario: _______________________", 110, finalY);
+            doc.save("Verbale_Riesame_Direzione.pdf"); toast("Verbale Riesame Generato!");
         };
     </script>
 </body>

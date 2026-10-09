@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuore d'Argento - Gestione Nomine & Documenti Firmati</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #c62828; --primary-dark: #8e0000; --secondary: #1e293b;
+            --bg-body: #f8fafc; --bg-panel: #ffffff; --text-main: #334155; --text-light: #94a3b8;
+            --border: #e2e8f0; --success: #10b981; --warning: #f59e0b; --info: #3b82f6; --danger: #ef4444;
+            --radius: 10px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent;}
+        body { display: flex; flex-direction: column; min-height: 100vh; background-color: var(--bg-body); color: var(--text-main); }
+
+        .topbar { height: 60px; background: white; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); position: sticky; top: 0; z-index: 10; }
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
+        .topbar-btn { background: transparent; border: 1px solid var(--border); padding: 7px 12px; border-radius: 6px; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none; transition: 0.2s;}
+        .topbar-btn:hover { background: #f1f5f9; }
+        .topbar-btn.home-btn { background: var(--secondary); color: white; border: none; }
+        .topbar-center { font-size: 0.85rem; color: var(--text-main); font-weight: 600; background: #f1f5f9; padding: 6px 15px; border-radius: 20px; display: flex; align-items: center; gap: 8px;}
+        .brand-logo-img { height: 38px; width: auto; object-fit: contain; }
+
+        .main-container { flex: 1; padding: 25px 20px; max-width: 1250px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+        
+        .header-section { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; background: white; padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+        .header-title h1 { font-size: 1.3rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+        .header-title p { font-size: 0.85rem; color: var(--text-light); }
+
+        .btn { padding: 9px 16px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; transition: 0.2s; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-ghost { background: white; color: var(--text-main); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: #f1f5f9; }
+
+        .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+        .stat-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); }
+        .stat-card h4 { font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 700; margin-bottom: 4px; }
+        .stat-card .num { font-size: 1.8rem; font-weight: 800; color: var(--text-main); }
+        .stat-icon { font-size: 2rem; color: #f1f5f9; }
+
+        .table-container { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 950px; }
+        th { padding: 13px 16px; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-main); background: #f8fafc; border-bottom: 2px solid var(--border); }
+        td { padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.85rem; color: var(--text-main); }
+        tr:hover td { background: #f8fafc; }
+
+        .badge { padding: 4px 9px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; text-transform: uppercase; }
+        .badge-signed { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .badge-pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+        /* MODALE FORM */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; padding: 15px; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal { background: white; width: 100%; max-width: 650px; max-height: 92vh; overflow-y: auto; border-radius: 14px; padding: 25px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .full-width { grid-column: span 2; }
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        .input-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none; background: #f8fafc; }
+        
+        .upload-area { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 20px; text-align: center; background: #f8fafc; cursor: pointer; transition: 0.2s; }
+        .upload-area:hover { border-color: var(--primary); background: #fef2f2; }
+        
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #1e293b; color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 600; z-index: 9999; opacity: 0; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <a href="index.html" class="topbar-btn home-btn"><i class="fa-solid fa-desktop"></i> Dashboard</a>
+            <a href="anagrafiche.html" class="topbar-btn"><i class="fa-solid fa-address-book"></i> Anagrafiche</a>
+            <a href="iso9001 accreditamento.html" class="topbar-btn"><i class="fa-solid fa-medal"></i> Accreditamento</a>
+        </div>
+        <div class="topbar-center">
+            <i class="fa-solid fa-file-contract" style="color: var(--primary);"></i> 
+            <span>Archivio Istituzionale: <strong>Atti di Nomina & Deleghe Firmate</strong></span>
+        </div>
+        <div class="topbar-right">
+            <img src="logo cuore d'argento.jpg" alt="Logo" class="brand-logo-img">
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- HEADER SEZIONE -->
+        <div class="header-section">
+            <div class="header-title">
+                <h1><i class="fa-solid fa-sitemap"></i> Registro Atti di Nomina e Incarichi Operativi</h1>
+                <p>Gestione, compilazione e archiviazione documentale delle nomine controfirmate (R.R. Umbria 6/2024 e Convenzione AUSL Umbria 2)</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="apriModaleNuovaNomina()"><i class="fa-solid fa-plus"></i> Nuova Nomina</button>
+                <button class="btn btn-ghost" onclick="stampaElencoNominePDF()"><i class="fa-solid fa-file-pdf"></i> Esporta Indice (PDF)</button>
+            </div>
+        </div>
+
+        <!-- STATISTICHE RAPIDE -->
+        <div class="grid-stats">
+            <div class="stat-card" style="border-left-color: #3b82f6;">
+                <div><h4>Totale Incarichi Emessi</h4><div class="num" id="stat-totale">0</div></div>
+                <i class="fa-solid fa-file-signature stat-icon"></i>
+            </div>
+            <div class="stat-card" style="border-left-color: #10b981;">
+                <div><h4>Documenti Firmati & Archiviati</h4><div class="num" id="stat-firmate">0</div></div>
+                <i class="fa-solid fa-file-circle-check stat-icon"></i>
+            </div>
+            <div class="stat-card" style="border-left-color: #f59e0b;">
+                <div><h4>In Attesa di Scansione Firmata</h4><div class="num" id="stat-attesa">0</div></div>
+                <i class="fa-solid fa-clock-rotate-left stat-icon"></i>
+            </div>
+        </div>
+
+        <!-- TABELLA REGISTRO DELLE NOMINE -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 130px;">Data / Protocollo</th>
+                        <th style="width: 220px;">Ruolo / Incarico Attribuito</th>
+                        <th>Nominativo Incaricato & CF</th>
+                        <th style="width: 140px;">Riferimento Normativo</th>
+                        <th style="width: 160px;">Stato Firma</th>
+                        <th style="text-align: right; width: 230px;">Azioni & Documenti</th>
+                    </tr>
+                </thead>
+                <tbody id="nomine-corpo"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODALE INSERIMENTO NUOVA NOMINA -->
+    <div class="modal-overlay" id="modalNomina">
+        <div class="modal">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
+                <h3 style="color:var(--primary); font-size:1.15rem; font-weight:800;"><i class="fa-solid fa-file-signature"></i> Emetti Nuovo Atto di Nomina</h3>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+
+            <form id="formNomina" onsubmit="salvaNomina(event)">
+                <input type="hidden" id="nom-editId">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Data di Decorrenza *</label>
+                        <input type="date" id="nom-data" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Numero Protocollo / Atto</label>
+                        <input type="text" id="nom-protocollo" placeholder="Es. NOM-2026/01">
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label>Ruolo / Incarico Funzionale *</label>
+                        <select id="nom-ruolo" required onchange="aggiornaDettagliNormativi()">
+                            <option value="">-- Seleziona Ruolo Istituzionale --</option>
+                            <option value="Direttore Sanitario (DS)">Direttore Sanitario (DS) [Req. 4]</option>
+                            <option value="Referente Sistema Informativo (RSI)">Referente Sistema Informativo (RSI) [Req. 19-20]</option>
+                            <option value="Referente Qualità (RQ) & Relazioni Pubblico (RRP)">Referente Qualità (RQ) & Ufficio Reclami (RRP) [Req. 26-28]</option>
+                            <option value="Responsabile Parco Mezzi & Presidi Biomedici">Responsabile Parco Mezzi & Presidi Biomedici [Req. 13-15]</option>
+                            <option value="Responsabile Formazione & Igiene Sanitaria">Responsabile Formazione & Igiene Sanitaria [Req. 5-6]</option>
+                            <option value="Soggetto Autorizzato al Trattamento Dati (GDPR)">Soggetto Autorizzato al Trattamento Dati (GDPR Art. 29)</option>
+                            <option value="Altro Incarico Specifico">Altro Incarico Specifico</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Nominativo Incaricato *</label>
+                        <input type="text" id="nom-persona" list="lista-volontari-nomine" placeholder="Nome e Cognome" required>
+                        <datalist id="lista-volontari-nomine"></datalist>
+                    </div>
+                    <div class="input-group">
+                        <label>Codice Fiscale Incaricato</label>
+                        <input type="text" id="nom-cf" placeholder="CF" style="text-transform:uppercase;">
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label>Riferimento Normativo / Delibera</label>
+                        <input type="text" id="nom-riferimento" placeholder="Es. Regolamento Regionale Umbria 6/2024 e D.Lgs. 81/08">
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label>Descrizione Mansioni e Deleghe Attribuite</label>
+                        <textarea id="nom-descrizione" rows="3" placeholder="Specificare i poteri e i compiti assegnati all'incaricato..."></textarea>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button>
+                    <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fa-solid fa-save"></i> Registra Nomina</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE CARICAMENTO DOCUMENTO FIRMATO (SCANSIONE/FOTO) -->
+    <div class="modal-overlay" id="modalUploadFirmato">
+        <div class="modal" style="max-width: 520px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
+                <h3 style="color:var(--success); font-size:1.15rem; font-weight:800;"><i class="fa-solid fa-cloud-arrow-up"></i> Archivia Documento Controfirmato</h3>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+
+            <div style="margin: 15px 0; text-align:center;">
+                <p style="font-size:0.85rem; color:var(--text-main); margin-bottom:4px;">Stai caricando la scansione firmata per:</p>
+                <strong id="upload-nomina-titolo" style="color:var(--primary); font-size:1rem;">-</strong>
+            </div>
+
+            <input type="hidden" id="upload-nomina-id">
+            
+            <div class="upload-area" onclick="document.getElementById('file-upload-scansione').click()">
+                <i class="fa-solid fa-file-pdf" style="font-size:2.5rem; color:var(--primary); margin-bottom:8px;"></i>
+                <h4 style="font-size:0.9rem; font-weight:700; margin-bottom:4px;">Tocca per caricare la scansione o foto</h4>
+                <p style="font-size:0.75rem; color:var(--text-light);">Formati supportati: PDF, JPG, PNG (Max 5MB)</p>
+                <div id="upload-file-nome" style="margin-top:10px; font-weight:700; color:var(--success); font-size:0.85rem; display:none;"></div>
+            </div>
+            <input type="file" id="file-upload-scansione" accept=".pdf,image/*" style="display:none;" onchange="gestisciFileSelezionato(event)">
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button type="button" class="btn btn-ghost" onclick="chiudiModali()" style="flex:1;">Annulla</button>
+                <button type="button" class="btn btn-success" onclick="confermaArchiviazioneScansione()" style="flex:2;" id="btn-conferma-upload" disabled>
+                    <i class="fa-solid fa-check"></i> Archivia nel Faldone
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE VISUALIZZATORE DOCUMENTO CARICATO -->
+    <div class="modal-overlay" id="modalViewer">
+        <div class="modal" style="max-width: 850px; height: 90vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
+                <h3 style="color:var(--primary); font-size:1.1rem; font-weight:800;" id="viewer-titolo">Visualizza Documento</h3>
+                <button type="button" class="btn-ghost" onclick="chiudiModali()" style="border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+            <div id="viewer-container" style="flex:1; margin-top:15px; background:#f1f5f9; border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                <!-- Iframe per PDF o Img per foto -->
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toast-msg">Operazione completata!</span></div>
+
+    <script>
+        const societaInfo = {
+            nome: "Associazione di Volontariato Cuore d'Argento ODV",
+            sede: "Via della Stazione n. 51 – 05035 Narni Scalo (TR)",
+            cf: "91086460556",
+            piva: "01725470551",
+            runts: "RUNTS Det. n. 870/2025 Regione Umbria",
+            presidente: "Dott. Michele Bee"
+        };
+
+        let nomine = [];
+        let volontari = [];
+        let dbRootPath = 'cuore_argento_db';
+        let database;
+        let fileBase64Temp = null;
+        let fileTypeTemp = null;
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 3000);
+        }
+
+        function chiudiModali() {
+            document.querySelectorAll('.modal-overlay').forEach(function(m) { m.classList.remove('active'); });
+            fileBase64Temp = null;
+            fileTypeTemp = null;
+            document.getElementById('upload-file-nome').style.display = 'none';
+            document.getElementById('btn-conferma-upload').disabled = true;
+        }
+
+        function estraiDati(nodo) {
+            if (!nodo) return [];
+            if (Array.isArray(nodo)) return nodo.filter(function(i) { return i !== null && typeof i === 'object'; });
+            return Object.keys(nodo).map(function(k) { let item = nodo[k]; if (item && typeof item === 'object') item.id = item.id || k; return item; }).filter(Boolean);
+        }
+
+        // INIZIALIZZAZIONE FIREBASE
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDhi3SRh2mDqz8_T03xYVq4XtcRiAL7IF0",
+                authDomain: "cuore-d-argento.firebaseapp.com",
+                databaseURL: "https://cuore-d-argento-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "cuore-d-argento",
+                storageBucket: "cuore-d-argento.firebasestorage.app",
+                messagingSenderId: "271690439864",
+                appId: "1:271690439864:web:17b36ef2c5ab4263d3684d"
+            };
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+
+            database.ref(dbRootPath).on('value', function(snapshot) {
+                const data = snapshot.val() || {};
+                nomine = estraiDati(data.nomine_archiviate);
+                volontari = estraiDati(data.volontari);
+
+                aggiornaDatalistVolontari();
+                renderNomineTable();
+                aggiornaStatistiche();
+            });
+        } catch(e) { console.error(e); }
+
+        function aggiornaDatalistVolontari() {
+            const dl = document.getElementById('lista-volontari-nomine');
+            if(!dl) return;
+            dl.innerHTML = '';
+            volontari.forEach(function(v) {
+                dl.innerHTML += '<option value="' + v.nome + '">';
+            });
+        }
+
+        function aggiornaDettagliNormativi() {
+            const ruolo = document.getElementById('nom-ruolo').value;
+            const rifInput = document.getElementById('nom-riferimento');
+            const descInput = document.getElementById('nom-descrizione');
+
+            if (ruolo.includes('Direttore Sanitario')) {
+                rifInput.value = "Regolamento Regionale Umbria 6/2024 (Requisito 4) e L.R. 11/2015";
+                descInput.value = "Supervisione clinico-sanitaria dei trasporti, idoneità del personale operativo, validazione retraining BLSD e inventario presidi biomedici/O2.";
+            } else if (ruolo.includes('RSI')) {
+                rifInput.value = "Check-list Accreditamento Regione Umbria (Requisiti 19 e 20) - Qualità Dati";
+                descInput.value = "Presidio del Sistema Informativo, verifica periodica su completezza e tempestività delle schede trasporto, sicurezza informatica e gestione tablet.";
+            } else if (ruolo.includes('Qualità') || ruolo.includes('RRP')) {
+                rifInput.value = "Norma UNI EN ISO 9001:2015 e Requisiti 26-28 Accreditamento Regionale";
+                descInput.value = "Monitoraggio dei processi interni, gestione dei reclami e relazioni con il pubblico con obbligo di risposta formale scritta entro 60 giorni.";
+            } else if (ruolo.includes('Parco Mezzi')) {
+                rifInput.value = "Requisito 13 Accreditamento Regionale e D.M. 553/1987";
+                descInput.value = "Cura della manutenzione ordinaria e straordinaria delle ambulanze, scadenze revisioni MCTC e collaudi periodici presidi.";
+            } else if (ruolo.includes('GDPR')) {
+                rifInput.value = "Art. 29 Regolamento UE 2016/679 (GDPR) e D.Lgs. 196/2003";
+                descInput.value = "Trattamento dei dati personali e particolari degli assistiti con vincolo al segreto d'ufficio e custodia del PIN riservato.";
+            }
+        }
+
+        function aggiornaStatistiche() {
+            document.getElementById('stat-totale').innerText = nomine.length;
+            const firmate = nomine.filter(function(n) { return n.file_firmato_base64; }).length;
+            document.getElementById('stat-firmate').innerText = firmate;
+            document.getElementById('stat-attesa').innerText = nomine.length - firmate;
+        }
+
+        function renderNomineTable() {
+            const tbody = document.getElementById('nomine-corpo');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            if (nomine.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:35px; color:var(--text-light);"><i class="fa-solid fa-folder-open" style="font-size:2rem; margin-bottom:8px; display:block;"></i>Nessun atto di nomina presente in archivio. Clicca su "Nuova Nomina" per iniziare.</td></tr>';
+                return;
+            }
+
+            nomine.sort(function(a,b) { return new Date(b.data || 0) - new Date(a.data || 0); }).forEach(function(n) {
+                const haFileFirmato = !!n.file_firmato_base64;
+                const badgeStato = haFileFirmato
+                    ? '<span class="badge badge-signed"><i class="fa-solid fa-file-circle-check"></i> Firmato & Archiviato</span>'
+                    : '<span class="badge badge-pending"><i class="fa-solid fa-clock"></i> In Attesa di Scansione</span>';
+
+                let pulsanteVisualizza = haFileFirmato
+                    ? '<button class="btn btn-ghost" style="padding:5px 9px; color:#0284c7;" onclick="visualizzaDocumento(\'' + n.id + '\')" title="Visualizza scansione firmata"><i class="fa-solid fa-eye"></i> Vedi Firma</button>'
+                    : '<button class="btn btn-primary" style="padding:5px 9px; background:var(--warning); color:white;" onclick="apriUploadScansione(\'' + n.id + '\')" title="Carica scansione con firme autografe"><i class="fa-solid fa-upload"></i> Carica Scansione</button>';
+
+                tbody.innerHTML += '<tr>' +
+                    '<td><strong>' + (n.data ? new Date(n.data).toLocaleDateString('it-IT') : '-') + '</strong><br><small style="color:var(--text-light);">' + (n.protocollo || 'N/D') + '</small></td>' +
+                    '<td><strong style="color:var(--primary);">' + n.ruolo + '</strong></td>' +
+                    '<td><strong>' + n.persona + '</strong>' + (n.cf ? '<br><small style="color:var(--text-light);">' + n.cf + '</small>' : '') + '</td>' +
+                    '<td><small>' + (n.riferimento || 'R.R. Umbria 6/2024') + '</small></td>' +
+                    '<td>' + badgeStato + '</td>' +
+                    '<td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">' +
+                        '<button class="btn btn-ghost" style="padding:5px 9px; color:var(--primary);" onclick="generaPDFNominaUfficiale(\'' + n.id + '\')" title="Scarica modello originale per la firma"><i class="fa-solid fa-print"></i> Stampa</button>' +
+                        pulsanteVisualizza +
+                        '<button class="btn btn-ghost" style="padding:5px 8px; color:var(--danger);" onclick="eliminaNomina(\'' + n.id + '\')" title="Elimina"><i class="fa-solid fa-trash"></i></button>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+
+        window.apriModaleNuovaNomina = function() {
+            document.getElementById('formNomina').reset();
+            document.getElementById('nom-editId').value = '';
+            document.getElementById('nom-data').value = new Date().toISOString().split('T')[0];
+            document.getElementById('nom-protocollo').value = 'NOM-' + new Date().getFullYear() + '/' + (nomine.length + 1).toString().padStart(2, '0');
+            document.getElementById('modalNomina').classList.add('active');
+        };
+
+        window.salvaNomina = function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('nom-editId').value;
+            const id = editId || Date.now().toString();
+
+            const obj = {
+                id: id,
+                data: document.getElementById('nom-data').value,
+                protocollo: document.getElementById('nom-protocollo').value,
+                ruolo: document.getElementById('nom-ruolo').value,
+                persona: document.getElementById('nom-persona').value,
+                cf: document.getElementById('nom-cf').value.toUpperCase(),
+                riferimento: document.getElementById('nom-riferimento').value,
+                descrizione: document.getElementById('nom-descrizione').value,
+                file_firmato_base64: null,
+                file_tipo: null
+            };
+
+            // Se stiamo modificando, preserviamo il file firmato se già presente
+            if (editId) {
+                const esistente = nomine.find(function(x) { return String(x.id) === String(editId); });
+                if (esistente && esistente.file_firmato_base64) {
+                    obj.file_firmato_base64 = esistente.file_firmato_base64;
+                    obj.file_tipo = esistente.file_tipo;
+                }
+            }
+
+            database.ref(dbRootPath + '/nomine_archiviate/' + id).set(obj).then(function() {
+                chiudiModali();
+                showToast("Atto di nomina registrato con successo!");
+            });
+        };
+
+        window.eliminaNomina = function(id) {
+            if(!confirm("Confermi di voler eliminare questa nomina dall'archivio?")) return;
+            database.ref(dbRootPath + '/nomine_archiviate/' + id).remove().then(function() {
+                showToast("Nomina eliminata.");
+            });
+        };
+
+        // --- GESTIONE UPLOAD SCANSIONE FIRMATA ---
+        window.apriUploadScansione = function(id) {
+            const n = nomine.find(function(x) { return String(x.id) === String(id); });
+            if(!n) return;
+            document.getElementById('upload-nomina-id').value = id;
+            document.getElementById('upload-nomina-titolo').innerText = n.ruolo + ' - ' + n.persona;
+            document.getElementById('file-upload-scansione').value = '';
+            document.getElementById('modalUploadFirmato').classList.add('active');
+        };
+
+        window.gestisciFileSelezionato = function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert("Il file supera la dimensione massima consentita di 5MB.");
+                return;
+            }
+
+            fileTypeTemp = file.type;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                fileBase64Temp = evt.target.result;
+                const nomeBox = document.getElementById('upload-file-nome');
+                nomeBox.innerText = "File selezionato: " + file.name;
+                nomeBox.style.display = 'block';
+                document.getElementById('btn-conferma-upload').disabled = false;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.confermaArchiviazioneScansione = function() {
+            const id = document.getElementById('upload-nomina-id').value;
+            if(!id || !fileBase64Temp) return;
+
+            database.ref(dbRootPath + '/nomine_archiviate/' + id).update({
+                file_firmato_base64: fileBase64Temp,
+                file_tipo: fileTypeTemp,
+                data_caricamento_scansione: new Date().toLocaleString('it-IT')
+            }).then(function() {
+                chiudiModali();
+                showToast("Scansione firmata archiviata con successo!");
+            });
+        };
+
+        // --- VISUALIZZATORE DOCUMENTO CARICATO ---
+        window.visualizzaDocumento = function(id) {
+            const n = nomine.find(function(x) { return String(x.id) === String(id); });
+            if(!n || !n.file_firmato_base64) return;
+
+            document.getElementById('viewer-titolo').innerText = "Scansione Firmata: " + n.ruolo + " (" + n.persona + ")";
+            const container = document.getElementById('viewer-container');
+            container.innerHTML = '';
+
+            if (n.file_tipo === 'application/pdf' || n.file_firmato_base64.startsWith('data:application/pdf')) {
+                container.innerHTML = '<iframe src="' + n.file_firmato_base64 + '" style="width:100%; height:100%; border:none;"></iframe>';
+            } else {
+                container.innerHTML = '<img src="' + n.file_firmato_base64 + '" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:6px; box-shadow:0 4px 15px rgba(0,0,0,0.1);">';
+            }
+
+            document.getElementById('modalViewer').classList.add('active');
+        };
+
+        // --- STAMPA DEL MODELLO UFFICIALE DI NOMINA DA FAR FIRMARE (PDF) ---
+        window.generaPDFNominaUfficiale = function(id) {
+            const n = nomine.find(function(x) { return String(x.id) === String(id); });
+            if(!n) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+
+            // Intestazione Istituzionale
+            doc.setFontSize(14);
+            doc.setTextColor(198, 40, 40);
+            doc.setFont("helvetica", "bold");
+            doc.text("ASSOCIAZIONE DI VOLONTARIATO CUORE D'ARGENTO O.D.V.", 14, 15);
+
+            doc.setFontSize(7.5);
+            doc.setTextColor(80, 80, 80);
+            doc.setFont("helvetica", "normal");
+            doc.text("Sede Operativa: " + societaInfo.sede, 14, 20);
+            doc.text("C.F. " + societaInfo.cf + " - P.IVA " + societaInfo.piva + " | " + societaInfo.runts, 14, 24);
+            doc.text("Convenzione Trasporto Sanitario Ordinario AUSL Umbria 2 (D.D.G. n. 416/2019)", 14, 28);
+            
+            doc.setDrawColor(198, 40, 40);
+            doc.setLineWidth(0.8);
+            doc.line(14, 31, 196, 31);
+
+            // Titolo
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont("helvetica", "bold");
+            doc.text("ATTO DI CONFERIMENTO INCARICO E NOMINA FORMALE", 14, 38);
+            doc.text("Protocollo Interno: " + (n.protocollo || "NOM-2026"), 14, 43);
+
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "italic");
+            doc.setTextColor(100, 100, 100);
+            doc.text("Riferimenti: " + (n.riferimento || "Regolamento Regionale Umbria 6/2024"), 14, 48);
+
+            // Corpo Nomina
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(30, 30, 30);
+
+            const testoNomina = 
+                "Il sottoscritto Dott. Michele Bee, in qualità di Legale Rappresentante e Presidente pro-tempore dell'Associazione Cuore d'Argento ODV;\n\n" +
+                "VISTO il Regolamento Regionale dell'Umbria n. 6/2024 in materia di accreditamento istituzionale dei soggetti che esercitano l'attività di trasporto sanitario ordinario e di soccorso;\n" +
+                "VISTA la Convenzione in essere con l'Azienda USL Umbria 2 e le relative prescrizioni di qualità;\n" +
+                "CONSIDERATI i requisiti di onorabilità, competenza ed esperienza professionale posseduti dall'interessato/a;\n\n" +
+                "CONFERISCE FORMALE INCARICO E NOMINA\n\n" +
+                "Al/Alla Sig./Dott. " + n.persona + (n.cf ? " (C.F. " + n.cf + ")" : "") + ",\n" +
+                "Quale: " + n.ruolo.toUpperCase() + "\n\n" +
+                "AMBITO DI DELEGA E MANSIONI ASSEGNATE:\n" +
+                (n.descrizione || "L'incaricato opererà nell'ambito dei compiti statutari e regolamentari previsti per il ruolo.") + "\n\n" +
+                "Decorrenza dell'incarico: " + (n.data ? new Date(n.data).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT')) + ".\n" +
+                "L'incarico ha validità fino a formale revoca o rinnovo degli organi associativi.";
+
+            const righe = doc.splitTextToSize(testoNomina, 180);
+            doc.text(righe, 14, 56);
+
+            // Sezione Firme
+            let finalY = 220;
+            doc.setDrawColor(200, 200, 200);
+            doc.line(14, finalY, 196, finalY);
+
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.text("Per l'Ente conferente (Il Presidente)", 14, finalY + 10);
+            doc.text("Per accettazione dell'incarico (L'Incaricato)", 110, finalY + 10);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7.5);
+            doc.text(societaInfo.presidente, 14, finalY + 16);
+            doc.text("__________________________________________", 14, finalY + 28);
+
+            doc.text(n.persona, 110, finalY + 16);
+            doc.text("__________________________________________", 110, finalY + 28);
+
+            doc.save("Atto_Nomina_" + n.ruolo.replace(/[^a-zA-Z0-9]/g, '_') + "_" + n.persona.replace(/\s+/g, '_') + ".pdf");
+            showToast("Modello ufficiale generato! Stampalo per la firma.");
+        };
+
+        // --- ESPORTA INDICE DELLE NOMINE PER IL FALDONE (PDF) ---
+        window.stampaElencoNominePDF = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+
+            doc.setFontSize(13);
+            doc.setTextColor(198, 40, 40);
+            doc.setFont("helvetica", "bold");
+            doc.text(societaInfo.nome.toUpperCase(), 14, 15);
+
+            doc.setFontSize(7.5);
+            doc.setTextColor(80, 80, 80);
+            doc.setFont("helvetica", "normal");
+            doc.text("FALDONE ACCREDITAMENTO REGIONALE - SEZIONE 1 (ORG-01)", 14, 20);
+            doc.text("INDICE GENERALE DEGLI ATTI DI NOMINA E DELEGHE OPERATIVE IN VIGORE", 14, 24);
+            doc.line(14, 26, 196, 26);
+
+            const righe = nomine.map(function(n) {
+                return [
+                    n.protocollo || '-',
+                    n.data ? new Date(n.data).toLocaleDateString('it-IT') : '-',
+                    n.ruolo,
+                    n.persona,
+                    n.file_firmato_base64 ? "FIRMATA E ARCHIVIATA" : "IN ATTESA"
+                ];
+            });
+
+            doc.autoTable({
+                startY: 32,
+                head: [['Protocollo', 'Data', 'Ruolo / Funzione', 'Nominativo Assegnatario', 'Stato Documento']],
+                body: righe,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 41, 59], fontSize: 8 },
+                styles: { fontSize: 7.5 }
+            });
+
+            let finalY = doc.lastAutoTable.finalY + 15;
+            doc.setFontSize(8);
+            doc.text("Firma del Legale Rappresentante per conformità: _______________________", 14, finalY);
+
+            doc.save("Indice_Atti_Nomina_Faldone_Accreditamento.pdf");
+            showToast("Indice generato per il faldone!");
+        };
+    </script>
+</body>
+</html>
