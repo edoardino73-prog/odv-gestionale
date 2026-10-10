@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuore d'Argento ODV - Carta dei Servizi Istituzionale Integrale</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #c62828;
+            --primary-dark: #8e0000;
+            --secondary: #1e293b;
+            --bg-body: #f8fafc;
+            --text-main: #334155;
+            --text-light: #64748b;
+            --border: #cbd5e1;
+            --radius: 10px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+
+        .topbar { width: 100%; max-width: 1050px; background: white; border: 1px solid var(--border); padding: 14px 22px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn { padding: 9px 18px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; text-decoration: none; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-ghost { background: white; color: var(--text-main); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: #f1f5f9; }
+
+        .doc-wrapper { width: 100%; max-width: 1050px; background: white; border: 1px solid var(--border); border-radius: 14px; padding: 45px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+        .doc-header { border-bottom: 2px solid var(--primary); padding-bottom: 18px; margin-bottom: 25px; text-align: center; }
+        .doc-header h1 { font-size: 1.5rem; color: var(--primary); font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
+        .doc-header p { font-size: 0.82rem; color: var(--text-light); line-height: 1.45; }
+
+        .chapter { margin-bottom: 28px; }
+        .chapter h3 { font-size: 1.05rem; color: var(--secondary); font-weight: 800; margin-bottom: 10px; text-transform: uppercase; border-left: 4px solid var(--primary); padding-left: 10px; }
+        .chapter p { font-size: 0.88rem; line-height: 1.65; color: var(--text-main); margin-bottom: 8px; text-align: justify; }
+        .chapter ul { margin-left: 24px; margin-bottom: 10px; }
+        .chapter li { font-size: 0.86rem; line-height: 1.6; margin-bottom: 4px; }
+
+        .table-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin: 15px 0; overflow-x: auto; }
+        .table-styled { width: 100%; border-collapse: collapse; font-size: 0.84rem; min-width: 600px; }
+        .table-styled th, .table-styled td { padding: 10px 12px; border: 1px solid var(--border); text-align: left; }
+        .table-styled th { background: #e2e8f0; font-weight: 700; color: var(--secondary); }
+
+        #toast { position: fixed; bottom: 25px; right: 25px; background: #1e293b; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); opacity: 0; pointer-events: none; transition: 0.3s; z-index: 9999; }
+        #toast.show { opacity: 1; pointer-events: auto; }
+    </style>
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="topbar-left">
+            <a href="iso9001 accreditamento.html" class="btn btn-ghost"><i class="fa-solid fa-arrow-left"></i> Torna ad Accreditamento</a>
+            <div>
+                <h3 style="font-size: 0.95rem; font-weight: 800; color: var(--secondary);">Carta dei Servizi Istituzionale Integrale</h3>
+                <p style="font-size: 0.75rem; color: var(--text-light);">Customer Sat, Volontari, Controllo Mezzi, Tariffe & Requisiti R.R. 6/2024</p>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="generaCartaServiziPDFIntegrale()">
+            <i class="fa-solid fa-file-pdf"></i> Scarica Carta dei Servizi Completa (PDF)
+        </button>
+    </header>
+
+    <main class="doc-wrapper">
+        <div class="doc-header">
+            <h1>Associazione di Volontariato Cuore d'Argento O.D.V.</h1>
+            <p><strong>CARTA DEI SERVIZI, STANDARD QUALITATIVI, ASSETTO RISORSE E REGIME TARIFFARIO</strong></p>
+            <p>Sede Operativa: Via della Stazione n. 51 – 05035 Narni Scalo (TR) | C.F. 91086460556 - P.IVA 01725470551</p>
+            <p>Iscrizione RUNTS: Det. n. 870/2025 Regione Umbria | Autorizzazione Sanitaria n. 8642 del 19/08/2025</p>
+            <p>Convenzione Trasporto Sanitario Ordinario e Dialisi con AUSL UMBRIA 2 (D.D.G. n. 416/2019 e ss.mm.ii.)</p>
+        </div>
+
+        <section class="chapter">
+            <h3>1. Quadro Giuridico, Mission e Vigilanza Sanitaria</h3>
+            <p>L'Associazione di Volontariato <strong>Cuore d'Argento O.D.V.</strong> è un Ente del Terzo Settore (ETS) senza fini di lucro, costituito ai sensi del D.Lgs. 117/2017 e della Legge Regionale dell'Umbria n. 11/2015. L'Ente persegue esclusivamente finalità solidaristiche e di utilità sociale nel settore della protezione della salute, del soccorso sanitario integrato e del trasporto sanitario protetto a favore di persone ammalate o fragili.</p>
+            <p>La presente Carta dei Servizi definisce in forma vincolante e pubblica gli impegni di qualità, i diritti dell'assistito, il regolamento del personale volontario, le modalità di controllo della flotta e il regime economico dei rimborsi, in conformità ai <strong>Requisiti da 1 a 28 del Regolamento Regionale Umbria n. 6/2024</strong> e alla norma <strong>UNI EN ISO 9001:2015</strong>. Tutte le attività assistenziali sono poste sotto la direzione e supervisione clinica permanente del <strong>Direttore Sanitario Responsabile</strong> iscritto all'Albo dei Medici Chirurghi.</p>
+        </section>
+
+        <section class="chapter">
+            <h3>2. Gestione, Reclutamento e Tutela del Personale Volontario</h3>
+            <p>In adempimento ai <strong>Requisiti 5, 6 e 7 di Accreditamento</strong> e al Codice del Terzo Settore, Cuore d'Argento ODV garantisce una gestione rigorosa del proprio corpo operativo:</p>
+            <ul>
+                <li><strong>Iscrizione e Libro Soci:</strong> Ogni volontario è formalmente iscritto nel Libro Soci dell'Ente e coperto da polizza assicurativa obbligatoria per infortuni, malattie professionali e responsabilità civile verso terzi ex art. 18 D.Lgs. 117/2017;</li>
+                <li><strong>Sorveglianza Sanitaria e Idoneità Fisica:</strong> Tutti i soccorritori e autisti sono sottoposti a visita medica preventiva e periodica da parte del Medico Competente ex D.Lgs. 81/08, con rilascio del formale giudizio di idoneità alle mansioni di movimentazione carichi e soccorso sanitario;</li>
+                <li><strong>Formazione e Addestramento Continuo:</strong> Obbligo di possesso del brevetto di Soccorritore Esecutore con retraining biennale BLSD Sanitario certificato, abilitazione all'uso dei presidi di immobilizzazione/trasporto, formazione obbligatoria sul rischio biologico e privacy GDPR;</li>
+                <li><strong>Riconoscibilità e Decoro Operativo:</strong> Gli equipaggi operano obbligatoriamente muniti di uniforme societaria ad alta visibilità certificata UNI EN ISO 20471 e tesserino plastificato di riconoscimento con fotografia, nominativo, matricola e ruolo.</li>
+            </ul>
+        </section>
+
+        <section class="chapter">
+            <h3>3. Controllo, Manutenzione e Sicurezza del Parco Mezzi</h3>
+            <p>In conformità ai <strong>Requisiti 13, 14 e 15 di Accreditamento</strong> e al D.M. 553/1987, l'Ente adotta un rigido sistema di monitoraggio dell'autoparco:</p>
+            <ul>
+                <li><strong>Checklist Giornaliera Pre-Partenza:</strong> Prima dell'inizio di ogni turno, l'autista soccorritore compila la checklist digitale su tablet verificando livelli meccanici, pneumatici, segnalatori ottico-acustici di emergenza, efficienza del sistema di climatizzazione separato e carica dei presidi;</li>
+                <li><strong>Presidi Elettromedicali:</strong> Defibrillatori semiautomatici (DAE) e aspiratori secreti sono sottoposti a test di autoscarica periodica, verifica scadenze elettrodi/batterie e collaudo elettrico secondo norma CEI 62-5;</li>
+                <li><strong>Gestione Gas Medicali (Ossigeno):</strong> Tracciamento informatico dei lotti AIC delle bombole di ossigeno terapeutico, registrazione delle date di scadenza del farmaco e collaudo decennale recipienti in pressione;</li>
+                <li><strong>Manutenzione Programmata:</strong> Tagliandi periodici e manutenzioni straordinarie affidate esclusivamente ad officine meccatroniche autorizzate, con revisione annuale MCTC obbligatoria per tutti i mezzi di soccorso.</li>
+            </ul>
+        </section>
+
+        <section class="chapter">
+            <h3>4. Rilevazione Continua della Soddisfazione Utenti (Customer Satisfaction)</h3>
+            <p>In adempimento alla norma ISO 9001:2015 e ai Requisiti di trasparenza regionale, Cuore d'Argento ODV misura costantemente la qualità percepita:</p>
+            <ul>
+                <li><strong>Canali di Rilevazione:</strong> Questionario digitale anonimo accessibile tramite QR Code esposto a bordo della cellula sanitaria e modulistica cartacea consegnata al termine della missione;</li>
+                <li><strong>Indicatori di Qualità Valutati:</strong> Cortesia e disponibilità dell'equipaggio, puntualità di prelievo, igiene e comfort termico del vano sanitario, delicatezza di guida, chiarezza delle informazioni fornite;</li>
+                <li><strong>Elaborazione Dati e Miglioramento:</strong> Le valutazioni confluiscono nel Cruscotto Qualità della Direzione. Qualora l'indice di gradimento scenda sotto l'85% di giudizi positivi, scatta automaticamente l'apertura di un'Azione Correttiva (CAPA).</li>
+            </ul>
+        </section>
+
+        <section class="chapter">
+            <h3>5. Tariffario dei Rimborsi Spesa (Servizi Privati) e Servizio di Sosta</h3>
+            <p>Per i servizi autorizzati in convenzione istituzionale con AUSL Umbria 2, la prestazione è a totale carico del SSR. Per i trasporti svolti in regime privato su richiesta del cittadino, si applica il seguente tariffario chilometrico a rimborso spese:</p>
+
+            <div class="table-box">
+                <table class="table-styled">
+                    <thead>
+                        <tr>
+                            <th>Tipologia Mezzo / Prestazione</th>
+                            <th>Fascia Chilometrica o Condizione Operativa</th>
+                            <th>Tariffa Applicata</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Ambulanza Tipo B (Pazienti Barellati)</strong></td>
+                            <td>Tratte extraurbane e lunghi viaggi (> 100 Km complessivi)</td>
+                            <td><strong>€ 1,00 / Km</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ambulanza Tipo B (Pazienti Barellati)</strong></td>
+                            <td>Tratte intermedie comprensoriali (30 - 100 Km complessivi)</td>
+                            <td><strong>€ 1,20 / Km</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ambulanza Tipo B (Pazienti Barellati)</strong></td>
+                            <td>Tratte brevi urbane e percorsi collinari (< 30 Km complessivi)</td>
+                            <td><strong>€ 1,50 / Km</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mezzo Attrezzato Disabili (Con Sollevatore)</strong></td>
+                            <td>Trasporto persona su carrozzina (qualsiasi tratta)</td>
+                            <td><strong>€ 1,00 / Km</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Diritto Fisso di Uscita e Sanificazione PMC</strong></td>
+                            <td>Raggio urbano (entro 15 Km dalla sede operativa)</td>
+                            <td><strong>€ 35,00</strong> una tantum</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Diritto Fisso di Uscita e Sanificazione PMC</strong></td>
+                            <td>Raggio comprensoriale (entro 30 Km dalla sede operativa)</td>
+                            <td><strong>€ 50,00</strong> una tantum</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Servizio di Attesa e Sosta del Mezzo</strong></td>
+                            <td>Prima ora di sosta durante visita specialistica o esame</td>
+                            <td><strong>€ 20,00</strong> (frazionabile)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Servizio di Attesa e Sosta del Mezzo</strong></td>
+                            <td>Dalla seconda ora di sosta in poi (all'ora o frazione di ora)</td>
+                            <td><strong>€ 15,00 / ora</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Accompagnatore Familiare</strong></td>
+                            <td>Presenza a bordo di n. 1 parente o accompagnatore</td>
+                            <td><strong>GRATUITO</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Spese Vive Documentate (Pedaggi/Traghetti)</strong></td>
+                            <td>Ricevute fiscali e pedaggi vivi sostenuti durante il tragitto</td>
+                            <td><strong>A consuntivo</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p style="font-size:0.8rem; color:var(--text-light);"><em>Criterio di Calcolo: Il conteggio chilometrico è calcolato rigorosamente sull'itinerario effettivo Deposito Narni Scalo – Prelievo – Destinazione Sanitaria – Rientro al Deposito. L'Ufficio rilascia preventivo scritto, vincolante e privo di costi occulti, regolarmente quietanzato e detraibile.</em></p>
+        </section>
+
+        <section class="chapter">
+            <h3>6. Procedura Reclami e Relazioni con il Pubblico (RRP)</h3>
+            <p>In conformità ai <strong>Requisiti 26, 27 e 28 del R.R. Umbria 6/2024</strong> e alla norma ISO 9001:2015, ogni cittadino ha diritto di presentare osservazioni o formali reclami scritti tramite apposito modulo a bordo, scansione del QR Code o email a: <strong>odv.cuoredargento@gmail.com</strong>.</p>
+            <p><strong>Termine di Risposta Obbligatorio (60 Giorni):</strong> Ciascun reclamo viene protocollato nel Registro Non Conformità e Reclami. Il Referente della Qualità e la Direzione Sanitaria conducono l'istruttoria interna, trasmettendo all'interessato <strong>RISPOSTA SCRITTA, MOTIVATA ED ESAUSTIVA ENTRO E NON OLTRE 60 GIORNI</strong> dalla ricezione.</p>
+        </section>
+    </main>
+
+    <div id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toast-msg">Documento PDF generato!</span></div>
+
+    <script>
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 3000);
+        }
+
+        // =========================================================================
+        // GENERATORE PROFESSIONALE CARTA DEI SERVIZI PDF INTEGRALE (6 PAGINE A4)
+        // =========================================================================
+        window.generaCartaServiziPDFIntegrale = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const totPagine = 6;
+
+            function applicaTestataEPiede(nPagina) {
+                // Intestazione Carta Intestata
+                doc.setFontSize(13);
+                doc.setTextColor(198, 40, 40);
+                doc.setFont("helvetica", "bold");
+                doc.text("ASSOCIAZIONE DI VOLONTARIATO CUORE D'ARGENTO O.D.V.", 14, 13);
+
+                doc.setFontSize(7.2);
+                doc.setTextColor(80, 80, 80);
+                doc.setFont("helvetica", "normal");
+                doc.text("Sede Operativa: Via della Stazione n. 51 – 05035 Narni Scalo (TR) | C.F. 91086460556 - P.IVA 01725470551", 14, 18);
+                doc.text("Iscr. RUNTS Det. n. 870/2025 Regione Umbria | Aut. Sanitaria Esercizio n. 8642 del 19/08/2025", 14, 22);
+                doc.text("Convenzione per il Trasporto Sanitario Ordinario e Dialisi con AUSL UMBRIA 2 (D.D.G. n. 416/2019 e ss.mm.ii.)", 14, 26);
+
+                doc.setDrawColor(198, 40, 40);
+                doc.setLineWidth(0.8);
+                doc.line(14, 29, 196, 29);
+
+                // Piè di pagina
+                doc.setFontSize(7);
+                doc.setTextColor(100, 116, 139);
+                doc.text("Cuore d'Argento O.D.V. | Carta dei Servizi Istituzionale Integrale - Edizione 2026", 14, 288);
+                doc.text("Pagina " + nPagina + " di " + totPagine, 175, 288);
+            }
+
+            function drawSectionTitle(titolo, y) {
+                doc.setFontSize(8.6);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(198, 40, 40);
+                doc.text(titolo, 14, y);
+                doc.setDrawColor(226, 232, 240);
+                doc.setLineWidth(0.3);
+                doc.line(14, y + 2, 196, y + 2);
+            }
+
+            // =====================================================================
+            // PAGINA 1: PRESENTAZIONE, QUADRO GIURIDICO E VIGILANZA SANITARIA
+            // =====================================================================
+            applicaTestataEPiede(1);
+
+            doc.setFontSize(11.5);
+            doc.setTextColor(15, 23, 42);
+            doc.setFont("helvetica", "bold");
+            doc.text("CARTA DEI SERVIZI ISTITUZIONALE - EDIZIONE UFFICIALE 2026", 14, 36);
+
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "italic");
+            doc.setTextColor(100, 116, 139);
+            doc.text("Disciplinare Operativo di Qualità per Accreditamento Sanitario (R.R. Umbria 6/2024) e ISO 9001:2015", 14, 40);
+
+            let curY = 47;
+
+            drawSectionTitle("CAPITOLO 1 - QUADRO GIURIDICO, MISSION E ASSETTO ISTITUZIONALE", curY);
+            curY += 6;
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(51, 65, 85);
+
+            let cap1 = "L'Associazione di Volontariato Cuore d'Argento O.D.V. è un Ente del Terzo Settore (ETS) iscritto nel Registro Unico Nazionale del Terzo Settore (RUNTS) con Determina Dirigenziale n. 870/2025 della Regione Umbria, costituito e disciplinato ai sensi del D.Lgs. 117/2017 e della Legge Regionale dell'Umbria n. 11/2015.\n\n" +
+                    "L'Associazione non persegue scopi di lucro e rivolge la propria attività al soddisfacimento di bisogni collettivi di carattere sociosanitario, con particolare focalizzazione sul trasporto sanitario di emergenza e soccorso, sul trasporto sanitario ordinario e programmato per soggetti non deambulanti o non autosufficienti, nonché sull'assistenza continuativa a pazienti sottoposti a trattamenti salvavita.\n\n" +
+                    "La presente Carta dei Servizi definisce in modo trasparente e vincolante gli standard di prestazione, le modalità operative, la tutela dei diritti dell'assistito ed il piano tariffario applicato per i rimborsi spesa, costituendo adempimento formale ai Requisiti da 21 a 28 previsti dal Regolamento Regionale dell'Umbria n. 6/2024.";
+            doc.text(doc.splitTextToSize(cap1, 182), 14, curY);
+            curY += 42;
+
+            drawSectionTitle("CAPITOLO 2 - VIGILANZA CLINICA E RESPONSABILITÀ DELLA DIREZIONE SANITARIA", curY);
+            curY += 6;
+            let cap2 = "In ossequio al Requisito 4 della Check-list di Accreditamento Sanitario Regionale, tutte le attività di soccorso e trasporto sanitario svolte dall'Ente sono sottoposte alla costante supervisione e responsabilità tecnica del Direttore Sanitario, medico chirurgo regolarmente abilitato ed iscritto all'Albo Professionale.\n\n" +
+                    "Compiti specifici della Direzione Sanitaria:\n" +
+                    "a) Vigilare sull'adeguatezza igienico-sanitaria della sede operativa, dei locali di sosta equipaggi e della cellula sanitaria delle ambulanze;\n" +
+                    "b) Definire ed approvare i protocolli clinico-assistenziali adottati dal personale operante a bordo;\n" +
+                    "c) Verificare lo stato di efficienza dei presidi elettromedicali (defibrillatori DAE, aspiratori) e vigilare sul corretto approvvigionamento, stoccaggio e conservazione dell'ossigeno medicinale (lotti AIC e collaudi bombole);\n" +
+                    "d) Valutare e convalidare l'idoneità psicofisica e formativa dei soccorritori volontari all'espletamento dei servizi di competenza.";
+            doc.text(doc.splitTextToSize(cap2, 182), 14, curY);
+
+            // =====================================================================
+            // PAGINA 2: GESTIONE VOLONTARI E CONTROLLO PARCO AUTO
+            // =====================================================================
+            doc.addPage();
+            applicaTestataEPiede(2);
+            curY = 36;
+
+            drawSectionTitle("CAPITOLO 3 - GESTIONE, FORMAZIONE E TUTELA DEL CORPO VOLONTARI (REQ. 5-7)", curY);
+            curY += 6;
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(51, 65, 85);
+
+            let volTable = [
+                ["Iscrizione & Assicurazione", "Iscrizione formale nel Libro Soci con polizza RCT, infortuni e malattie professionali ex art. 18 D.Lgs. 117/2017.", "100% dei volontari a ruolo"],
+                ["Sorveglianza Sanitaria", "Visita preventiva e periodica del Medico Competente ex D.Lgs. 81/08 con giudizio di idoneità alle mansioni.", "100% del personale operativo"],
+                ["Formazione BLSD", "Possesso dell'attestato di Soccorritore Esecutore con retraining biennale BLSD sanitario certificato.", "Retraining biennale tassativo"],
+                ["Identificazione & Decoro", "Uniforme societaria ad alta visibilità (UNI EN ISO 20471) e tesserino nominativo plastificato con fototessera.", "Tassativo in ogni missione"],
+                ["Privacy e Segreto", "Nomina formale a Soggetto Autorizzato al Trattamento (GDPR) con credenziali e PIN riservato per i tablet.", "100% del personale abilitato"]
+            ];
+
+            doc.autoTable({
+                startY: curY,
+                head: [['Ambito Gestionale Volontari', 'Protocollo Operativo Assunto dall\'Ente', 'Standard Applicato']],
+                body: volTable,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 41, 59], fontSize: 7.2, fontStyle: 'bold' },
+                styles: { fontSize: 6.8, cellPadding: 2.2 },
+                columnStyles: { 0: { cellWidth: 48, fontStyle: 'bold' }, 1: { cellWidth: 96 }, 2: { cellWidth: 38, fontStyle: 'bold', halign: 'center' } }
+            });
+
+            curY = doc.lastAutoTable.finalY + 8;
+
+            drawSectionTitle("CAPITOLO 4 - CONTROLLO, MANUTENZIONE E SICUREZZA FLOTTA (REQ. 13-15)", curY);
+            curY += 6;
+
+            let mezziTable = [
+                ["Checklist Pre-Partenza", "Controllo inizio turno su tablet: livelli motore, luci/sirene, pulizia e climatizzazione vano.", "Compilazione giornaliera"],
+                ["Gas Medicali (O2)", "Monitoraggio lotti AIC, pressione residua bombole, riduttori/flussimetri e collaudi decennali.", "Tracciabilità al 100%"],
+                ["Presidi Elettromedicali", "Autotest scarica DAE Saver One, verifica integrità piastre/batterie e test aspiratore secreti.", "Verifica programmata"],
+                ["Manutenzione Meccanica", "Interventi di manutenzione ordinaria e straordinaria affidati a officine qualificate e revisione MCTC.", "Revisione annuale MCTC"],
+                ["Continuità del Servizio", "Attivazione di veicolo sostitutivo conforme in caso di avaria o fermo tecnico improvviso.", "Entro 2 ore (Requisito 3)"]
+            ];
+
+            doc.autoTable({
+                startY: curY,
+                head: [['Componente Autoparco', 'Protocollo Tecnico di Verifica Adottato', 'Frequenza / Standard']],
+                body: mezziTable,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 41, 59], fontSize: 7.2, fontStyle: 'bold' },
+                styles: { fontSize: 6.8, cellPadding: 2.2 },
+                columnStyles: { 0: { cellWidth: 48, fontStyle: 'bold' }, 1: { cellWidth: 96 }, 2: { cellWidth: 38, fontStyle: 'bold', halign: 'center' } }
+            });
+
+            // =====================================================================
+            // PAGINA 3: CUSTOMER SATISFACTION E TIPOLOGIA SERVIZI
+            // =====================================================================
+            doc.addPage();
+            applicaTestataEPiede(3);
+            curY = 36;
+
+            drawSectionTitle("CAPITOLO 5 - RILEVAZIONE CUSTOMER SATISFACTION (QUALITÀ ISO 9001)", curY);
+            curY += 6;
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(51, 65, 85);
+
+            let tCs = "In conformità alla norma UNI EN ISO 9001:2015 e alle linee guida di Accreditamento Sanitario, l'Ente conduce un monitoraggio sistematico e permanente della soddisfazione degli assistiti e dei caregiver.\n\n" +
+                    "METODOLOGIA DI RILEVAZIONE:\n" +
+                    "- QUESTIONARIO DIGITALE TRAMITE QR CODE: Esposto in modo visibile all'interno del vano sanitario, compilabile direttamente tramite smartphone in forma totalmente anonima;\n" +
+                    "- SCHEDA CARTACEA A BORDO: Consegnata su richiesta dall'equipaggio al termine del servizio e imbucata nell'apposita cassetta sigillata in sede;\n" +
+                    "- AUDIT TELEFONICI PERIODICI: Condotti a campione dal Referente Qualità per i pazienti emodializzati e oncologici continuativi.\n\n" +
+                    "DIMENSIONI DI QUALITÀ INDAGATE:\n" +
+                    "1. Tempestività e puntualità di presa in carico al domicilio o reparto ospedaliero;\n" +
+                    "2. Cortesia, umanità, ascolto ed empatia dimostrati dall'equipaggio di soccorso;\n" +
+                    "3. Grado di pulizia, disinfezione, comfort termico e assenza di vibrazioni nel vano sanitario;\n" +
+                    "4. Sicurezza percepita durante la guida del veicolo e correttezza nelle manovre di imbarco/sbarco barella;\n" +
+                    "5. Chiarezza amministrativa, trasparenza tariffaria e conformità del preventivo rilasciato.\n\n" +
+                    "OBIETTIVO E RIESAME: L'indice complessivo di gradimento (CSI) è fissato ad un valore minimo di 4.5/5. Qualora l'indice scenda al di sotto dell'85%, il Referente Qualità provvede all'apertura formale di una Non Conformità con formulazione di specifica Azione Correttiva (CAPA).";
+            doc.text(doc.splitTextToSize(tCs, 182), 14, curY);
+            curY += 56;
+
+            drawSectionTitle("CAPITOLO 6 - TIPOLOGIA DEI TRASPORTI E PRESTAZIONI SANITARIE", curY);
+            curY += 6;
+            let tTipologie = 
+                "- TRASPORTO DI EMERGENZA/URGENZA: Interventi sanitari tempestivi effettuati in convenzione integrata con il 118;\n" +
+                "- TRASPORTO ORDINARIO PROGRAMMATO: Ricoveri, dimissioni ospedaliere, visite collegiali, accertamenti diagnostici e fisioterapie;\n" +
+                "- TRASPORTO EMODIALISI DEDICATO: Accompagnamento continuativo dei pazienti nefropatici verso i Centri Dialisi (Spoleto, Terni, Narni, Amelia) con tassativo rispetto degli orari di attacco ai filtri dialitici;\n" +
+                "- TERAPIE ONCOLOGICHE SALVAVITA: Trasporto protetto verso Day Hospital oncologici per sedute chemioterapiche e radioterapiche;\n" +
+                "- TRASFERIMENTI A LUNGO RAGGIO: Spostamenti a lunga percorrenza su scala nazionale ed europea verso istituti di cura ad alta specializzazione.";
+            doc.text(doc.splitTextToSize(tTipologie, 182), 14, curY);
+
+            // =====================================================================
+            // PAGINA 4: REGIME TARIFFARIO ECONOMICO DETTAGLIATO E SOSTE
+            // =====================================================================
+            doc.addPage();
+            applicaTestataEPiede(4);
+            curY = 36;
+
+            drawSectionTitle("CAPITOLO 7 - REGIME TARIFFARIO DETTAGLIATO PER PRESTAZIONI PRIVATE", curY);
+            curY += 6;
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(51, 65, 85);
+
+            let tTariffaIntro = "I servizi autorizzati dalla ASL sono a totale carico del Servizio Sanitario Regionale. Per i trasporti richiesti privatamente dal cittadino o da istituti privati, si applica il seguente tariffario di rimborso spese approvato dal Consiglio Direttivo:";
+            doc.text(doc.splitTextToSize(tTariffaIntro, 182), 14, curY);
+            curY += 9;
+
+            const tariffaTableData = [
+                ["Ambulanza Tipo B (Barellati / Assistiti)", "Tratte extraurbane e lunghi trasferimenti (> 100 Km complessivi)", "€ 1,00 / Km"],
+                ["Ambulanza Tipo B (Barellati / Assistiti)", "Tratte intermedie comprensoriali (30 - 100 Km complessivi)", "€ 1,20 / Km"],
+                ["Ambulanza Tipo B (Barellati / Assistiti)", "Tratte brevi urbane e percorsi collinari (< 30 Km complessivi)", "€ 1,50 / Km"],
+                ["Mezzo Attrezzato Disabili (Con Sollevatore)", "Trasporto persona su carrozzina (qualsiasi tratta)", "€ 1,00 / Km"],
+                ["Diritto Fisso di Uscita e Sanificazione PMC", "Ambito urbano entro 15 Km dalla sede operativa", "€ 35,00 fisso"],
+                ["Diritto Fisso di Uscita e Sanificazione PMC", "Ambito comprensoriale entro 30 Km dalla sede operativa", "€ 50,00 fisso"],
+                ["Servizio di Sosta e Attesa Mezzo", "Prima ora di attesa in loco durante visita specialistica o esame", "€ 20,00 (frazionabile)"],
+                ["Servizio di Sosta e Attesa Mezzo", "Dalla seconda ora di attesa in poi (all'ora o frazione di ora)", "€ 15,00 / ora"],
+                ["Accompagnatore Familiare", "Presenza a bordo di n. 1 parente o accompagnatore", "GRATUITO"],
+                ["Spese Autostradali e Traghetti", "Oneri vivi documentati sostenuti durante la missione", "A piè di lista"]
+            ];
+
+            doc.autoTable({
+                startY: curY,
+                head: [['Configurazione Mezzo / Prestazione', 'Ambito Territoriale / Condizioni Applicative', 'Tariffa Riconosciuta']],
+                body: tariffaTableData,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 41, 59], fontSize: 7.2, fontStyle: 'bold' },
+                styles: { fontSize: 6.8, cellPadding: 2 },
+                columnStyles: { 0: { cellWidth: 62, fontStyle: 'bold' }, 1: { cellWidth: 88 }, 2: { cellWidth: 32, fontStyle: 'bold', halign: 'right' } }
+            });
+
+            curY = doc.lastAutoTable.finalY + 6;
+            doc.setFontSize(6.8);
+            doc.setFont("helvetica", "italic");
+            doc.setTextColor(100, 116, 139);
+            let tTariffaNote = "MODALITÀ DI COMPUTO DEI RIMBORSI:\n" +
+                    "- Criterio di Calcolo Chilometrico: I chilometri sono conteggiati rigorosamente sull'itinerario effettivo: Sede Narni Scalo – Prelievo – Struttura Sanitaria – Rientro alla Sede;\n" +
+                    "- Servizio di Attesa: La sosta include la permanenza del veicolo e dei soccorritori sul posto per garantire l'assistenza continua durante l'effettuazione della visita;\n" +
+                    "- Trasparenza Fiscale: Ogni importo viene quietanzato con regolare fattura o ricevuta detraibile ai fini fiscali secondo la normativa vigente (pagamenti tracciabili POS, Bonifico, Contanti).";
+            doc.text(doc.splitTextToSize(tTariffaNote, 182), 14, curY);
+
+            // =====================================================================
+            // PAGINA 5: IGIENE PMC E DIRITTI/DOVERI DELL'ASSISTITO
+            // =====================================================================
+            doc.addPage();
+            applicaTestataEPiede(5);
+            curY = 36;
+
+            drawSectionTitle("CAPITOLO 8 - PROTOCOLLO DI IGIENE E SANIFICAZIONE (PMC)", curY);
+            curY += 6;
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(51, 65, 85);
+
+            let capIgiene = "La biosicurezza del vano sanitario e la prevenzione delle infezioni crociate rappresentano un impegno inderogabile:\n" +
+                    "- SANIFICAZIONE ORDINARIA: Eseguita con cadenza giornaliera al termine di ciascun turno. Le superfici dure, la barella, i mancorrenti e i dispositivi elettromedicali vengono trattati mediante detersione e vaporizzazione di disinfettanti a base di cloro o sali quaternari d'ammonio autorizzati dal Ministero della Salute come Presidi Medico-Chirurgici (PMC). Ogni intervento viene annotato sul Registro Digitale di Sanificazione;\n" +
+                    "- SANIFICAZIONE STRAORDINARIA: Attivata tempestivamente in caso di trasporto di paziente affetto da patologia infettiva trasmissibile accertata o presunta, ovvero in presenza di contaminazione con liquidi biologici. Il mezzo viene posto temporaneamente Fuori Servizio, sottoposto a decontaminazione approfondita e tempo di contatto garantito prima della riammissione.";
+            doc.text(doc.splitTextToSize(capIgiene, 182), 14, curY);
+            curY += 34;
+
+            drawSectionTitle("CAPITOLO 9 - DIRITTI E DOVERI DELL'ASSISTITO E DEI FAMILIARI", curY);
+            curY += 6;
+            let capDiritti = 
+                "DIRITTI DELL'ASSISTITO:\n" +
+                "1. Ricevere assistenza tempestiva, qualificata e rispettosa della dignità e del pudore personale;\n" +
+                "2. Essere accudito da personale identificabile in divisa societaria ad alta visibilità e tesserino nominativo con foto;\n" +
+                "3. Ottenere la totale riservatezza sui dati sanitari, anamnestici e personali appresi durante il servizio (GDPR);\n" +
+                "4. Ricevere preventivi chiari, trasparenti e privi di voci di costo impreviste prima dell'avvio della missione;\n" +
+                "5. Esprimere liberamente valutazioni, suggerimenti o formali reclami sull'operato dell'Ente.\n\n" +
+                "DOVERI DELL'ASSISTITO E DEI FAMILIARI:\n" +
+                "1. Rispettare gli orari concordati e segnalare tempestivamente (almeno 12 ore prima) eventuali disdette del servizio programmato;\n" +
+                "2. Segnalare all'atto della prenotazione la presenza di barriere architettoniche (scale ripide, assenza di ascensore, ecc.);\n" +
+                "3. Tenere un comportamento corretto e rispettoso nei confronti dei volontari e soccorritori impegnati nel servizio;\n" +
+                "4. Non fumare a bordo e non interferire in alcun modo con le manovre di guida dell'autista soccorritore.";
+            doc.text(doc.splitTextToSize(capDiritti, 182), 14, curY);
+
+            // =====================================================================
+            // PAGINA 6: RECLAMI (RRP), PRIVACY GDPR E SOTTOSCRIZIONE UFFICIALE
+            // =====================================================================
+            doc.addPage();
+            applicaTestataEPiede(6);
+            curY = 36;
+
+            drawSectionTitle("CAPITOLO 10 - PROCEDURA RECLAMI E TUTELA DELL'UTENTE (REQ. 26-28)", curY);
+            curY += 6;
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(51, 65, 85);
+
+            let capReclami = 
+                "In conformità ai Requisiti 26, 27 e 28 del Regolamento Regionale Umbria 6/2024 e alla norma UNI EN ISO 9001:2015, Cuore d'Argento ODV riconosce il reclamo e le osservazioni dell'utenza quale strumento primario di verifica ed auto-correzione procedurale.\n\n" +
+                "MODALITÀ DI PRESENTAZIONE:\n" +
+                "- Compilazione del questionario digitale tramite scansione del QR Code presente all'interno del mezzo;\n" +
+                "- Consegna all'equipaggio del modulo cartaceo prestampato disponibile a bordo dell'ambulanza;\n" +
+                "- Invio di comunicazione scritta a mezzo raccomandata A/R alla sede legale o via PEC/Email all'indirizzo: odv.cuoredargento@gmail.com.\n\n" +
+                "ISTRUTTORIA E TERMINE VINCOLANTE DI RISCONTRO (OBBLIGO DEI 60 GIORNI):\n" +
+                "Ogni reclamo formale pervenuto viene protocollato nel Registro Non Conformità e Reclami. Il Referente della Qualità e la Direzione Sanitaria avviano l'istruttoria tecnica interna per accertare l'accaduto. L'Ente ha l'obbligo formale e giuridico di trasmettere all'assistito RISPOSTA SCRITTA, MOTIVATA ED ESAUSTIVA ENTRO E NON OLTRE 60 GIORNI dalla data di ricezione del reclamo.";
+            doc.text(doc.splitTextToSize(capReclami, 182), 14, curY);
+            curY += 46;
+
+            drawSectionTitle("CAPITOLO 11 - TRATTAMENTO DEI DATI E PRIVACY (REG. UE 2016/679)", curY);
+            curY += 6;
+            let capPrivacy = "I dati anagrafici e le informazioni sul quadro clinico dell'assistito sono trattati esclusivamente per l'esecuzione della missione di trasporto e per gli obblighi di legge connessi alla rendicontazione contabile verso la ASL o il Servizio Sanitario Nazionale. Il Titolare del Trattamento è l'Associazione Cuore d'Argento ODV. Tutti gli operatori abilitati all'uso dei tablet di bordo operano con PIN riservato e sono formalmente designati e vincolati all'obbligo del segreto d'ufficio.";
+            doc.text(doc.splitTextToSize(capPrivacy, 182), 14, curY);
+            curY += 26;
+
+            drawSectionTitle("CAPITOLO 12 - ADOZIONE, VALIDITÀ E PUBBLICAZIONE", curY);
+            curY += 6;
+            let capAdozione = "La presente Carta dei Servizi Istituzionale è stata formalmente adottata e convalidata congiuntamente dalla Direzione Sanitaria e dal Consiglio Direttivo dell'Associazione. Ha validità annuale ed è pubblicata presso la sede operativa di Narni Scalo (TR), affissa a bordo di ciascun veicolo della flotta e consultabile sul portale istituzionale dell'Ente.";
+            doc.text(doc.splitTextToSize(capAdozione, 182), 14, curY);
+            curY += 20;
+
+            // RIQUADRO FORMALE DELLE FIRME AUTOGRAFE
+            doc.setDrawColor(203, 213, 225);
+            doc.setLineWidth(0.4);
+            doc.line(14, curY, 196, curY);
+            curY += 7;
+
+            doc.setFontSize(7.2);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(71, 85, 105);
+            doc.text("Luogo e Data di Adozione Ufficiale: Narni Scalo (TR), lì " + new Date().toLocaleDateString('it-IT'), 14, curY);
+            doc.text("Atto di Deposito: Faldone Accreditamento Sanitario Regionale Umbria (Sezione 2 - Carta dei Servizi)", 14, curY + 4.5);
+
+            curY += 12;
+            doc.setFontSize(8.2);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(15, 23, 42);
+            doc.text("Per l'Ente (Il Legale Rappresentante)", 22, curY);
+            doc.text("Per il Presidio Sanitario (Il Direttore Sanitario)", 118, curY);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7.5);
+            doc.text("Dott. Michele Bee", 22, curY + 6);
+            doc.text("__________________________________________", 22, curY + 16);
+
+            doc.text("Dott. Medico Chirurgo Responsabile", 118, curY + 6);
+            doc.text("__________________________________________", 118, curY + 16);
+
+            // Salvataggio File PDF
+            doc.save("Carta_dei_Servizi_Integrale_Cuore_d_Argento_2026.pdf");
+            showToast("Carta dei Servizi Integrale (6 Pagine) scaricata con successo!");
+        };
+    </script>
+</body>
+</html>
