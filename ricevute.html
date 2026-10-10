@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuore d'Argento ODV - Gestione Ricevute & Proforma WhatsApp</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- Librerie PDF Ufficiali -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Firebase SDK Realtime -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #c62828;
+            --primary-dark: #8e0000;
+            --secondary: #1e293b;
+            --bg-body: #f8fafc;
+            --text-main: #334155;
+            --text-light: #64748b;
+            --border: #cbd5e1;
+            --success: #10b981;
+            --whatsapp: #25d366;
+            --whatsapp-dark: #128c7e;
+            --warning: #f59e0b;
+            --radius: 10px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+
+        .topbar { width: 100%; max-width: 1200px; background: white; border: 1px solid var(--border); padding: 14px 22px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn { padding: 9px 18px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; text-decoration: none; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-whatsapp { background: var(--whatsapp); color: white; }
+        .btn-whatsapp:hover { background: var(--whatsapp-dark); }
+        .btn-ghost { background: white; color: var(--text-main); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: #f1f5f9; }
+
+        .main-grid { width: 100%; max-width: 1200px; display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start; }
+        @media (max-width: 950px) { .main-grid { grid-template-columns: 1fr; } }
+
+        .card { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
+        .card-header { border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 18px; }
+        .card-header h2 { font-size: 1.15rem; color: var(--secondary); font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .card-header p { font-size: 0.78rem; color: var(--text-light); }
+
+        .recall-box { background: #eff6ff; border: 1.5px dashed #60a5fa; border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; display: flex; flex-direction: column; gap: 8px; }
+        .recall-title { font-size: 0.76rem; font-weight: 800; color: #1e40af; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+        .form-group label { font-size: 0.72rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.88rem; outline: none; background: #f8fafc; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); background: white; }
+
+        .bollo-alert { background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; font-size: 0.78rem; color: #92400e; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+
+        .table-container { width: 100%; border-radius: 10px; overflow-x: auto; margin-top: 15px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; }
+        th { background: #f8fafc; padding: 10px 12px; font-weight: 700; color: var(--secondary); border-bottom: 2px solid var(--border); }
+        td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+        tr:hover td { background: #f8fafc; }
+
+        .badge-prog { background: #fee2e2; color: var(--primary); font-weight: 800; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-family: monospace; }
+        
+        #toast { position: fixed; bottom: 25px; right: 25px; background: #1e293b; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); opacity: 0; pointer-events: none; transition: 0.3s; z-index: 9999; }
+        #toast.show { opacity: 1; pointer-events: auto; }
+    </style>
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="topbar-left">
+            <a href="preventivi.html" class="btn btn-ghost"><i class="fa-solid fa-arrow-left"></i> Calcolatore Preventivi</a>
+            <a href="iso9001%20accreditamento.html" class="btn btn-ghost"><i class="fa-solid fa-medal"></i> Gestione Qualità</a>
+            <div>
+                <h3 style="font-size: 0.95rem; font-weight: 800; color: var(--secondary);">Registro Fiscale Ricevute & Proforma WhatsApp</h3>
+                <p style="font-size: 0.75rem; color: var(--text-light);">Richiamo Automatico Preventivi • Numerazione Progressiva • Marca da Bollo</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-grid">
+        <!-- FORM DI EMISSIONE RICEVUTA E PROFORMA -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-file-invoice" style="color:var(--primary)"></i> Emetti Ricevuta o Invia Proforma</h2>
+                <p>Compila manualmente o carica istantaneamente i dati da un preventivo emesso</p>
+            </div>
+
+            <!-- BOX RICHIAMO PREVENTIVO ESISTENTE -->
+            <div class="recall-box">
+                <div class="recall-title">
+                    <i class="fa-solid fa-bolt"></i> Richiama Dati da Preventivo Esistente (Cloud)
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <select id="select-richiama-preventivo" style="flex: 1; padding: 9px 12px; border: 1px solid #93c5fd; border-radius: 8px; font-size: 0.85rem; background: white;" onchange="applicaDatiPreventivoSelezionato()">
+                        <option value="">-- Seleziona un preventivo per precompilare --</option>
+                    </select>
+                    <button type="button" class="btn btn-ghost" onclick="applicaDatiPreventivoSelezionato()" style="border-color:#93c5fd; color:#1d4ed8; background:white; padding: 8px 12px;" title="Ricarica i dati del preventivo">
+                        <i class="fa-solid fa-arrow-down-long"></i> Carica
+                    </button>
+                </div>
+            </div>
+
+            <form id="formRicevuta" onsubmit="emettiRicevuta(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Data di Emissione *</label>
+                        <input type="date" id="ric-data" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Numero Ricevuta (Progressivo / Anno) *</label>
+                        <input type="text" id="ric-numero" readonly style="font-weight: 800; color: var(--primary);">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nome e Cognome Assistito / Ricevente *</label>
+                        <input type="text" id="ric-nominativo" required placeholder="Es. Mario Rossi">
+                    </div>
+                    <div class="form-group">
+                        <label>Codice Fiscale Assistito (Detrazione 19%) *</label>
+                        <input type="text" id="ric-cf" required maxlength="16" placeholder="RSSMRA80A01L117X" style="text-transform:uppercase;">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Indirizzo di Residenza Assistito *</label>
+                        <input type="text" id="ric-indirizzo" required placeholder="Via, Civico, Comune (Prov)">
+                    </div>
+                    <div class="form-group">
+                        <label>Cellulare per WhatsApp (con prefisso)</label>
+                        <input type="tel" id="ric-telefono" placeholder="Es. 3331234567 o +393331234567">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Causale del Trasporto (Descrizione Prestazione) *</label>
+                    <textarea id="ric-causale" rows="2" required placeholder="Rimborso spese vive per trasporto sanitario protetto da Narni a Ospedale S. Maria di Terni e sosta in loco."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Importo Rimborso Spese Trasporto (€) *</label>
+                        <input type="number" id="ric-importo" step="0.5" min="1" required placeholder="Es. 80.00" oninput="aggiornaCalcoloBollo()">
+                    </div>
+                    <div class="form-group">
+                        <label>Metodo di Pagamento *</label>
+                        <select id="ric-metodo" required>
+                            <option value="POS / Carta di Credito">POS / Carta di Credito (Tracciabile)</option>
+                            <option value="Bonifico Bancario">Bonifico Bancario (Tracciabile)</option>
+                            <option value="Contanti">Contanti</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- AVVISO MARCA DA BOLLO AUTOMATICA -->
+                <div class="bollo-alert" id="box-bollo" style="display: none;">
+                    <i class="fa-solid fa-stamp"></i>
+                    <span><strong>Importo superiore a 77,47 €:</strong> Assolta marca da bollo di <strong>2,00 €</strong> ex D.P.R. 642/1972 addebitata in ricevuta.</span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Marca da Bollo (€)</label>
+                        <input type="text" id="ric-bollo" value="0.00 €" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>TOTALE QUIETANZATO (€)</label>
+                        <input type="text" id="ric-totale" value="0.00 €" readonly style="font-weight: 800; font-size: 1.1rem; color: var(--primary);">
+                    </div>
+                </div>
+
+                <!-- AZIONI RAPIDE: PROFORMA WHATSAPP E EMISSIONE -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <button type="button" class="btn btn-whatsapp" style="justify-content: center; padding: 13px;" onclick="inviaProformaWhatsAppDalForm()">
+                        <i class="fa-brands fa-whatsapp" style="font-size: 1.1rem;"></i> Proforma WhatsApp
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="justify-content: center; padding: 13px;">
+                        <i class="fa-solid fa-print"></i> Emetti & Salva (PDF)
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- STORICO RICEVUTE ANNUALI EMESSE -->
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <h2><i class="fa-solid fa-book" style="color:var(--primary)"></i> Registro Cronologico Ricevute</h2>
+                    <p>Archivio fiscale Cloud dell'Associazione</p>
+                </div>
+                <button class="btn btn-ghost" onclick="esportaRegistroAnnualitaPDF()" style="padding: 6px 12px; font-size: 0.78rem;">
+                    <i class="fa-solid fa-file-pdf"></i> Esporta Registro (PDF)
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N. Ricevuta</th>
+                            <th>Data</th>
+                            <th>Assistito</th>
+                            <th>Importo</th>
+                            <th style="text-align: right;">Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ricevute-corpo">
+                        <tr><td colspan="5" style="text-align: center; color: var(--text-light); padding: 25px;">Caricamento storico in corso...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toast-msg">Operazione completata!</span></div>
+
+    <script>
+        const societaInfo = {
+            nome: "ASSOCIAZIONE DI VOLONTARIATO CUORE D'ARGENTO O.D.V.",
+            sede: "Via della Stazione n. 51 – 05035 Narni Scalo (TR)",
+            cfPiva: "C.F. 91086460556 - P.IVA 01725470551",
+            runts: "RUNTS Det. n. 870/2025 Regione Umbria",
+            aut: "Aut. Esercizio n. 8642 del 19/08/2025",
+            email: "odv.cuoredargento@gmail.com"
+        };
+
+        let ricevute = [];
+        let preventivi = [];
+        let dbRootPath = 'cuore_argento_db';
+        let database = null;
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            if (t) {
+                document.getElementById('toast-msg').innerText = msg;
+                t.classList.add('show');
+                setTimeout(function() { t.classList.remove('show'); }, 3000);
+            }
+        }
+
+        function estraiDati(nodo) {
+            if (!nodo) return [];
+            if (Array.isArray(nodo)) return nodo.filter(function(i) { return i !== null && typeof i === 'object'; });
+            return Object.keys(nodo).map(function(k) { 
+                let item = nodo[k]; 
+                if (item && typeof item === 'object') item.id = item.id || k; 
+                return item; 
+            }).filter(Boolean);
+        }
+
+        function calcolaProssimoNumero() {
+            const annoCorrente = new Date().getFullYear();
+            const ricevuteAnno = ricevute.filter(function(r) {
+                return r.anno === annoCorrente || (r.numero && r.numero.endsWith('/' + annoCorrente));
+            });
+            const progressivo = ricevuteAnno.length + 1;
+            const formato = progressivo.toString().padStart(2, '0') + "/" + annoCorrente;
+            const ricNumEl = document.getElementById('ric-numero');
+            if (ricNumEl) ricNumEl.value = formato;
+        }
+
+        function aggiornaCalcoloBollo() {
+            const impEl = document.getElementById('ric-importo');
+            const importo = impEl ? (parseFloat(impEl.value) || 0) : 0;
+            const boxBollo = document.getElementById('box-bollo');
+            let bollo = 0;
+
+            if (importo > 77.47) {
+                bollo = 2.00;
+                if (boxBollo) boxBollo.style.display = 'flex';
+            } else {
+                if (boxBollo) boxBollo.style.display = 'none';
+            }
+
+            const totale = importo + bollo;
+            const bEl = document.getElementById('ric-bollo');
+            const totEl = document.getElementById('ric-totale');
+            if (bEl) bEl.value = bollo.toFixed(2) + " €";
+            if (totEl) totEl.value = totale.toFixed(2) + " €";
+        }
+
+        // Connessione Firebase
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDhi3SRh2mDqz8_T03xYVq4XtcRiAL7IF0",
+                authDomain: "cuore-d-argento.firebaseapp.com",
+                databaseURL: "https://cuore-d-argento-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "cuore-d-argento",
+                storageBucket: "cuore-d-argento.firebasestorage.app",
+                messagingSenderId: "271690439864",
+                appId: "1:271690439864:web:17b36ef2c5ab4263d3684d"
+            };
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+
+            database.ref().on('value', function(snapshot) {
+                const rawData = snapshot.val() || {};
+                let data = rawData.cuore_argento_db || rawData;
+
+                let nodRic = data.ricevute_rimborsi || rawData.ricevute_rimborsi || {};
+                ricevute = estraiDati(nodRic);
+
+                let nodPrev = data.preventivi_emessi || rawData.preventivi_emessi || {};
+                preventivi = estraiDati(nodPrev);
+
+                renderTabellaRicevute();
+                calcolaProssimoNumero();
+                popolaSelectPreventivi();
+                verificaParametroUrlPreventivo();
+            });
+        } catch(e) { console.error("Firebase:", e); }
+
+        window.addEventListener('load', function() {
+            const dataEl = document.getElementById('ric-data');
+            if (dataEl && !dataEl.value) {
+                dataEl.value = new Date().toISOString().split('T')[0];
+            }
+        });
+
+        // POPOLA MENU A TENDINA PREVENTIVI
+        function popolaSelectPreventivi() {
+            const sel = document.getElementById('select-richiama-preventivo');
+            if (!sel) return;
+            const prevVal = sel.value;
+
+            let html = '<option value="">-- Seleziona un preventivo per precompilare --</option>';
+
+            const ordinati = [].concat(preventivi).sort(function(a, b) {
+                return new Date(b.data || 0) - new Date(a.data || 0);
+            });
+
+            ordinati.forEach(function(p) {
+                const dataFmt = p.data ? new Date(p.data).toLocaleDateString('it-IT') : '-';
+                const statoBadge = p.stato === 'Accettato' ? ' [CONFERMATO]' : '';
+                html += `<option value="${p.id}">${p.numero || 'PREV'} - ${dataFmt} - ${p.cliente || 'Assistito'} (Totale: € ${parseFloat(p.totale || 0).toFixed(2)})${statoBadge}</option>`;
+            });
+
+            sel.innerHTML = html;
+            if (prevVal) sel.value = prevVal;
+        }
+
+        // CARICA I DATI DEL PREVENTIVO SELEZIONATO
+        window.applicaDatiPreventivoSelezionato = function(idSpecifico) {
+            const sel = document.getElementById('select-richiama-preventivo');
+            const targetId = idSpecifico || (sel ? sel.value : '');
+
+            if (!targetId) return;
+
+            const p = preventivi.find(function(x) { return String(x.id) === String(targetId); });
+            if (!p) return;
+
+            // Compila Assistito
+            const nomEl = document.getElementById('ric-nominativo');
+            if (nomEl && p.cliente && p.cliente !== "Gentile Utente") nomEl.value = p.cliente;
+
+            // Compila Telefono
+            const telEl = document.getElementById('ric-telefono');
+            if (telEl && p.tel) telEl.value = p.tel;
+
+            // Compila Indirizzo se presente nel punto di prelievo
+            const indEl = document.getElementById('ric-indirizzo');
+            if (indEl && !indEl.value && p.prelievo && p.prelievo !== "Narni Scalo") {
+                indEl.value = p.prelievo;
+            }
+
+            // Compila Causale dettagliata con specifiche del viaggio
+            const causEl = document.getElementById('ric-causale');
+            if (causEl) {
+                const mezzo = p.mezzoDesc || "Ambulanza Tipo B";
+                const tratta = p.itinerario ? p.itinerario : (p.dest ? ("Destinazione: " + p.dest) : "Trasporto sanitario");
+                const km = (p.kmTotali && p.kmTotali > 0) ? ` (${p.kmTotali} Km)` : "";
+                const rifNum = p.numero ? ` Rif. ${p.numero}` : "";
+                
+                causEl.value = `Rimborso spese per trasporto sanitario protetto (${mezzo}) - ${tratta}${km}.${rifNum}`;
+            }
+
+            // Compila Importo (totale concordato nel preventivo)
+            const impEl = document.getElementById('ric-importo');
+            if (impEl && p.totale) {
+                impEl.value = parseFloat(p.totale).toFixed(2);
+                aggiornaCalcoloBollo();
+            }
+
+            showToast("Dati del preventivo " + (p.numero || "") + " importati con successo!");
+        };
+
+        // Verifica parametro GET (es. ricevute.html?prev_id=PREV-2026_1234)
+        function verificaParametroUrlPreventivo() {
+            const params = new URLSearchParams(window.location.search);
+            const prevId = params.get('prev_id') || params.get('preventivo_id');
+            if (prevId) {
+                const sel = document.getElementById('select-richiama-preventivo');
+                if (sel) sel.value = prevId;
+                applicaDatiPreventivoSelezionato(prevId);
+            }
+        }
+
+        function renderTabellaRicevute() {
+            const tbody = document.getElementById('ricevute-corpo');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            if (ricevute.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-light); padding: 25px;">Nessuna ricevuta emessa. Compila il modulo a sinistra per iniziare.</td></tr>';
+                return;
+            }
+
+            ricevute.sort(function(a,b) { return (b.progressivo || 0) - (a.progressivo || 0); }).forEach(function(r) {
+                tbody.innerHTML += '<tr>' +
+                    '<td><span class="badge-prog">' + r.numero + '</span></td>' +
+                    '<td>' + (r.data ? new Date(r.data).toLocaleDateString('it-IT') : '-') + '</td>' +
+                    '<td><strong>' + r.nominativo + '</strong><br><small style="color:var(--text-light)">' + (r.cf || '') + '</small></td>' +
+                    '<td><strong>€ ' + parseFloat(r.totale).toFixed(2) + '</strong></td>' +
+                    '<td style="text-align: right; white-space: nowrap;">' +
+                        '<button class="btn btn-ghost" style="padding: 4px 8px; color: var(--whatsapp);" onclick="inviaWhatsAppDaStorico(\'' + r.id + '\')" title="Invia Riepilogo su WhatsApp"><i class="fa-brands fa-whatsapp"></i></button> ' +
+                        '<button class="btn btn-ghost" style="padding: 4px 8px; color: var(--primary);" onclick="ristampaRicevuta(\'' + r.id + '\')" title="Ristampa Ricevuta PDF"><i class="fa-solid fa-print"></i></button> ' +
+                        '<button class="btn btn-ghost" style="padding: 4px 8px; color: var(--danger);" onclick="eliminaRicevuta(\'' + r.id + '\')" title="Annulla"><i class="fa-solid fa-trash"></i></button>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+
+        // COMPOSIZIONE TESTO WHATSAPP
+        function componiTestoWhatsApp(dati, isProforma) {
+            const tipoDoc = isProforma ? "*PROFORMA DI RICEVUTA RIMBORSO SPESE*" : ("*RICEVUTA DI RIMBORSO SPESE N. " + dati.numero + "*");
+            const dataFmt = dati.data ? new Date(dati.data).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
+            
+            let testo = "🚑 *" + societaInfo.nome + "*\n" +
+                        "📍 Sede: " + societaInfo.sede + "\n" +
+                        "📄 " + societaInfo.cfPiva + " | " + societaInfo.runts + "\n" +
+                        "-----------------------------------------\n" +
+                        tipoDoc + "\n" +
+                        "📅 *Data:* " + dataFmt + "\n" +
+                        (dati.numero ? ("🔢 *Rif. Progressivo:* " + dati.numero + "\n") : "") +
+                        "-----------------------------------------\n" +
+                        "👤 *Spett.le Assistito:* " + dati.nominativo + "\n" +
+                        "🆔 *C.F.:* " + dati.cf + "\n" +
+                        "🏠 *Residenza:* " + (dati.indirizzo || "-") + "\n\n" +
+                        "📝 *Causale del Trasporto:*\n" + dati.causale + "\n\n" +
+                        "💰 *Dettaglio Importi:*\n" +
+                        "• Rimborso Spese Trasporto: € " + parseFloat(dati.importo).toFixed(2) + "\n";
+            
+            if (dati.bollo > 0) {
+                testo += "• Imposta di Bollo (D.P.R. 642/72): € " + parseFloat(dati.bollo).toFixed(2) + "\n";
+            }
+
+            testo += "💳 *TOTALE QUIETANZATO: € " + parseFloat(dati.totale).toFixed(2) + "*\n" +
+                     "Modalità: " + (dati.metodo || "POS / Tracciabile") + "\n" +
+                     "-----------------------------------------\n" +
+                     "ℹ️ *Informazioni Fiscali:*\n" +
+                     "_Operazione esente IVA ex Art. 10, c. 1, n. 14 D.P.R. 633/72 e D.Lgs. 117/17. Spesa sanitaria detraibile al 19% ai fini IRPEF con pagamento tracciabile._\n\n" +
+                     "📞 Segreteria: " + societaInfo.email;
+
+            return testo;
+        }
+
+        function apriWhatsApp(telefono, messaggio) {
+            let numeroPulito = (telefono || "").replace(/[^0-9]/g, '');
+            if (numeroPulito.length > 0 && !numeroPulito.startsWith('39') && numeroPulito.length <= 10) {
+                numeroPulito = '39' + numeroPulito;
+            }
+
+            const encoded = encodeURIComponent(messaggio);
+            const targetUrl = (numeroPulito.length >= 10)
+                ? `https://api.whatsapp.com/send?phone=${numeroPulito}&text=${encoded}`
+                : `https://api.whatsapp.com/send?text=${encoded}`;
+
+            const a = document.createElement('a');
+            a.href = targetUrl;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        window.inviaProformaWhatsAppDalForm = function() {
+            const nominativo = document.getElementById('ric-nominativo').value.trim();
+            const cf = document.getElementById('ric-cf').value.trim().toUpperCase();
+            const causale = document.getElementById('ric-causale').value.trim();
+            const importo = parseFloat(document.getElementById('ric-importo').value) || 0;
+            const dataEmiss = document.getElementById('ric-data').value;
+            const numero = document.getElementById('ric-numero').value;
+            const indirizzo = document.getElementById('ric-indirizzo').value.trim();
+            const metodo = document.getElementById('ric-metodo').value;
+            const telefono = document.getElementById('ric-telefono').value.trim();
+
+            if (!nominativo || !cf || !causale || importo <= 0) {
+                alert("Compila almeno Nominativo, Codice Fiscale, Causale e Importo per generare la Proforma WhatsApp.");
+                return;
+            }
+
+            const bollo = (importo > 77.47) ? 2.00 : 0.00;
+            const totale = importo + bollo;
+
+            const datiProforma = {
+                data: dataEmiss,
+                numero: numero + " (PROFORMA)",
+                nominativo: nominativo,
+                cf: cf,
+                indirizzo: indirizzo,
+                causale: causale,
+                importo: importo,
+                bollo: bollo,
+                totale: totale,
+                metodo: metodo
+            };
+
+            const testo = componiTestoWhatsApp(datiProforma, true);
+            apriWhatsApp(telefono, testo);
+            showToast("Proforma aperta su WhatsApp!");
+        };
+
+        window.inviaWhatsAppDaStorico = function(id) {
+            const r = ricevute.find(function(x) { return String(x.id) === String(id); });
+            if (!r) return;
+
+            let tel = prompt("Inserisci il numero di telefono WhatsApp (o premi OK per scegliere il contatto da WhatsApp):", r.telefono || "");
+            if (tel === null) return;
+
+            const testo = componiTestoWhatsApp(r, false);
+            apriWhatsApp(tel, testo);
+            showToast("Riepilogo Ricevuta aperto su WhatsApp!");
+        };
+
+        // EMISSIONE DEFINITIVA E SALVATAGGIO
+        window.emettiRicevuta = function(e) {
+            e.preventDefault();
+            const dataEmiss = document.getElementById('ric-data').value;
+            const numero = document.getElementById('ric-numero').value;
+            const nominativo = document.getElementById('ric-nominativo').value.trim();
+            const cf = document.getElementById('ric-cf').value.trim().toUpperCase();
+            const indirizzo = document.getElementById('ric-indirizzo').value.trim();
+            const causale = document.getElementById('ric-causale').value.trim();
+            const importo = parseFloat(document.getElementById('ric-importo').value) || 0;
+            const metodo = document.getElementById('ric-metodo').value;
+            const telefono = document.getElementById('ric-telefono').value.trim();
+
+            const annoCorrente = new Date(dataEmiss).getFullYear();
+            const progressivo = parseInt(numero.split('/')[0], 10);
+            const bollo = (importo > 77.47) ? 2.00 : 0.00;
+            const totale = importo + bollo;
+
+            const nuovaRicevuta = {
+                id: "RIC_" + Date.now(),
+                numero: numero,
+                progressivo: progressivo,
+                anno: annoCorrente,
+                data: dataEmiss,
+                nominativo: nominativo,
+                cf: cf,
+                indirizzo: indirizzo,
+                telefono: telefono,
+                causale: causale,
+                importo: importo,
+                bollo: bollo,
+                totale: totale,
+                metodo: metodo,
+                emesso_da: "Cuore d'Argento ODV"
+            };
+
+            if (database) {
+                database.ref(dbRootPath + '/ricevute_rimborsi/' + nuovaRicevuta.id).set(nuovaRicevuta).then(function() {
+                    showToast("Ricevuta N. " + numero + " emessa e registrata!");
+                    stampaRicevutaPDF(nuovaRicevuta);
+                    document.getElementById('formRicevuta').reset();
+                    document.getElementById('ric-data').value = new Date().toISOString().split('T')[0];
+                    aggiornaCalcoloBollo();
+                }).catch(function(err) {
+                    alert("Errore salvataggio: " + err.message);
+                });
+            } else {
+                stampaRicevutaPDF(nuovaRicevuta);
+            }
+        };
+
+        window.eliminaRicevuta = function(id) {
+            if (!confirm("Attenzione: la cancellazione di una ricevuta fiscale può creare un salto nella numerazione progressiva. Confermi l'eliminazione?")) return;
+            if (database) {
+                database.ref(dbRootPath + '/ricevute_rimborsi/' + id).remove().then(function() {
+                    showToast("Ricevuta eliminata.");
+                });
+            }
+        };
+
+        window.ristampaRicevuta = function(id) {
+            const r = ricevute.find(function(x) { return String(x.id) === String(id); });
+            if (r) stampaRicevutaPDF(r);
+        };
+
+        // MOTORE STAMPA PDF RICEVUTA
+        function stampaRicevutaPDF(r) {
+            let jsPdfLib = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : window.jsPDF;
+            if (!jsPdfLib) {
+                alert("Libreria PDF non pronta. Ricarica la pagina.");
+                return;
+            }
+
+            const doc = new jsPdfLib('p', 'mm', 'a4');
+
+            function disegnaRicevuta(yOffset, copiaTipo) {
+                doc.setFontSize(11);
+                doc.setTextColor(198, 40, 40);
+                doc.setFont("helvetica", "bold");
+                doc.text(societaInfo.nome, 14, yOffset + 10);
+
+                doc.setFontSize(6.8);
+                doc.setTextColor(80, 80, 80);
+                doc.setFont("helvetica", "normal");
+                doc.text("Sede Operativa: " + societaInfo.sede + " | " + societaInfo.cfPiva, 14, yOffset + 14);
+                doc.text(societaInfo.runts + " | " + societaInfo.aut, 14, yOffset + 17.5);
+                doc.text("Ente del Terzo Settore non commerciale (D.Lgs. 117/2017)", 14, yOffset + 21);
+
+                doc.setDrawColor(198, 40, 40);
+                doc.setLineWidth(0.6);
+                doc.line(14, yOffset + 23.5, 196, yOffset + 23.5);
+
+                doc.setFontSize(9.5);
+                doc.setTextColor(15, 23, 42);
+                doc.setFont("helvetica", "bold");
+                doc.text("RICEVUTA DI RIMBORSO SPESE N. " + r.numero, 14, yOffset + 30);
+                doc.text("Data: " + (r.data ? new Date(r.data).toLocaleDateString('it-IT') : '-'), 160, yOffset + 30);
+
+                doc.setFontSize(7.5);
+                doc.setFont("helvetica", "italic");
+                doc.setTextColor(100, 116, 139);
+                doc.text("(" + copiaTipo + ")", 14, yOffset + 34);
+
+                doc.setDrawColor(203, 213, 225);
+                doc.setFillColor(248, 250, 252);
+                doc.roundedRect(14, yOffset + 37, 182, 18, 2, 2, 'FD');
+
+                doc.setFontSize(7.5);
+                doc.setTextColor(15, 23, 42);
+                doc.setFont("helvetica", "bold");
+                doc.text("Rilasciata a: " + r.nominativo, 18, yOffset + 43);
+                doc.text("Codice Fiscale: " + r.cf, 120, yOffset + 43);
+
+                doc.setFont("helvetica", "normal");
+                doc.text("Residente in: " + r.indirizzo, 18, yOffset + 49);
+                doc.text("Pagamento: " + (r.metodo || "Tracciabile"), 120, yOffset + 49);
+
+                const rows = [
+                    [
+                        r.causale + "\n(Operazione effettuata nell'ambito delle finalità istituzionali dell'ODV)",
+                        "€ " + parseFloat(r.importo).toFixed(2)
+                    ]
+                ];
+
+                if (r.bollo > 0) {
+                    rows.push([
+                        "Imposta di Bollo assolta ai sensi del D.P.R. 642/1972 (Importo > € 77,47)",
+                        "€ 2.00"
+                    ]);
+                }
+
+                if (typeof doc.autoTable === 'function') {
+                    doc.autoTable({
+                        startY: yOffset + 58,
+                        head: [['Descrizione della Prestazione / Causale', 'Importo']],
+                        body: rows,
+                        theme: 'grid',
+                        headStyles: { fillColor: [30, 41, 59], fontSize: 7.2, fontStyle: 'bold' },
+                        styles: { fontSize: 7, cellPadding: 2 },
+                        columnStyles: { 0: { cellWidth: 152 }, 1: { cellWidth: 30, halign: 'right', fontStyle: 'bold' } }
+                    });
+                }
+
+                let tableY = yOffset + 85;
+                if (doc.lastAutoTable && doc.lastAutoTable.finalY) {
+                    tableY = doc.lastAutoTable.finalY + 4;
+                }
+
+                doc.setFontSize(9);
+                doc.setTextColor(198, 40, 40);
+                doc.setFont("helvetica", "bold");
+                doc.text("TOTALE QUIETANZATO: € " + parseFloat(r.totale).toFixed(2), 130, tableY + 4);
+
+                doc.setFontSize(6.2);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(71, 85, 105);
+                const txtLegge = "Operazione esente IVA ex Art. 10, c. 1, n. 14 D.P.R. 633/72 e D.Lgs. 117/17. " +
+                                "Spesa sanitaria detraibile al 19% ai fini IRPEF con pagamento tracciabile.";
+                doc.text(doc.splitTextToSize(txtLegge, 130), 14, tableY + 2);
+
+                doc.setFontSize(6.8);
+                doc.setTextColor(15, 23, 42);
+                doc.text("Per l'Associazione Cuore d'Argento ODV", 140, tableY + 12);
+                doc.text("___________________________________", 140, tableY + 20);
+            }
+
+            disegnaRicevuta(0, "Copia per l'Assistito - Valida ai fini fiscali");
+
+            doc.setDrawColor(180, 180, 180);
+            doc.setLineDash([2, 2], 0);
+            doc.line(10, 148, 200, 148);
+            doc.setFontSize(6);
+            doc.setTextColor(150, 150, 150);
+            doc.text("✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -", 50, 147.5);
+            doc.setLineDash([], 0);
+
+            disegnaRicevuta(150, "Copia per l'Archivio Amministrativo dell'Ente");
+
+            doc.save("Ricevuta_ODV_" + r.numero.replace(/\//g, '_') + ".pdf");
+            showToast("Ricevuta PDF scaricata!");
+        }
+
+        window.esportaRegistroAnnualitaPDF = function() {
+            if (ricevute.length === 0) {
+                alert("Nessuna ricevuta presente da esportare.");
+                return;
+            }
+
+            let jsPdfLib = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : window.jsPDF;
+            const doc = new jsPdfLib('p', 'mm', 'a4');
+
+            doc.setFontSize(12);
+            doc.setTextColor(198, 40, 40);
+            doc.setFont("helvetica", "bold");
+            doc.text(societaInfo.nome, 14, 15);
+
+            doc.setFontSize(7.5);
+            doc.setTextColor(80, 80, 80);
+            doc.setFont("helvetica", "normal");
+            doc.text("REGISTRO GENERALE CRONOLOGICO DELLE RICEVUTE DI RIMBORSO SPESA", 14, 20);
+            doc.text("Anno Fiscale: " + new Date().getFullYear() + " | Operazioni non commerciali D.Lgs. 117/2017", 14, 24);
+            doc.line(14, 26, 196, 26);
+
+            const righe = [].concat(ricevute).sort(function(a,b) { return (a.progressivo||0) - (b.progressivo||0); }).map(function(r) {
+                return [
+                    r.numero,
+                    r.data ? new Date(r.data).toLocaleDateString('it-IT') : '-',
+                    r.nominativo,
+                    r.cf || '-',
+                    r.metodo || 'Tracciabile',
+                    "€ " + parseFloat(r.importo).toFixed(2),
+                    "€ " + parseFloat(r.bollo || 0).toFixed(2),
+                    "€ " + parseFloat(r.totale).toFixed(2)
+                ];
+            });
+
+            if (typeof doc.autoTable === 'function') {
+                doc.autoTable({
+                    startY: 30,
+                    head: [['N. Ricevuta', 'Data', 'Assistito', 'Codice Fiscale', 'Metodo', 'Imponibile', 'Bollo', 'Totale']],
+                    body: righe,
+                    theme: 'grid',
+                    headStyles: { fillColor: [30, 41, 59], fontSize: 7, fontStyle: 'bold' },
+                    styles: { fontSize: 6.5, cellPadding: 2 }
+                });
+            }
+
+            let finalY = 220;
+            if (doc.lastAutoTable && doc.lastAutoTable.finalY) {
+                finalY = doc.lastAutoTable.finalY + 12;
+            }
+
+            doc.setFontSize(7.5);
+            doc.setFont("helvetica", "bold");
+            const totaleComplessivo = ricevute.reduce(function(acc, x) { return acc + (parseFloat(x.totale) || 0); }, 0);
+            doc.text("TOTALE GENERALE INCASSATO A REGISTRO: € " + totaleComplessivo.toFixed(2), 14, finalY);
+
+            doc.setFont("helvetica", "normal");
+            doc.text("Firma del Presidente / Tesoriere per attestazione di conformità: _______________________", 14, finalY + 12);
+
+            doc.save("Registro_Ricevute_Cuore_d_Argento_" + new Date().getFullYear() + ".pdf");
+            showToast("Registro Ricevute Annuale Esportato!");
+        };
+    </script>
+</body>
+</html>
