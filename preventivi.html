@@ -36,8 +36,10 @@
         body { background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
 
         .topbar { width: 100%; max-width: 1150px; background: white; border: 1px solid var(--border); padding: 14px 22px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
-        .topbar-left { display: flex; align-items: center; gap: 14px; }
-        .btn { padding: 9px 18px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; text-decoration: none; transition: 0.2s; }
+        .topbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .btn { padding: 9px 16px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; text-decoration: none; transition: 0.2s; }
+        .btn-home { background: var(--secondary); color: white; }
+        .btn-home:hover { background: #0f172a; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-whatsapp { background: var(--whatsapp); color: white; }
@@ -89,7 +91,7 @@
 </head>
 <body>
 
-    <!-- SCHERMATA DEDICATA PER IL PAZIENTE CHE APRE IL LINK DA WHATSAPP -->
+    <!-- SCHERMATA DEDICATA PER IL PAZIENTE DA WHATSAPP -->
     <div id="view-accettazione-cliente">
         <img src="logo cuore d'argento.jpg" alt="Cuore d'Argento" style="height: 55px; margin-bottom: 12px;" onerror="this.src='logo cuore d\'argento.jpg'">
         <h2 style="font-size: 1.3rem; color: var(--secondary); font-weight: 800;">Conferma Prenotazione Viaggio</h2>
@@ -128,12 +130,10 @@
     <div id="view-operatore" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         <header class="topbar">
             <div class="topbar-left">
-                <a href="carta_servizi.html" class="btn btn-ghost"><i class="fa-solid fa-arrow-left"></i> Carta dei Servizi</a>
+                <!-- TASTO DI RITORNO ALLA DASHBOARD INDEX.HTML -->
+                <a href="index.html" class="btn btn-home"><i class="fa-solid fa-desktop"></i> Dashboard</a>
+                <a href="carta_servizi.html" class="btn btn-ghost"><i class="fa-solid fa-arrow-left"></i> Carta Servizi</a>
                 <a href="ricevute.html" class="btn btn-ghost"><i class="fa-solid fa-file-invoice-dollar"></i> Ricevute</a>
-                <div>
-                    <h3 style="font-size: 0.95rem; font-weight: 800; color: var(--secondary);">Preventivatore & Accettazione Automatica</h3>
-                    <p style="font-size: 0.75rem; color: var(--text-light);">Partenza fissa da Narni Scalo • Controllo e Calcolo Km Stradali Effettivi</p>
-                </div>
             </div>
             <div style="display: flex; gap: 8px;">
                 <button class="btn btn-whatsapp" onclick="inviaPreventivoWhatsApp()">
@@ -190,7 +190,7 @@
                         <div class="itinerary-icon icon-start"><i class="fa-solid fa-person-walking-luggage"></i></div>
                         <div style="flex:1;">
                             <label style="font-size:0.68rem; font-weight:800; color:var(--text-light); text-transform:uppercase;">2. Punto di Prelievo Assistito *</label>
-                            <input type="text" id="route-prelievo" placeholder="Es. Narni Scalo, Terni, o via di residenza" style="border:1.5px solid var(--border); border-radius:6px; padding:8px 10px; width:100%; font-size:0.85rem;">
+                            <input type="text" id="route-prelievo" placeholder="Es. Narni, Terni, o via di residenza" style="border:1.5px solid var(--border); border-radius:6px; padding:8px 10px; width:100%; font-size:0.85rem;">
                         </div>
                     </div>
 
@@ -228,7 +228,6 @@
                         </label>
                     </div>
 
-                    <!-- IL PULSANTE DI CONTROLLO E CALCOLO -->
                     <button type="button" class="btn-calc-routing" id="btn-calc-routing" onclick="calcolaPercorsoOSRM()">
                         <i class="fa-solid fa-calculator"></i> <span id="btn-calc-text">Calcola / Controlla Percorso (Km)</span>
                     </button>
@@ -358,7 +357,6 @@
 
         const COORDS_SEDE_NARNI = [42.5208, 12.5278];
 
-        // DIZIONARIO LUOGHI FREQUENTI PER RISOLUZIONE IMMEDIATA (0 ms, zero errori di rete)
         const LUOGHI_FREQUENTI = {
             "narni scalo": [42.5208, 12.5278],
             "viale della stazione": [42.5208, 12.5278],
@@ -414,7 +412,6 @@
             if (el) el.innerText = val;
         }
 
-        // Inizializzazione Firebase Difensiva
         try {
             if (typeof firebase !== 'undefined') {
                 const firebaseConfig = {
@@ -446,7 +443,6 @@
             ricalcolaCosti();
         }
 
-        // Inizializza subito sia su DOMContentLoaded sia su load
         document.addEventListener('DOMContentLoaded', inizializzaCampi);
         window.addEventListener('load', function() {
             const params = new URLSearchParams(window.location.search);
@@ -561,19 +557,16 @@
             ricalcolaCosti();
         };
 
-        // MOTORE DI GEOCODIFICA IBRIDO ULTRA-AFFIDABILE
         async function geocodificaIndirizzo(indirizzo) {
             if (!indirizzo || !indirizzo.trim()) return null;
             const clean = indirizzo.toLowerCase().trim();
 
-            // 1. Controllo immediato nel dizionario integrato (0 ms)
             for (const [chiave, coords] of Object.entries(LUOGHI_FREQUENTI)) {
                 if (clean.includes(chiave)) {
                     return coords;
                 }
             }
 
-            // 2. Prova con Photon (Komoot OSM)
             try {
                 let q = indirizzo;
                 if (!q.toLowerCase().includes('italia')) q += ', Umbria, Italia';
@@ -588,7 +581,6 @@
                 console.warn("Photon lookup:", e);
             }
 
-            // 3. Prova con Nominatim OpenStreetMap (senza custom headers)
             try {
                 let q = indirizzo;
                 if (!q.toLowerCase().includes('italia')) q += ', Italia';
@@ -605,7 +597,6 @@
             return null;
         }
 
-        // Calcolo distanza aerea con correttore curvatura stradale (Haversine 1.30x)
         function stimaDistanzaStradale(c1, c2) {
             const R = 6371;
             const dLat = (c2[0] - c1[0]) * Math.PI / 180;
@@ -617,14 +608,10 @@
             return Math.ceil(R * c * 1.30);
         }
 
-        // =========================================================================
-        // CALCOLO / CONTROLLO PERCORSO (100% FUNZIONANTE)
-        // =========================================================================
         window.calcolaPercorsoOSRM = async function() {
             let prelievo = (document.getElementById('route-prelievo') ? document.getElementById('route-prelievo').value.trim() : '');
             let dest = (document.getElementById('route-dest') ? document.getElementById('route-dest').value.trim() : '');
 
-            // Fallback se il prelievo non è specificato
             if (!prelievo) {
                 prelievo = "Narni Scalo (TR)";
                 const prelEl = document.getElementById('route-prelievo');
@@ -656,7 +643,6 @@
                     } else {
                         let coords = await geocodificaIndirizzo(puntiNomi[i]);
                         if (!coords) {
-                            // Fallback coordinate Narni/Terni per non bloccare
                             coords = [42.5636, 12.6473];
                         }
                         coordinateArray.push(coords);
@@ -666,7 +652,6 @@
                 let kmTotali = 0;
                 let calcolatoViaWeb = false;
 
-                // Tenta il routing online OSRM
                 try {
                     const osrmCoordsStr = coordinateArray.map(c => `${c[1]},${c[0]}`).join(';');
                     const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${osrmCoordsStr}?overview=false`);
@@ -685,12 +670,11 @@
                     console.warn("OSRM fallback:", eRouting);
                 }
 
-                // Fallback geodetico stradale reale se OSRM è occupato
                 if (!calcolatoViaWeb) {
                     for (let j = 0; j < coordinateArray.length - 1; j++) {
                         kmTotali += stimaDistanzaStradale(coordinateArray[j], coordinateArray[j+1]);
                     }
-                    if (kmTotali < 10) kmTotali = 25; // Minimo plausibile andata e ritorno sede
+                    if (kmTotali < 10) kmTotali = 25;
                     setTxt('lbl-tempo-stimato', "~ " + Math.round(kmTotali * 1.2) + " min");
                 }
 
@@ -705,7 +689,6 @@
 
             } catch(e) {
                 console.error("Errore routing:", e);
-                // Fallback garantito in caso di errore inaspettato
                 const kmInput = document.getElementById('prev-km-totali');
                 if (kmInput && (!kmInput.value || kmInput.value == 0)) kmInput.value = 30;
                 ricalcolaCosti();
@@ -715,7 +698,6 @@
             }
         };
 
-        // CALCOLO TARIFFE SECONDO CARTA DEI SERVIZI
         function ricalcolaCosti() {
             const mezzoEl = document.getElementById('prev-mezzo');
             const mezzo = mezzoEl ? mezzoEl.value : 'ambulanza';
@@ -813,9 +795,6 @@
             };
         }
 
-        // =========================================================================
-        // INVIO WHATSAPP (100% GARANTITO, ANTI-POPUP BLOCKER)
-        // =========================================================================
         window.inviaPreventivoWhatsApp = function() {
             ricalcolaCosti();
 
@@ -849,14 +828,12 @@
                 ? `https://api.whatsapp.com/send?phone=${tel}&text=${encoded}`
                 : `https://api.whatsapp.com/send?text=${encoded}`;
 
-            // Salvataggio Cloud in parallelo (non blocca l'apertura)
             if (database) {
                 try {
                     database.ref(dbRootPath + '/preventivi_emessi/' + calcoloAttuale.id).set(calcoloAttuale);
                 } catch(e) { console.warn("Firebase save:", e); }
             }
 
-            // Attivazione sincrona del link (funziona su qualsiasi smartphone e browser)
             const a = document.createElement('a');
             a.href = targetUrl;
             a.target = '_blank';
@@ -868,14 +845,10 @@
             showToast("WhatsApp aperto con successo!");
         };
 
-        // =========================================================================
-        // GENERATORE PDF FORMALE (100% FUNZIONANTE, GESTIONE ERRORI CRASH-PROOF)
-        // =========================================================================
         window.stampaPreventivoPDF = function() {
             try {
                 ricalcolaCosti();
 
-                // Resolver universale per jsPDF
                 let jsPdfLib = null;
                 if (window.jspdf && window.jspdf.jsPDF) {
                     jsPdfLib = window.jspdf.jsPDF;
@@ -884,13 +857,12 @@
                 }
 
                 if (!jsPdfLib) {
-                    alert("Errore: la libreria PDF non è ancora pronta. Attendi qualche istante o ricarica la pagina.");
+                    alert("Errore: libreria PDF non caricata. Ricarica la pagina.");
                     return;
                 }
 
                 const doc = new jsPdfLib('p', 'mm', 'a4');
 
-                // Intestazione
                 doc.setFontSize(13); 
                 doc.setTextColor(198, 40, 40); 
                 doc.setFont("helvetica", "bold");
@@ -936,7 +908,6 @@
                     righePreventivo.push(["Agevolazione Sociale", "Sconto applicato", "- € " + parseFloat(calcoloAttuale.sconto).toFixed(2)]);
                 }
 
-                // Generazione tabella con AutoTable
                 if (typeof doc.autoTable === 'function') {
                     doc.autoTable({
                         startY: 70,

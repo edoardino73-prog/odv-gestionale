@@ -36,8 +36,10 @@
         body { background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
 
         .topbar { width: 100%; max-width: 1200px; background: white; border: 1px solid var(--border); padding: 14px 22px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
-        .topbar-left { display: flex; align-items: center; gap: 14px; }
-        .btn { padding: 9px 18px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; text-decoration: none; transition: 0.2s; }
+        .topbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .btn { padding: 9px 16px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; text-decoration: none; transition: 0.2s; }
+        .btn-home { background: var(--secondary); color: white; }
+        .btn-home:hover { background: #0f172a; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-whatsapp { background: var(--whatsapp); color: white; }
@@ -80,12 +82,10 @@
 
     <header class="topbar">
         <div class="topbar-left">
+            <!-- TASTO DI RITORNO ALLA DASHBOARD INDEX.HTML -->
+            <a href="index.html" class="btn btn-home"><i class="fa-solid fa-desktop"></i> Dashboard</a>
             <a href="preventivi.html" class="btn btn-ghost"><i class="fa-solid fa-arrow-left"></i> Calcolatore Preventivi</a>
             <a href="iso9001%20accreditamento.html" class="btn btn-ghost"><i class="fa-solid fa-medal"></i> Gestione Qualità</a>
-            <div>
-                <h3 style="font-size: 0.95rem; font-weight: 800; color: var(--secondary);">Registro Fiscale Ricevute & Proforma WhatsApp</h3>
-                <p style="font-size: 0.75rem; color: var(--text-light);">Richiamo Automatico Preventivi • Numerazione Progressiva • Marca da Bollo</p>
-            </div>
         </div>
     </header>
 
@@ -293,7 +293,6 @@
             if (totEl) totEl.value = totale.toFixed(2) + " €";
         }
 
-        // Connessione Firebase
         try {
             const firebaseConfig = {
                 apiKey: "AIzaSyDhi3SRh2mDqz8_T03xYVq4XtcRiAL7IF0",
@@ -331,7 +330,6 @@
             }
         });
 
-        // POPOLA MENU A TENDINA PREVENTIVI
         function popolaSelectPreventivi() {
             const sel = document.getElementById('select-richiama-preventivo');
             if (!sel) return;
@@ -353,7 +351,6 @@
             if (prevVal) sel.value = prevVal;
         }
 
-        // CARICA I DATI DEL PREVENTIVO SELEZIONATO
         window.applicaDatiPreventivoSelezionato = function(idSpecifico) {
             const sel = document.getElementById('select-richiama-preventivo');
             const targetId = idSpecifico || (sel ? sel.value : '');
@@ -363,21 +360,17 @@
             const p = preventivi.find(function(x) { return String(x.id) === String(targetId); });
             if (!p) return;
 
-            // Compila Assistito
             const nomEl = document.getElementById('ric-nominativo');
             if (nomEl && p.cliente && p.cliente !== "Gentile Utente") nomEl.value = p.cliente;
 
-            // Compila Telefono
             const telEl = document.getElementById('ric-telefono');
             if (telEl && p.tel) telEl.value = p.tel;
 
-            // Compila Indirizzo se presente nel punto di prelievo
             const indEl = document.getElementById('ric-indirizzo');
             if (indEl && !indEl.value && p.prelievo && p.prelievo !== "Narni Scalo") {
                 indEl.value = p.prelievo;
             }
 
-            // Compila Causale dettagliata con specifiche del viaggio
             const causEl = document.getElementById('ric-causale');
             if (causEl) {
                 const mezzo = p.mezzoDesc || "Ambulanza Tipo B";
@@ -388,7 +381,6 @@
                 causEl.value = `Rimborso spese per trasporto sanitario protetto (${mezzo}) - ${tratta}${km}.${rifNum}`;
             }
 
-            // Compila Importo (totale concordato nel preventivo)
             const impEl = document.getElementById('ric-importo');
             if (impEl && p.totale) {
                 impEl.value = parseFloat(p.totale).toFixed(2);
@@ -398,7 +390,6 @@
             showToast("Dati del preventivo " + (p.numero || "") + " importati con successo!");
         };
 
-        // Verifica parametro GET (es. ricevute.html?prev_id=PREV-2026_1234)
         function verificaParametroUrlPreventivo() {
             const params = new URLSearchParams(window.location.search);
             const prevId = params.get('prev_id') || params.get('preventivo_id');
@@ -434,7 +425,6 @@
             });
         }
 
-        // COMPOSIZIONE TESTO WHATSAPP
         function componiTestoWhatsApp(dati, isProforma) {
             const tipoDoc = isProforma ? "*PROFORMA DI RICEVUTA RIMBORSO SPESE*" : ("*RICEVUTA DI RIMBORSO SPESE N. " + dati.numero + "*");
             const dataFmt = dati.data ? new Date(dati.data).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
@@ -537,7 +527,6 @@
             showToast("Riepilogo Ricevuta aperto su WhatsApp!");
         };
 
-        // EMISSIONE DEFINITIVA E SALVATAGGIO
         window.emettiRicevuta = function(e) {
             e.preventDefault();
             const dataEmiss = document.getElementById('ric-data').value;
@@ -602,7 +591,6 @@
             if (r) stampaRicevutaPDF(r);
         };
 
-        // MOTORE STAMPA PDF RICEVUTA
         function stampaRicevutaPDF(r) {
             let jsPdfLib = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : window.jsPDF;
             if (!jsPdfLib) {
